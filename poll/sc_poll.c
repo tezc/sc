@@ -182,7 +182,7 @@ int sc_poll_wait(struct sc_poll *poll, int timeout)
     return n;
 }
 
-#elif defined(__APPLE__) || defined(__FREE_BSD__)
+#elif defined(__APPLE__) || defined(__FreeBSD__)
 int sc_poll_init(struct sc_poll *poll)
 {
     int fds;
@@ -209,11 +209,13 @@ int sc_poll_term(struct sc_poll *poll)
 int sc_poll_add_fd(struct sc_poll *poll, int fd, int events, void *data)
 {
     int rc, count = 0;
+    size_t cap, size;
+    void* p;
     struct kevent ev[2];
 
     if (poll->fd_count == poll->fd_cap) {
         cap = poll->fd_cap == 0 ? 16 : poll->fd_cap * 2;
-        size = sizeof(struct epoll_event) * cap;
+        size = sizeof(struct kevent) * cap;
 
         p = sc_poll_realloc(poll->events, size);
         if (p == NULL) {
@@ -226,14 +228,14 @@ int sc_poll_add_fd(struct sc_poll *poll, int fd, int events, void *data)
     }
 
     if (events & SC_POLL_WRITE) {
-        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_ADD, 0, 0, nfd);
+        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
     }
 
     if (events & SC_POLL_READ) {
-        EV_SET(&ev[count++], fd, EVFILT_READ, EV_ADD, 0, 0, nfd);
+        EV_SET(&ev[count++], fd, EVFILT_READ, EV_ADD, 0, 0, data);
     }
 
-    rc = kevent(poll->fds, &ev, count, NULL, 0, NULL);
+    rc = kevent(poll->fds, ev, count, NULL, 0, NULL);
     if (rc != 0) {
         sc_poll_on_error("kevent : %s ", strerror(errno));
         return -1;
@@ -253,14 +255,14 @@ int sc_poll_mod_fd(struct sc_poll *poll, int fd, int events, void *data)
     EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
 
     if (events & SC_POLL_READ) {
-        EV_SET(&ev[count++], fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+        EV_SET(&ev[count++], fd, EVFILT_READ, EV_ADD, 0, 0, data);
     }
 
     if (events & SC_POLL_WRITE) {
-        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
     }
 
-    rc = kevent(poll->fds, &ev, count, NULL, 0, NULL);
+    rc = kevent(poll->fds, ev, count, NULL, 0, NULL);
     if (rc != 0) {
         sc_poll_on_error("kevent : %s ", strerror(errno));
         return -1;
@@ -287,7 +289,7 @@ int sc_poll_del_fd(struct sc_poll *poll, int fd, int events)
         EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     }
 
-    rc = kevent(poll->fds, &ev, count, NULL, 0, NULL);
+    rc = kevent(poll->fds, ev, count, NULL, 0, NULL);
     if (rc != 0) {
         sc_poll_on_error("kevent : %s ", strerror(errno));
         return -1;
@@ -306,18 +308,13 @@ void *sc_poll_data(struct sc_poll *poll, int i)
 uint32_t sc_poll_event(struct sc_poll *poll, int i)
 {
     uint32_t events = 0;
-    uint32_t kqueue_flags = poll->events[i].flags;
 
-    if (kqueue_flags & EVFILT_READ) {
-        events |= SC_POLL_READ;
-    }
-
-    if (kqueue_flags & EVFILT_WRITE) {
-        events |= SC_POLL_WRITE;
-    }
-
-    if (kqueue_flags & EV_EOF) {
+    if (poll->events[i].flags & EV_EOF) {
         events = (SC_POLL_READ | SC_POLL_WRITE);
+    } else if (poll->events[i].filter == EVFILT_READ) {
+        events |= SC_POLL_READ;
+    } else if (poll->events[i].filter == EVFILT_WRITE) {
+        events |= SC_POLL_WRITE;
     }
 
     return events;

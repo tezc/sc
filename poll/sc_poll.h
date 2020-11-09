@@ -39,7 +39,7 @@ struct sc_poll
     struct epoll_event *events;
 };
 
-#elif defined(__APPLE__) || defined(__FREE_BSD__) 
+#elif defined(__APPLE__) || defined(__FreeBSD__)
 #include <sys/event.h>
 
 struct sc_poll
