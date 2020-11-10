@@ -75,7 +75,9 @@ void example(void)
     int elem;
 
     sc_queue_create(queue, 0);
+    sc_queue_destroy(queue);
 
+    sc_queue_create(queue, 0);
     sc_queue_add_last(queue, 2);
     sc_queue_add_last(queue, 3);
     sc_queue_add_last(queue, 4);

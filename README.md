@@ -1,17 +1,12 @@
 
 ## Standalone C libraries
-- Each sub-folder is independent, consist one *.c *.h pair, just copy files to your project.
-
-##### OS
-- Linux, Windows, macOS : ![.github/workflows/.actions.yml](https://github.com/tezc/simple-c/workflows/.github/workflows/.actions.yml/badge.svg)
-- FreeBSD               : [![Build Status](https://api.cirrus-ci.com/github/tezc/simple-c.svg)](https://cirrus-ci.com/github/tezc/simple-c)
-[![codecov](https://codecov.io/gh/tezc/simple-c/branch/master/graph/badge.svg)](https://codecov.io/gh/tezc/simple-c)
+- Each sub-folder is independent, consists one .c and .h pair, just copy these files to your project.
 
 
-## Vector
-
-|                 |                                                                            | |
-|-----------------|-----------------------------------------------------------------------------|
+## Libraries
+ 
+|                 |                                                                             | 
+|:---------------:|-----------------------------------------------------------------------------|
 | **array**       | Generic growable array                                                      |
 | **crc32**       | Crc32 implementation contains hardware & software versions                  |
 | **heap**        | Heap implementation which can be used as minheap/max heap/priority queue    |
@@ -27,10 +22,16 @@
 | **timer**       | Hashed timer wheel implementation                                           |
 
 
-#### OS
-|                     |          |
-|---------------------|----------|
-| Linux |
-| Windows
-| MacOS
-| FreeBSD
+#### Tests
+
+CI runs on
+
+|              |                                              |
+|--------------|----------------------------------------------|
+| **OS**       |Linux, Windows, macOs, FreeBSD                |
+| **Arch**     | x64, x86, s390x, arm6, arm7, aarch64, ppc64le|
+| **Compiler** | gcc, clang, msvc                             |
+ 
+[![codecov](https://codecov.io/gh/tezc/simple-c/branch/master/graph/badge.svg)](https://codecov.io/gh/tezc/simple-c)
+[![Build Status](https://api.cirrus-ci.com/github/tezc/simple-c.svg)](https://cirrus-ci.com/github/tezc/simple-c)
+![.github/workflows/.actions.yml](https://github.com/tezc/simple-c/workflows/.github/workflows/.actions.yml/badge.svg)
