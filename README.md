@@ -5,7 +5,7 @@
 
 ## Libraries
  
-|                 |                                                                             | 
+| Library         | Description                                                                 | 
 |:---------------:|-----------------------------------------------------------------------------|
 | **array**       | Generic growable array                                                      |
 | **crc32**       | Crc32 implementation contains hardware & software versions                  |
@@ -26,7 +26,7 @@
 
 CI runs on
 
-|              |                                              |
+| Environment  |  Description                                 |
 |--------------|----------------------------------------------|
 | **OS**       |Linux, Windows, macOs, FreeBSD                |
 | **Arch**     | x64, x86, s390x, arm6, arm7, aarch64, ppc64le|
@@ -35,4 +35,3 @@ CI runs on
 [![codecov](https://codecov.io/gh/tezc/simple-c/branch/master/graph/badge.svg)](https://codecov.io/gh/tezc/simple-c)
 [![Build Status](https://api.cirrus-ci.com/github/tezc/simple-c.svg)](https://cirrus-ci.com/github/tezc/simple-c)
 ![.github/workflows/.actions.yml](https://github.com/tezc/simple-c/workflows/.github/workflows/.actions.yml/badge.svg)
-![.github/workflows/.actions.yml](https://github.com/tezc/simple-c/workflows/.github/workflows/windows/badge.svg)
