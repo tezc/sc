@@ -1,0 +1,147 @@
+on: [ push, pull_request ]
+
+jobs:
+  archs:
+    # The host should always be linux
+    runs-on: ubuntu-18.04
+    name: Build on ${{ matrix.distro }} ${{ matrix.arch }}
+
+    # Run steps on a matrix of 3 arch/distro combinations
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: armv6
+            distro: buster
+          - arch: armv7
+            distro: buster
+          - arch: aarch64
+            distro: fedora_latest
+          - arch: ppc64le
+            distro: fedora_latest
+          - arch: s390x
+            distro: fedora_latest
+
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: uraimo/run-on-arch-action@v2.0.7
+        name: Build artifact
+        id: build
+        with:
+          arch: ${{ matrix.arch }}
+          distro: ${{ matrix.distro }}
+
+          # Not required, but speeds up builds
+          githubToken: ${{ github.token }}
+
+          # Pass some environment variables to the container
+          env: | # YAML, but pipe character is necessary
+            artifact_name: git-${{ matrix.distro }}_${{ matrix.arch }}
+
+          # The shell to run commands with in the container
+          shell: /bin/sh
+
+          # Install some dependencies in the container. This speeds up builds if
+          # you are also using githubToken. Any dependencies installed here will
+          # be part of the container image that gets cached, so subsequent
+          # builds don't have to re-install them. The image layer is cached
+          # publicly in your project's package repository, so it is vital that
+          # no secrets are present in the container state or logs.
+          install: |
+            case "${{ matrix.distro }}" in
+              ubuntu*|jessie|stretch|buster)
+                apt-get update -q -y
+                apt-get install -q -y  build-essential git gcc valgrind cmake
+                ;;
+              fedora*)
+                dnf -y update
+                dnf -y install git gcc valgrind cmake
+                ;;
+              alpine*)
+                apk update
+                apk add libexecinfo-dev linux-headers util-linux alpine-sdk perf libc-dev
+                apk add git gcc clang valgrind cmake
+                ;;
+            esac
+
+          # Produce a binary artifact and place it in the mounted volume
+          run: |
+            uname -a;id;uname -m;lscpu | grep Endian
+            mkdir build && cd build
+            cmake .. && make -j && make check
+  ubuntu:
+    runs-on: ubuntu-latest
+    name: Build on Ubuntu
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ gcc, clang ]
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          sudo apt-get install valgrind cmake
+          mkdir build-debug && cd build-debug
+          cmake .. -DSANITIZER=address
+          make -j
+          make check
+          rm -rf *
+          cmake .. -DSANITIZER=undefined
+          make -j
+          make check
+          rm -rf *
+          cmake ..
+          make -j
+          make valgrind
+  macos:
+    runs-on: macos-latest
+    name: Build on Mac OS
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: [ gcc, clang ]
+
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          mkdir build-debug && cd build-debug
+          cmake .. -DSANITIZER=address
+          make -j
+          make check
+          rm -rf *
+          cmake .. -DSANITIZER=undefined
+          make -j
+          make check
+
+  windows:
+    runs-on: windows-latest
+    name: Build on Windows
+
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        run: |
+          mkdir build-debug && cd build-debug
+          cmake -G "Visual Studio 16 2019" -A x64 ..
+          cmake --build .
+          ctest -C Debug
+  coverage:
+    runs-on: ubuntu-latest
+    name: Coverage
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        run: |
+          sudo apt-get install cmake lcov
+          mkdir build-debug && cd build-debug
+          cmake .. -DCMAKE_BUILD_TYPE=Coverage
+          make -j
+          make coverage
+          bash <(curl -s https://codecov.io/bash) -f coverage.info -t ${{ secrets.CODECOV }}
