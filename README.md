@@ -35,4 +35,4 @@ CI runs on
 [![codecov](https://codecov.io/gh/tezc/simple-c/branch/master/graph/badge.svg)](https://codecov.io/gh/tezc/simple-c)
 [![Build Status](https://api.cirrus-ci.com/github/tezc/simple-c.svg)](https://cirrus-ci.com/github/tezc/simple-c)
 ![.github/workflows/.actions.yml](https://github.com/tezc/simple-c/workflows/.github/workflows/.actions.yml/badge.svg)
-![.github/workflows/.actions.yml](https://github.com/tezc/simple-c/workflows/.github/workflows/archs/badge.svg)
+![.github/workflows/.actions.yml](https://github.com/tezc/simple-c/workflows/.github/workflows/windows/badge.svg)

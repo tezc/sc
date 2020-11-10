@@ -1,0 +1,15 @@
+on: [ push, pull_request ]
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    name: windows
+
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        run: |
+          mkdir build-debug && cd build-debug
+          cmake -G "Visual Studio 16 2019" -A x64 ..
+          cmake --build .
+          ctest -C Debug
