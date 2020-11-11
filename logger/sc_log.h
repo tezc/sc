@@ -154,4 +154,5 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...);
 #define sc_log_warn(...)  (sc_log_log(SC_LOG_WARN, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_error(...) (sc_log_log(SC_LOG_ERROR, sc_log_ap(__VA_ARGS__, "")))
 
+#define sc_log_(args)
 #endif

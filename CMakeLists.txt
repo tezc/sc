@@ -21,9 +21,11 @@ add_subdirectory(map)
 add_subdirectory(mutex)
 add_subdirectory(queue)
 add_subdirectory(perf)
+add_subdirectory(pipe)
 add_subdirectory(string)
 add_subdirectory(time)
 add_subdirectory(timer)
+add_subdirectory(url)
 
 
 
