@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(tz_lib C)
+project(sc_lib C)
 include(CTest)
 include(CheckCCompilerFlag)
 
@@ -21,9 +21,11 @@ add_subdirectory(map)
 add_subdirectory(mutex)
 add_subdirectory(queue)
 add_subdirectory(perf)
+add_subdirectory(pipe)
 add_subdirectory(string)
 add_subdirectory(time)
 add_subdirectory(timer)
+add_subdirectory(url)
 
 
 
