@@ -33,3 +33,18 @@ jobs:
           cmake ..
           make -j
           make valgrind
+
+  ubuntu-gcc-thread:
+    runs-on: ubuntu-latest
+    name: Thread sanitizer
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        env:
+          CC: gcc
+        run: |
+          sudo apt-get install cmake
+          mkdir build-debug && cd build-debug
+          cmake .. -DSANITIZER=thread
+          make -j
+          make check

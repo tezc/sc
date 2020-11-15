@@ -37,7 +37,7 @@ int sc_pipe_init(struct sc_pipe *p)
     SOCKET listener;
     int rc;
     struct sockaddr_in addr;
-    size_t addrlen = sizeof(addr);
+    int addrlen = sizeof(addr);
     int val = 1;
     BOOL nodelay = 1;
     u_long nonblock;

@@ -22,10 +22,6 @@ jobs:
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
 
-          # Pass some environment variables to the container
-          env: | # YAML, but pipe character is necessary
-            artifact_name: git-buster_armv7
-
           # The shell to run commands with in the container
           shell: /bin/sh
 

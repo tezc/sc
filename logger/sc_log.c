@@ -24,6 +24,7 @@
 
 #include "sc_log.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
@@ -82,7 +83,6 @@ void sc_log_mutex_unlock(struct sc_log_mutex *mtx)
 
 #else
 
-    #include <assert.h>
     #include <pthread.h>
 
 struct sc_log_mutex
