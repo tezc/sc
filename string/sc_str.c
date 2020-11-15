@@ -313,7 +313,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
     char *orig_end = *str + meta->len;
     char *tmp;
 
-    if (replace_len > UINT32_MAX || with_len > UINT32_MAX) {
+    if (replace_len >= UINT32_MAX || with_len >= UINT32_MAX) {
         return false;
     }
 

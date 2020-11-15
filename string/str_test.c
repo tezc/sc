@@ -33,7 +33,7 @@ size_t __real_strlen(const char* str);
 size_t __wrap_strlen(const char* str)
 {
     if (fail_strlen) {
-        return UINT64_MAX;
+        return UINT32_MAX;
     }
 
     return __real_strlen(str);
