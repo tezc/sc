@@ -31,17 +31,17 @@
 #include <time.h>
 
 #ifndef thread_local
-#if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
-#define thread_local _Thread_local
-#elif defined _WIN32 && (defined _MSC_VER || defined __ICL ||              \
-                         defined __DMC__ || defined __BORLANDC__)
-#define sy_thread_local __declspec(thread)
+    #if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
+        #define thread_local _Thread_local
+    #elif defined _WIN32 && (defined _MSC_VER || defined __ICL ||              \
+                             defined __DMC__ || defined __BORLANDC__)
+        #define thread_local __declspec(thread)
     /* note that ICC (linux) and Clang are covered by __GNUC__ */
-#elif defined __GNUC__ || defined __SUNPRO_C || defined __xlC__
-#define thread_local __thread
-#else
-#error "Cannot define  thread_local"
-#endif
+    #elif defined __GNUC__ || defined __SUNPRO_C || defined __xlC__
+        #define thread_local __thread
+    #else
+        #error "Cannot define  thread_local"
+    #endif
 #endif
 
 thread_local char sc_name[32] = "Thread";
@@ -187,7 +187,7 @@ int sc_log_term(void)
     return rc;
 }
 
-void sc_log_set_thread_name(const char* name)
+void sc_log_set_thread_name(const char *name)
 {
     strncpy(sc_name, name, sizeof(sc_name));
 }

@@ -31,6 +31,17 @@
 #ifdef SC_HAVE_WRAP
 #include <unistd.h>
 
+bool fail_close = false;
+int __real_close(int fd);
+int __wrap_close(int fd)
+{
+    if (fail_close) {
+        return -1;
+    }
+
+    return __real_close(fd);
+}
+
 bool fail_pipe = false;
 int __real_pipe(int __pipedes[2]);
 int __wrap_pipe(int __pipedes[2])
@@ -48,6 +59,11 @@ void fail_test()
     fail_pipe = true;
     assert(sc_pipe_init(&pipe, 0) != 0);
     fail_pipe = false;
+    assert(sc_pipe_init(&pipe, 0) == 0);
+    fail_close = true;
+    assert(sc_pipe_term(&pipe) == -1);
+    fail_close = false;
+    assert(sc_pipe_term(&pipe) == 0);
 }
 
 #else
