@@ -68,7 +68,7 @@ add_custom_target(check_${PROJECT_NAME} ${CMAKE_COMMAND}
 # ----------------------- - Code Coverage Start ----------------------------- #
 
 if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
-    if ("${CMAKE_C_COMPILER_ID}" threadEQUAL "GNU")
+    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
         target_compile_options(${PROJECT_NAME}_test PRIVATE --coverage)
         target_link_libraries(${PROJECT_NAME}_test gcov)
     else()
