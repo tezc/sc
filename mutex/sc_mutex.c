@@ -54,7 +54,7 @@ void sc_mutex_unlock(struct sc_mutex *mtx)
 
 int sc_mutex_init(struct sc_mutex *mtx)
 {
-    int rc;
+    int rc, rv;
     pthread_mutexattr_t attr;
     pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
@@ -63,6 +63,7 @@ int sc_mutex_init(struct sc_mutex *mtx)
     // May fail on OOM
     rc = pthread_mutexattr_init(&attr);
     if (rc != 0) {
+        sc_mutex_on_error("pthread_mutexattr_init : errcode(%d) ", rc);
         return rc;
     }
 
@@ -72,27 +73,45 @@ int sc_mutex_init(struct sc_mutex *mtx)
 
     // May fail on OOM
     rc = pthread_mutex_init(&mtx->mtx, &attr);
+    if (rc != 0) {
+        sc_mutex_on_error("pthread_mutex_init : errcode(%d) ", rc);
+    }
 
     // This won't fail as long as we pass correct param.
-    pthread_mutexattr_destroy(&attr);
+    rv = pthread_mutexattr_destroy(&attr);
+    assert(rv == 0);
+
     return rc;
 }
 
 int sc_mutex_term(struct sc_mutex *mtx)
 {
-    return pthread_mutex_destroy(&mtx->mtx);
+    int rc;
+
+    rc = pthread_mutex_destroy(&mtx->mtx);
+    if (rc != 0) {
+        sc_mutex_on_error("pthread_mutex_destroy : errcode(%d) ", rc);
+    }
+
+    return rc;
 }
 
 void sc_mutex_lock(struct sc_mutex *mtx)
 {
+    int rc;
+
     // This won't fail as long as we pass correct param.
-    pthread_mutex_lock(&mtx->mtx);
+    rc = pthread_mutex_lock(&mtx->mtx);
+    assert(rc == 0);
 }
 
 void sc_mutex_unlock(struct sc_mutex *mtx)
 {
+    int rc;
+
     // This won't fail as long as we pass correct param.
-    pthread_mutex_unlock(&mtx->mtx);
+    rc = pthread_mutex_unlock(&mtx->mtx);
+    assert(rc == 0);
 }
 
 #endif

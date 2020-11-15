@@ -45,6 +45,14 @@ struct sc_heap
 };
 
 /**
+ * If you want to log or abort on errors like out of memory,
+ * put your error function here. It will be called with printf like error msg.
+ *
+ * my_on_error(const char* fmt, ...);
+ */
+#define sc_heap_on_error(...)
+
+/**
  *  Plug your memory allocator.
  */
 #define sc_heap_malloc  malloc

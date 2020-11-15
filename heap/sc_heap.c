@@ -45,6 +45,7 @@ bool sc_heap_init(struct sc_heap *heap, size_t cap)
 
     // Check overflow
     if (cap > SC_CAP_MAX || (elems = sc_heap_malloc(alloc)) == NULL) {
+        sc_heap_on_error("Out of memory. cap(%zu) alloc(%zu) ", cap, alloc);
         return false;
     }
 
@@ -76,10 +77,11 @@ bool sc_heap_add(struct sc_heap *heap, int64_t key, void *data)
 
     if (++heap->size >= heap->cap) {
         const size_t cap = heap->cap != 0 ? heap->cap * 2 : 4;
-        const size_t alloc = cap * 2 * sizeof(struct sc_heap_data);
+        const size_t m = cap * 2 * sizeof(struct sc_heap_data);
         // Check overflow
         if (heap->cap >= SC_CAP_MAX / 2 ||
-            (exp = sc_heap_realloc(heap->elems, alloc)) == NULL) {
+            (exp = sc_heap_realloc(heap->elems, m)) == NULL) {
+            sc_heap_on_error("Out of memory. cap(%zu) m(%zu) ", heap->cap, m);
             return false;
         }
 

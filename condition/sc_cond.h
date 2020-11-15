@@ -21,49 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef SC_URL_H
-#define SC_URL_H
+
+#ifndef SC_COND_H
+#define SC_COND_H
 
 #include <stdbool.h>
-#include <stdlib.h>
 
-/**
- * Based on RFC 3986
- *
- *    The following is a example URIs and their component parts:
- *
- *      foo://user:password@example.com:8042/over/there?name=ferret#nose
- *      \_/   \____________________________/\_________/ \_________/ \__/
- *       |                |                     |            |       |
- *     scheme        authority                path        query   fragment
- *
- *
- *      user:password@example.com:8042
- *      \__________/ \_________/ \__/
- *           |            |       |
- *       userinfo       host     port
- * --------------------------------------------------------------------
- *
- */
+#if defined(_WIN32) || defined(_WIN64)
+#include <windows.h>
+#else
+#include <pthread.h>
+#endif
 
-struct sc_url
+struct sc_cond
 {
-    const char *str;
-    const char *scheme;
-    const char *host;
-    const char *userinfo;
-    const char *port;
-    const char *path;
-    const char *query;
-    const char *fragment;
+    bool done;
+    void* data;
 
-    char buf[];
+#if defined(_WIN32) || defined(_WIN64)
+    CONDITION_VARIABLE cond;
+    CRITICAL_SECTION mtx;
+#else
+    pthread_cond_t cond;
+    pthread_mutex_t mtx;
+#endif
 };
 
-#define sc_url_malloc malloc
-#define sc_url_free   free
+int sc_cond_init(struct sc_cond* cond);
+int sc_cond_term(struct sc_cond* cond);
+int sc_cond_finish(struct sc_cond* cond, void* data);
+int sc_cond_sync(struct sc_cond* cond, void** data);
 
-struct sc_url *sc_url_create(const char *str);
-void sc_url_destroy(struct sc_url *url);
+/**
+ * If you want to log or abort on errors like out of memory,
+ * put your error function here. It will be called with printf like error msg.
+ *
+ * my_on_error(const char* fmt, ...);
+ */
+#define sc_cond_on_error(...)
 
 #endif

@@ -60,6 +60,7 @@ char *sc_str_create(const char *str)
 
     size_t size = strlen(str);
     if (size > SC_SIZE_MAX) {
+        sc_str_on_error("Max size has been exceed. size(%zu). ", size);
         return NULL;
     }
 
@@ -74,6 +75,7 @@ char *sc_str_create_len(const char *str, uint32_t len)
 
     copy = sc_str_malloc(sc_str_bytes(len));
     if (copy == NULL) {
+        sc_str_on_error("Out of memory. size(%zu). ", sc_str_bytes(len));
         return NULL;
     }
 
@@ -94,12 +96,14 @@ char *sc_str_create_va(const char *fmt, va_list va)
     va_copy(args, va);
     rc = vsnprintf(tmp, sizeof(tmp), fmt, args);
     if (rc < 0) {
+        sc_str_on_error("vsnprintf: %d. ", rc);
         return NULL;
     }
     va_end(args);
 
     str = sc_str_malloc(sc_str_bytes(rc));
     if (str == NULL) {
+        sc_str_on_error("Out of memory. size(%zu). ", sc_str_bytes(rc));
         return NULL;
     }
 
@@ -113,6 +117,7 @@ char *sc_str_create_va(const char *fmt, va_list va)
         va_end(args);
 
         if (rc < 0 || rc > str->len) {
+            sc_str_on_error("vsnprintf: %d. ", rc);
             sc_str_free(str);
             return NULL;
         }
@@ -197,6 +202,7 @@ bool sc_str_append(char **str, const char *param)
     size_t alloc = sc_str_bytes(meta->len + len);
 
     if (alloc > SC_SIZE_MAX || (meta = sc_str_realloc(meta, alloc)) == NULL) {
+        sc_str_on_error("Out of memory. alloc(%zu). ", alloc);
         return false;
     }
 
@@ -304,7 +310,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 
     size_t replace_len = strlen(replace);
     size_t with_len = strlen(with);
-    int64_t diff = (int64_t)with_len - (int64_t)replace_len;
+    int64_t diff = (int64_t) with_len - (int64_t) replace_len;
     size_t len_unmatch;
     size_t count, size;
     struct sc_str *dest;
@@ -314,6 +320,9 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
     char *tmp;
 
     if (replace_len >= UINT32_MAX || with_len >= UINT32_MAX) {
+        sc_str_on_error(
+                "Replace size is too big. replace_len(%zu), with_len(%zu). ",
+                replace_len, with_len);
         return false;
     }
 
@@ -334,6 +343,9 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
         tmp += replace_len;
         // Check overflow.
         if (size > SC_SIZE_MAX - diff) {
+            sc_str_on_error("Replace size is too big. replace_len(%zu), "
+                            "with_len(%zu). ",
+                            replace_len, with_len);
             return false;
         }
         size += diff;
@@ -346,6 +358,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 
     dest = sc_str_malloc(sc_str_bytes(size));
     if (!dest) {
+        sc_str_on_error("Out of memory. size(%zu). ", sc_str_bytes(size));
         return false;
     }
     dest->len = size;

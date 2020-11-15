@@ -41,6 +41,8 @@ static const struct sc_array sc_empty = {.size = 0, .cap = 0};
 
 bool sc_array_init(void **arr, size_t elem_size, size_t cap)
 {
+    const size_t max = SC_SIZE_MAX / elem_size;
+    size_t bytes;
     struct sc_array *meta;
 
     if (cap == 0) {
@@ -49,13 +51,16 @@ bool sc_array_init(void **arr, size_t elem_size, size_t cap)
     }
 
     // Check overflow
-    if (cap > SC_SIZE_MAX / elem_size) {
+    if (cap > max) {
+        sc_array_on_error("Max capacity(%zu) has been reached. ", max);
         *arr = NULL;
         return false;
     }
 
-    meta = sc_array_realloc(NULL, sizeof(*meta) + (elem_size * cap));
+    bytes = sizeof(*meta) + (elem_size * cap);
+    meta = sc_array_realloc(NULL, bytes);
     if (meta == NULL) {
+        sc_array_on_error("Failed to allocate %zu bytes. ", bytes);
         *arr = NULL;
         return false;
     }
@@ -80,13 +85,15 @@ void sc_array_term(void **arr)
 
 bool sc_array_expand(void **arr, size_t elem_size)
 {
-    size_t size, cap;
+    const size_t max = SC_SIZE_MAX / elem_size;
+    size_t size, cap, bytes;
     struct sc_array *prev, *meta = sc_array_meta(*arr);
 
     if (meta->size == meta->cap) {
 
         // Check overflow
-        if (meta->cap > SC_SIZE_MAX / elem_size / 2) {
+        if (meta->cap > max / 2) {
+            sc_array_on_error("Max capacity(%zu) has been reached. ", max / 2);
             return false;
         }
 
@@ -94,8 +101,10 @@ bool sc_array_expand(void **arr, size_t elem_size)
         cap = (meta != &sc_empty) ? meta->cap * 2 : 2;
         prev = (meta != &sc_empty) ? meta : NULL;
 
-        meta = sc_array_realloc(prev, sizeof(*meta) + (elem_size * cap));
+        bytes =  sizeof(*meta) + (elem_size * cap);
+        meta = sc_array_realloc(prev, bytes);
         if (meta == NULL) {
+            sc_array_on_error("Failed to allocate %zu bytes. ", bytes);
             return false;
         }
 

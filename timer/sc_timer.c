@@ -49,6 +49,7 @@ bool sc_timer_init(struct sc_timer *timer, uint64_t timestamp)
 
     timer->list = sc_timer_malloc(size);
     if (timer->list == NULL) {
+        sc_timer_on_error("Out of memory. size(%zu) ", size);
         return false;
     }
 
@@ -86,11 +87,13 @@ static bool expand(struct sc_timer *timer)
 
     // Check overflow
     if (timer->wheel > SC_CAP_MAX / 2) {
+        sc_timer_on_error("Out of memory. timer->wheel(%zu) ", timer->wheel);
         return false;
     }
 
     alloc = sc_timer_malloc(size);
     if (alloc == NULL) {
+        sc_timer_on_error("Out of memory. size(%zu) ", size);
         return false;
     }
 
