@@ -26,7 +26,6 @@
 
 #include <assert.h>
 #include <memory.h>
-#include <stdio.h>
 
 #define TICK        16u
 #define WHEEL_COUNT 16u
@@ -39,8 +38,8 @@
 
 bool sc_timer_init(struct sc_timer *timer, uint64_t timestamp)
 {
-    const size_t wheel_cap = 4;
-    const size_t cap = WHEEL_COUNT * wheel_cap;
+    const uint32_t wheel_cap = 4;
+    const uint32_t cap = WHEEL_COUNT * wheel_cap;
     const size_t size = cap * sizeof(struct sc_timer_data);
 
     timer->count = 0;
@@ -68,7 +67,7 @@ void sc_timer_term(struct sc_timer *timer)
 
 void sc_timer_clear(struct sc_timer *timer)
 {
-    const size_t cap = timer->wheel * WHEEL_COUNT;
+    const uint32_t cap = timer->wheel * WHEEL_COUNT;
 
     timer->count = 0;
     timer->head = 0;
@@ -81,7 +80,7 @@ void sc_timer_clear(struct sc_timer *timer)
 
 static bool expand(struct sc_timer *timer)
 {
-    size_t cap = timer->wheel * WHEEL_COUNT * 2;
+    uint32_t cap = timer->wheel * WHEEL_COUNT * 2;
     size_t size = cap * sizeof(struct sc_timer_data);
     struct sc_timer_data *alloc;
 
@@ -121,7 +120,7 @@ uint64_t sc_timer_add(struct sc_timer *timer, void *data, uint64_t timeout)
 {
     const size_t pos = (timeout / TICK + timer->head) & (WHEEL_COUNT - 1);
     uint64_t id;
-    size_t seq, index, wheel_pos;
+    uint32_t seq, index, wheel_pos;
 
     assert(timeout < UINT64_MAX);
 
@@ -154,7 +153,7 @@ out:
 
 void sc_timer_cancel(struct sc_timer *timer, uint64_t *id)
 {
-    size_t pos;
+    uint64_t pos;
 
     if (*id == SC_TIMER_INVALID) {
         return;

@@ -32,7 +32,7 @@ void sc_thread_init(struct sc_thread* thread)
 #if defined(_WIN32) || defined(_WIN64)
 #include <process.h>
 
-unsigned int sc_thread_fn(void* arg)
+unsigned int __stdcall sc_thread_fn(void* arg)
 {
     struct sc_thread* thread = arg;
 
@@ -60,7 +60,7 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
     BOOL brc;
 
     if (thread->id == 0) {
-        goto out;
+        return -1;
     }
 
     rv = WaitForSingleObject(thread->id, INFINITE);
@@ -71,12 +71,9 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
     brc = CloseHandle(thread->id);
     if (!brc) {
         rc = -1;
-        goto out;
     }
 
-out:
     thread->id = 0;
-
     if (ret != NULL) {
         *ret = thread->ret;
     }
@@ -108,7 +105,7 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
 
 int sc_thread_stop(struct sc_thread* thread, void** ret)
 {
-    int rc = 0;
+    int rc;
     void* val;
 
     if (thread->id == 0) {

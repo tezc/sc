@@ -41,9 +41,9 @@ struct sc_timer_data
 struct sc_timer
 {
     uint64_t timestamp;
-    size_t head;
-    size_t wheel;
-    size_t count;
+    uint32_t head;
+    uint32_t wheel;
+    uint32_t count;
     struct sc_timer_data *list;
 };
 

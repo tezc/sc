@@ -36,3 +36,8 @@ jobs:
             uname -a;id;uname -m;lscpu | grep Endian
             mkdir build && cd build
             cmake .. && make -j && make check
+            rm -rf *
+            cmake .. -DSANITIZER=thread
+            make -j
+            make check
+
