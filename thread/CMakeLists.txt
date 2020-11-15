@@ -32,11 +32,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
         target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
-        target_link_options(${PROJECT_NAME}_test PRIVATE
-                -Wl,--wrap=malloc,--wrap=vsnprintf,--wrap=realloc)
-
-        target_link_options(${PROJECT_NAME}_test PRIVATE
-                -Wl,--wrap=malloc,--wrap=vsnprintf,--wrap=realloc)
+        target_link_options(${PROJECT_NAME}_test PRIVATE)
     endif ()
 endif ()
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR

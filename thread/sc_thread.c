@@ -92,28 +92,18 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
 
     rc = pthread_attr_init(&hndl);
     if (rc != 0) {
-        goto error;
+        return -1;
     }
 
-    rc = pthread_attr_setdetachstate(&hndl, PTHREAD_CREATE_JOINABLE);
-    if (rc != 0) {
-        goto clean_attr;
-    }
+    // This may only fail with EINVAL.
+    pthread_attr_setdetachstate(&hndl, PTHREAD_CREATE_JOINABLE);
 
     rc = pthread_create(&thread->id, &hndl, fn, arg);
-    if (rc != 0) {
-        goto clean_attr;
-    }
 
     // This may only fail with EINVAL.
     pthread_attr_destroy(&hndl);
 
-    return 0;
-
-clean_attr:
-    pthread_attr_destroy(&hndl);
-error:
-    return -1;
+    return rc;
 }
 
 int sc_thread_stop(struct sc_thread* thread, void** ret)
