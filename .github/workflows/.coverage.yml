@@ -1,0 +1,21 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  coverage:
+    runs-on: ubuntu-latest
+    name: Coverage
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        run: |
+          sudo apt-get install cmake lcov
+          mkdir build-debug && cd build-debug
+          cmake .. -DCMAKE_BUILD_TYPE=Coverage
+          make -j
+          make coverage
+          bash <(curl -s https://codecov.io/bash) -f coverage.info -t ${{ secrets.CODECOV }}

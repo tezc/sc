@@ -6,5 +6,5 @@ freebsd_task:
   test_script:
     - pkg install -y git cmake
     - mkdir build && cd build
-    - cmake -DSANITIZER=address .. && make -j && make check && rm -rf *
-    - cmake -DSANITIZER=undefined .. && make -j && make check && rm -rf *
+    - cmake -DSANITIZER=address .. && make && make check && rm -rf *
+    - cmake -DSANITIZER=undefined .. && make && make check && rm -rf *
