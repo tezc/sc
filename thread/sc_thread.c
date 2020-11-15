@@ -108,30 +108,21 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
 
 int sc_thread_stop(struct sc_thread* thread, void** ret)
 {
-    int rc;
+    int rc = 0;
     void* val;
 
     if (thread->id == 0) {
-        goto out;
-    }
-
-    rc = pthread_equal(pthread_self(), thread->id);
-    if (rc != 0) {
         return -1;
     }
 
     rc = pthread_join(thread->id, &val);
-    if (rc != 0) {
-        return -1;
-    }
-
     thread->id = 0;
-out:
+
     if (ret != NULL) {
         *ret = val;
     }
 
-    return 0;
+    return rc;
 }
 
 #endif

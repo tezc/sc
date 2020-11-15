@@ -28,6 +28,17 @@ void *__wrap_realloc(void *p, size_t n)
     return __real_realloc(p, n);
 }
 
+bool fail_strlen = false;
+size_t __real_strlen(const char* str);
+size_t __wrap_strlen(const char* str)
+{
+    if (fail_strlen) {
+        return UINT64_MAX;
+    }
+
+    return __real_strlen(str);
+}
+
 bool fail_vsnprintf;
 int fail_vsnprintf_at = -1;
 extern int __real_vsnprintf(char *str, size_t size, const char *format,
@@ -175,6 +186,9 @@ void test2()
     assert(strcmp(c, "test----") == 0);
     sc_str_replace(&c, "--", "0");
     assert(strcmp(c, "test00") == 0);
+    fail_strlen = true;
+    assert(sc_str_replace(&c, "*", "2") == false);
+    fail_strlen = false;
     sc_str_destroy(c);
 }
 

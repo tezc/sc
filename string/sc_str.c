@@ -304,10 +304,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 
     size_t replace_len = strlen(replace);
     size_t with_len = strlen(with);
-    if (replace_len > UINT32_MAX || with_len > UINT32_MAX) {
-        return false;
-    }
-    int64_t diff = (int64_t)with_len - replace_len;
+    int64_t diff = (int64_t)with_len - (int64_t)replace_len;
     size_t len_unmatch;
     size_t count, size;
     struct sc_str *dest;
@@ -315,6 +312,10 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
     char *orig = *str;
     char *orig_end = *str + meta->len;
     char *tmp;
+
+    if (replace_len > UINT32_MAX || with_len > UINT32_MAX) {
+        return false;
+    }
 
     // Fast path, same size replacement.
     if (diff == 0) {
