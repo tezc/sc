@@ -17,7 +17,7 @@ jobs:
         id: build
         with:
           arch: ppc64le
-          distro: fedora_latest
+          distro: ubuntu20.04
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
@@ -27,8 +27,8 @@ jobs:
 
           # Produce a binary artifact and place it in the mounted volume
           run: |
-            dnf -y update
-            dnf -y install git gcc valgrind cmake
+            apt-get update -q -y
+            apt-get install -q -y  build-essential git gcc valgrind cmake
             uname -a;id;uname -m;lscpu | grep Endian
             mkdir build && cd build
             cmake .. && make -j && make check
