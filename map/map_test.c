@@ -336,7 +336,7 @@ void test4()
     char* c;
     struct sc_map_64s map64s;
 
-    assert(sc_map_init_64s(&map64s, 0, 87));
+    assert(sc_map_init_64s(&map64s, 1, 87));
     for (int i = 0 ; i < 100; i++) {
         assert(sc_map_put_64s(&map64s, i, NULL));
         assert(sc_map_get_64s(&map64s, i, &c));
@@ -358,7 +358,7 @@ void test4()
     void* v;
     struct sc_map_64v map64v;
 
-    assert(sc_map_init_64v(&map64v, 0, 87));
+    assert(sc_map_init_64v(&map64v, 1, 87));
     for (int i = 0 ; i < 100; i++) {
         assert(sc_map_put_64v(&map64v, i, NULL));
         assert(sc_map_get_64v(&map64v, i, &v));
@@ -377,19 +377,27 @@ void test4()
 
     sc_map_term_64v(&map64v);
 
+    char *keys[128];
+    char *values[128];
+
+    for (int i = 0; i < 128; i++) {
+        keys[i] = str_random((rand() % 64) + 32);
+        values[i] = str_random((rand() % 64) + 32);
+    }
+
     struct sc_map_sv mapsv;
 
-    assert(sc_map_init_sv(&mapsv, 0, 87));
+    assert(sc_map_init_sv(&mapsv, 1, 87));
     for (int i = 0 ; i < 100; i++) {
-        assert(sc_map_put_sv(&mapsv, "", NULL));
-        assert(sc_map_get_sv(&mapsv, "", &v));
-        assert(v == NULL);
+        assert(sc_map_put_sv(&mapsv, keys[i], values[i]));
+        assert(sc_map_get_sv(&mapsv, keys[i], &v));
+        assert(v == values[i]);
     }
-    assert(sc_map_size_sv(&mapsv) == 1);
-    assert(sc_map_del_sv(&mapsv, "", &v));
-    assert(v == NULL);
-    assert(sc_map_size_sv(&mapsv) == 0);
-    assert(!sc_map_del_sv(&mapsv, "", &v));
+    assert(sc_map_size_sv(&mapsv) == 100);
+    assert(sc_map_del_sv(&mapsv, keys[0], &v));
+    assert(v == values[0]);
+    assert(sc_map_size_sv(&mapsv) == 99);
+    assert(!sc_map_del_sv(&mapsv, keys[0], &v));
     sc_map_clear_sv(&mapsv);
     assert(sc_map_size_sv(&mapsv) == 0);
     sc_map_term_sv(&mapsv);
@@ -398,16 +406,23 @@ void test4()
     struct sc_map_s64 maps64;
 
     assert(sc_map_init_s64(&maps64, 0, 26));
-    assert(sc_map_put_s64(&maps64, "", 511));
-    assert(sc_map_put_s64(&maps64, "", 511));
-    assert(sc_map_get_s64(&maps64, "", &val));
-    assert(val == 511);
-    assert(sc_map_size_s64(&maps64) == 1);
-    assert(sc_map_del_s64(&maps64, "", &val));
-    assert(val == 511);
-    assert(sc_map_size_s64(&maps64) == 0);
+    for (int i =0 ; i< 64; i++) {
+        assert(sc_map_put_s64(&maps64, keys[i], i));
+    }
+
+    assert(sc_map_get_s64(&maps64, keys[0], &val));
+    assert(val == 0);
+    assert(sc_map_size_s64(&maps64) == 64);
+    assert(sc_map_del_s64(&maps64, keys[12], &val));
+    assert(val == 12);
+    assert(sc_map_size_s64(&maps64) == 63);
     sc_map_clear_s64(&maps64);
     sc_map_term_s64(&maps64);
+
+    for (int i = 0; i < 128; i++) {
+        free(keys[i]);
+        free(values[i]);
+    }
 }
 
 

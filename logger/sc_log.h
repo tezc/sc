@@ -54,6 +54,15 @@ const static struct sc_log_level_pair
 // clang-format on
 
 /**
+ * If you want to log or abort on errors like mutex init which is not supposed
+ * to fail ever(?), put your error function here. It will be called with printf
+ * like error msg.
+ *
+ * my_on_error(const char* fmt, ...);
+ */
+#define sc_log_on_error(...)
+
+/**
  * User callback
  *
  * @param arg   user provided data
@@ -75,6 +84,14 @@ int sc_log_init(void);
  * @return '0' on success, negative value on error
  */
 int sc_log_term(void);
+
+/**
+ * Call once from each thread, it will copy the name passed into a thread
+ * local buffer. Max size is 31 characters.
+ *
+ * @param name  Thread name
+ */
+void sc_log_set_thread_name(const char* name);
 
 /**
  * Thread-safe.
@@ -154,5 +171,4 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...);
 #define sc_log_warn(...)  (sc_log_log(SC_LOG_WARN, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_error(...) (sc_log_log(SC_LOG_ERROR, sc_log_ap(__VA_ARGS__, "")))
 
-#define sc_log_(args)
 #endif

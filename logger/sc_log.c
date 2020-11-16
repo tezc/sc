@@ -24,11 +24,28 @@
 
 #include "sc_log.h"
 
+#include <assert.h>
 #include <errno.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+
+#ifndef thread_local
+    #if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
+        #define thread_local _Thread_local
+    #elif defined _WIN32 && (defined _MSC_VER || defined __ICL ||              \
+                             defined __DMC__ || defined __BORLANDC__)
+        #define thread_local __declspec(thread)
+    /* note that ICC (linux) and Clang are covered by __GNUC__ */
+    #elif defined __GNUC__ || defined __SUNPRO_C || defined __xlC__
+        #define thread_local __thread
+    #else
+        #error "Cannot define  thread_local"
+    #endif
+#endif
+
+thread_local char sc_name[32] = "Thread";
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -75,14 +92,24 @@ struct sc_log_mutex
 
 int sc_log_mutex_init(struct sc_log_mutex *mtx)
 {
+    int rc;
+
     pthread_mutexattr_t attr;
     pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
     mtx->mtx = mut;
 
-    if (pthread_mutexattr_init(&attr) != 0 ||
-        pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL) != 0 ||
-        pthread_mutex_init(&mtx->mtx, &attr) != 0) {
+    rc = pthread_mutexattr_init(&attr);
+    if (rc != 0) {
+        sc_log_on_error("pthread_mutexattr_init : errcode(%d) ", rc);
+        return -1;
+    }
+
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+
+    rc = pthread_mutex_init(&mtx->mtx, &attr);
+    if (rc != 0) {
+        sc_log_on_error("pthread_mutex_init : errcode(%d) ", rc);
         return -1;
     }
 
@@ -92,17 +119,30 @@ int sc_log_mutex_init(struct sc_log_mutex *mtx)
 
 int sc_log_mutex_term(struct sc_log_mutex *mtx)
 {
-    return pthread_mutex_destroy(&mtx->mtx);
+    int rc;
+
+    rc = pthread_mutex_destroy(&mtx->mtx);
+    if (rc != 0) {
+        sc_log_on_error("pthread_mutex_destroy : errcode(%d) ", rc);
+    }
+
+    return rc;
 }
 
 void sc_log_mutex_lock(struct sc_log_mutex *mtx)
 {
-    pthread_mutex_lock(&mtx->mtx);
+    int rc;
+
+    rc = pthread_mutex_lock(&mtx->mtx);
+    assert(rc == 0);
 }
 
 void sc_log_mutex_unlock(struct sc_log_mutex *mtx)
 {
-    pthread_mutex_unlock(&mtx->mtx);
+    int rc;
+
+    rc = pthread_mutex_unlock(&mtx->mtx);
+    assert(rc == 0);
 }
 
 #endif
@@ -126,17 +166,10 @@ struct sc_log sc_log;
 
 int sc_log_init(void)
 {
-    int rc;
-
-    rc = sc_log_mutex_init(&sc_log.mtx);
-    if (rc != 0) {
-        return -1;
-    }
-
     sc_log.level = SC_LOG_INFO;
     sc_log.to_stdout = true;
 
-    return 0;
+    return sc_log_mutex_init(&sc_log.mtx);
 }
 
 int sc_log_term(void)
@@ -145,12 +178,18 @@ int sc_log_term(void)
 
     if (sc_log.fp) {
         rc = fclose(sc_log.fp);
+        assert(rc == 0);
     }
 
     sc_log_mutex_term(&sc_log.mtx);
     sc_log = (struct sc_log){0};
 
     return rc;
+}
+
+void sc_log_set_thread_name(const char *name)
+{
+    strncpy(sc_name, name, sizeof(sc_name));
 }
 
 int sc_log_set_level(const char *str)
@@ -240,9 +279,9 @@ static int sc_log_print_header(FILE *fp, enum sc_log_level level)
         return -1;
     }
 
-    return fprintf(fp, "[%d-%02d-%02d %02d:%02d:%02d][%-5s] ",
+    return fprintf(fp, "[%d-%02d-%02d %02d:%02d:%02d][%-5s][%s] ",
                    tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
-                   tm->tm_min, tm->tm_sec, sc_log_levels[level].str);
+                   tm->tm_min, tm->tm_sec, sc_log_levels[level].str, sc_name);
 }
 
 static int sc_log_stdout(enum sc_log_level level, const char *fmt, va_list va)

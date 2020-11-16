@@ -8,7 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 add_executable(sc_pipe pipe_example.c sc_pipe.h sc_pipe.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pedantic -Werror -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -Werror -D_GNU_SOURCE")
 endif ()
 
 
@@ -23,9 +23,21 @@ enable_testing()
 
 add_executable(${PROJECT_NAME}_test pipe_test.c sc_pipe.c)
 
+target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=4000ul)
+
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
+            "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
+        target_link_options(${PROJECT_NAME}_test PRIVATE
+                -Wl,--wrap=pipe,--wrap=close)
+    endif ()
+endif ()
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
-    "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang" OR
-    "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+        "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang" OR
+        "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 
     target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-omit-frame-pointer)
 

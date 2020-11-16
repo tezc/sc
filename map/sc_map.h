@@ -59,17 +59,17 @@
         uint32_t load_factor;                                                  \
         uint32_t remap;                                                        \
         V value;                                                               \
-        bool used;                                                              \
+        bool used;                                                             \
     };                                                                         \
                                                                                \
-    bool sc_map_init_##name(struct sc_map_##name *map, uint32_t cap,            \
-                           uint32_t load_factor);                              \
+    bool sc_map_init_##name(struct sc_map_##name *map, uint32_t cap,           \
+                            uint32_t load_factor);                             \
     void sc_map_term_##name(struct sc_map_##name *map);                        \
     uint32_t sc_map_size_##name(struct sc_map_##name *map);                    \
     void sc_map_clear_##name(struct sc_map_##name *map);                       \
-    bool sc_map_put_##name(struct sc_map_##name *map, K key, V val);            \
-    bool sc_map_get_##name(struct sc_map_##name *map, K key, V *value);         \
-    bool sc_map_del_##name(struct sc_map_##name *map, K key, V* value);
+    bool sc_map_put_##name(struct sc_map_##name *map, K key, V val);           \
+    bool sc_map_get_##name(struct sc_map_##name *map, K key, V *value);        \
+    bool sc_map_del_##name(struct sc_map_##name *map, K key, V *value);
 
 #define sc_map_foreach(map, K, V)                                              \
     for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
@@ -99,4 +99,13 @@ sc_map_of_strkey(sv,  char *,   void*)
 sc_map_of_strkey(s64, char *,   uint64_t)
 
 // clang-format on
+
+/**
+* If you want to log or abort on errors like out of memory,
+* put your error function here. It will be called with printf like error msg.
+*
+* my_on_error(const char* fmt, ...);
+*/
+#define sc_map_on_error(...)
+
 #endif

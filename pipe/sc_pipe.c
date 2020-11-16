@@ -22,23 +22,24 @@
  * SOFTWARE.
  */
 
-#include <string.h>
+#include "sc_pipe.h"
+
+#include <errno.h>
 #include <stdint.h>
 #include <stdio.h>
-
-#include "sc_pipe.h"
+#include <string.h>
 
 
 #if defined(_WIN32) || defined(_WIN64)
 
-int sc_pipe_init(struct sc_pipe* p)
+int sc_pipe_init(struct sc_pipe *p)
 {
     SOCKET listener;
     int rc;
     struct sockaddr_in addr;
-    size_t addrlen;
-    int one;
-    BOOL nodelay;
+    int addrlen = sizeof(addr);
+    int val = 1;
+    BOOL nodelay = 1;
     u_long nonblock;
 
     p->w = INVALID_SOCKET;
@@ -50,26 +51,23 @@ int sc_pipe_init(struct sc_pipe* p)
         goto wsafail;
     }
 
-    one = 1;
-    rc = setsockopt(listener, SOL_SOCKET, SO_EXCLUSIVEADDRUSE,
-        (char*)&one, sizeof(one));
+    rc = setsockopt(listener, SOL_SOCKET, SO_EXCLUSIVEADDRUSE, (char *) &val,
+                    sizeof(val));
     if (rc == SOCKET_ERROR) {
         goto wsafail;
     }
 
-    /*  Bind the listening socket to the local port. */
     memset(&addr, 0, sizeof(addr));
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
     addr.sin_port = 0;
 
-    rc = bind(listener, (const struct sockaddr*)&addr, sizeof(addr));
+    rc = bind(listener, (const struct sockaddr *) &addr, sizeof(addr));
     if (rc == SOCKET_ERROR) {
         goto wsafail;
     }
 
-    addrlen = sizeof(addr);
-    rc = getsockname(listener, (struct sockaddr*)&addr, &addrlen);
+    rc = getsockname(listener, (struct sockaddr *) &addr, &addrlen);
     if (rc == SOCKET_ERROR) {
         goto wsafail;
     }
@@ -84,70 +82,70 @@ int sc_pipe_init(struct sc_pipe* p)
         goto wsafail;
     }
 
-    /*  Set TCP_NODELAY on the writer socket to make efd as fast as possible.
-        There's only one byte going to be written, so batching would not make
-        sense anyway. */
-    nodelay = 1;
-    rc = setsockopt(p->w, IPPROTO_TCP, TCP_NODELAY, (char*)&nodelay,
-        sizeof(nodelay));
+    rc = setsockopt(p->w, IPPROTO_TCP, TCP_NODELAY, (char *) &nodelay,
+                    sizeof(nodelay));
     if (rc == SOCKET_ERROR) {
         goto wsafail;
     }
 
-    rc = connect(p->w, (struct sockaddr*)&addr, sizeof(addr));
+    rc = connect(p->w, (struct sockaddr *) &addr, sizeof(addr));
     if (rc == SOCKET_ERROR) {
         goto wsafail;
     }
 
-
-    addrlen = sizeof(addr);
-    p->r = accept(listener, (struct sockaddr*)&addr, &addrlen);
+    p->r = accept(listener, (struct sockaddr *) &addr, &addrlen);
     if (p->r == INVALID_SOCKET) {
         goto wsafail;
     }
 
-    (void)closesocket(listener);
+    closesocket(listener);
 
     return 0;
 
 wsafail:
+    sc_pipe_on_error("sc_pipe_init() : %d ", WSAGetLastError())
     return -1;
 }
 
-int sc_pipe_term(struct sc_pipe* p)
+int sc_pipe_term(struct sc_pipe *p)
 {
-    int rc;
+    int rc = 0, rv;
     SOCKET s;
 
-    rc = closesocket(p->r);
-    rc |= closesocket(p->w);
+    rv = closesocket(p->r);
+    if (rv != 0) {
+        rc = -1;
+        sc_pipe_on_error("closesocket() : errcode(%d) ", WSAGetLastError());
+    }
 
-    if (rc != 0) {
-        sc_pipe_abort();
+    rv = closesocket(p->w);
+    if (rv != 0) {
+        rc = -1;
+        sc_pipe_on_error("closesocket() : errcode(%d) ", WSAGetLastError());
     }
 
     return rc;
 }
 
-int sc_pipe_write(struct sc_pipe* p, void* data, int len)
+int sc_pipe_write(struct sc_pipe *p, void *data, int len)
 {
     int rc;
 
     rc = send(p->w, data, len, 0);
     if (rc == SOCKET_ERROR || rc != len) {
-        sc_pipe_abort();
+        sc_pipe_on_error("send() : errcode(%d) ", WSAGetLastError());
     }
 
     return rc;
 }
 
-int sc_pipe_read(struct sc_pipe* p, void* data, int len)
+int sc_pipe_read(struct sc_pipe *p, void *data, int len)
 {
     int rc;
 
-    rc = recv(p->r, (char*)data, len, 0);
+    rc = recv(p->r, (char *) data, len, 0);
     if (rc == SOCKET_ERROR || rc != len) {
-        sc_pipe_abort();
+        sc_pipe_on_error("recv() : errcode(%d) ", WSAGetLastError());
     }
 
     return rc;
@@ -155,15 +153,15 @@ int sc_pipe_read(struct sc_pipe* p, void* data, int len)
 
 #else
 
-#include <unistd.h>
+    #include <unistd.h>
 
-int sc_pipe_init(struct sc_pipe *p, int  type)
+int sc_pipe_init(struct sc_pipe *p, int type)
 {
     int rc;
 
     rc = pipe(p->fds);
     if (rc == -1) {
-        sc_pipe_abort();
+        sc_pipe_on_error("pipe() : %d ", errno);
         return -1;
     }
 
@@ -174,10 +172,19 @@ int sc_pipe_init(struct sc_pipe *p, int  type)
 
 int sc_pipe_term(struct sc_pipe *nfd)
 {
-    int rc;
+    int rc = 0, rv;
 
-    rc = close(nfd->fds[0]);
-    rc |= close(nfd->fds[1]);
+    rv = close(nfd->fds[0]);
+    if (rv != 0) {
+        rc = -1;
+        sc_pipe_on_error("pipe() : %d ", errno);
+    }
+
+    rv = close(nfd->fds[1]);
+    if (rv != 0) {
+        rc = -1;
+        sc_pipe_on_error("pipe() : %d ", errno);
+    }
 
     return rc;
 }
@@ -188,7 +195,7 @@ int sc_pipe_write(struct sc_pipe *nfd, void *data, int len)
 
     n = write(nfd->fds[1], data, len);
     if (n != len) {
-        sc_pipe_abort();
+        sc_pipe_on_error("pipe() : %d ", errno);
     }
 
     return n;
@@ -199,8 +206,8 @@ int sc_pipe_read(struct sc_pipe *nfd, void *data, int len)
     ssize_t n;
 
     n = read(nfd->fds[0], data, len);
-    if (n == -1) {
-        sc_pipe_abort();
+    if (n != len) {
+        sc_pipe_on_error("pipe() : %d ", errno);
     }
 
     return n;

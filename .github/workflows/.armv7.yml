@@ -1,0 +1,34 @@
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  archs:
+    # The host should always be linux
+    runs-on: ubuntu-18.04
+    name: Build on armv7
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: uraimo/run-on-arch-action@v2.0.7
+        name: Build artifact
+        id: build
+        with:
+          arch: armv7
+          distro: buster
+
+          # Not required, but speeds up builds
+          githubToken: ${{ github.token }}
+
+          # The shell to run commands with in the container
+          shell: /bin/sh
+
+          # Produce a binary artifact and place it in the mounted volume
+          run: |
+            apt-get update -q -y
+            apt-get install -q -y  build-essential git gcc valgrind cmake
+            uname -a;id;uname -m;lscpu | grep Endian
+            mkdir build && cd build
+            cmake .. && make -j && make check

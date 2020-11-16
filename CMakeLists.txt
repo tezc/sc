@@ -12,6 +12,7 @@ endif ()
 message(STATUS "Build type ${CMAKE_BUILD_TYPE}")
 
 add_subdirectory(array)
+add_subdirectory(condition)
 add_subdirectory(crc32)
 add_subdirectory(heap)
 add_subdirectory(ini)
@@ -25,6 +26,7 @@ add_subdirectory(pipe)
 add_subdirectory(string)
 add_subdirectory(time)
 add_subdirectory(timer)
+add_subdirectory(thread)
 add_subdirectory(url)
 
 

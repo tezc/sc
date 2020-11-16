@@ -45,4 +45,12 @@ int sc_mutex_term(struct sc_mutex *mtx);
 void sc_mutex_lock(struct sc_mutex *mtx);
 void sc_mutex_unlock(struct sc_mutex *mtx);
 
+/**
+* If you want to log or abort on errors like mutex init,
+* put your error function here. It will be called with printf like error msg.
+*
+* my_on_error(const char* fmt, ...);
+*/
+#define sc_mutex_on_error(...)
+
 #endif

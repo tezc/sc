@@ -164,12 +164,28 @@ int __wrap_pthread_mutexattr_init(pthread_mutexattr_t *attr)
     return -1;
 }
 
+bool mock_mutexinit = false;
+extern int __real_pthread_mutex_init(pthread_mutex_t *__mutex,
+                                     const pthread_mutexattr_t *__mutexattr);
+int __wrap_pthread_mutex_init(pthread_mutex_t *__mutex,
+                              const pthread_mutexattr_t *__mutexattr)
+{
+    if (!mock_mutexinit) {
+        return __real_pthread_mutex_init(__mutex, __mutexattr);
+    }
+
+    return -1;
+}
+
 
 void fail_test(void)
 {
     mock_attrinit = true;
     assert(sc_log_init() < 0);
     mock_attrinit = false;
+    mock_mutexinit = true;
+    assert(sc_log_init() < 0);
+    mock_mutexinit = false;
     assert(sc_log_init() == 0);
 
     mock_fprintf = true;
@@ -297,6 +313,8 @@ void example(void)
 
 int main(int argc, char *argv[])
 {
+    sc_log_set_thread_name("My thread");
+
     fail_test();
     example();
     test1();

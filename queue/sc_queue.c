@@ -36,10 +36,12 @@ static const struct sc_queue sc_empty = {.cap = 1, .first = 0, .last = 0};
 
 static void *queue_alloc(void *prev, size_t elem_size, size_t *cap)
 {
+    size_t alloc;
     size_t v = *cap;
     void *t;
 
     if (*cap > SC_MAX_CAP) {
+        sc_queue_on_error("Max capacity has been exceed. cap(%zu). ", (*cap));
         return NULL;
     }
 
@@ -51,7 +53,12 @@ static void *queue_alloc(void *prev, size_t elem_size, size_t *cap)
     }
     v++;
 
-    t = sc_queue_realloc(prev, sizeof(struct sc_queue) + (elem_size * v));
+    alloc = sizeof(struct sc_queue) + (elem_size * v);
+    t = sc_queue_realloc(prev, alloc);
+    if (t == NULL) {
+        sc_queue_on_error("Out of memory. alloc(%zu). ", alloc);
+    }
+
     *cap = v;
 
     return t;

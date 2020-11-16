@@ -21,49 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef SC_URL_H
-#define SC_URL_H
+#ifndef SC_THREAD_H
+#define SC_THREAD_H
 
-#include <stdbool.h>
-#include <stdlib.h>
+#if defined(_WIN32) || defined(_WIN64)
 
-/**
- * Based on RFC 3986
- *
- *    The following is a example URIs and their component parts:
- *
- *      foo://user:password@example.com:8042/over/there?name=ferret#nose
- *      \_/   \____________________________/\_________/ \_________/ \__/
- *       |                |                     |            |       |
- *     scheme        authority                path        query   fragment
- *
- *
- *      user:password@example.com:8042
- *      \__________/ \_________/ \__/
- *           |            |       |
- *       userinfo       host     port
- * --------------------------------------------------------------------
- *
- */
+#include <windows.h>
 
-struct sc_url
+struct sc_thread
 {
-    const char *str;
-    const char *scheme;
-    const char *host;
-    const char *userinfo;
-    const char *port;
-    const char *path;
-    const char *query;
-    const char *fragment;
-
-    char buf[];
+    HANDLE id;
+    void* (*fn)(void*);
+    void* arg;
+    void* ret;
 };
 
-#define sc_url_malloc malloc
-#define sc_url_free   free
+#else
 
-struct sc_url *sc_url_create(const char *str);
-void sc_url_destroy(struct sc_url *url);
+#include <pthread.h>
+
+struct sc_thread
+{
+    pthread_t id;
+};
+
+#endif
+
+void sc_thread_init(struct sc_thread* thread);
+int sc_thread_term(struct sc_thread* thread);
+int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg);
+int sc_thread_stop(struct sc_thread* thread, void** ret);
 
 #endif

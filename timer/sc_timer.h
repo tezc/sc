@@ -41,14 +41,22 @@ struct sc_timer_data
 struct sc_timer
 {
     uint64_t timestamp;
-    size_t head;
-    size_t wheel;
-    size_t count;
+    uint32_t head;
+    uint32_t wheel;
+    uint32_t count;
     struct sc_timer_data *list;
 };
 
 #define sc_timer_malloc malloc
 #define sc_timer_free   free
+
+/**
+* If you want to log or abort on errors like out of memory,
+* put your error function here. It will be called with printf like error msg.
+*
+* my_on_error(const char* fmt, ...);
+*/
+#define sc_timer_on_error(...)
 
 /**
  * @param timer     Timer

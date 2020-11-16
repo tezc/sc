@@ -27,8 +27,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define sc_pipe_abort()
-
 #if defined(_WIN32) || defined(_WIN64)
 #include <winsock2.h>
 #include <windows.h>
@@ -54,5 +52,13 @@ int sc_pipe_init(struct sc_pipe *pipe, int type);
 int sc_pipe_term(struct sc_pipe *pipe);
 int sc_pipe_write(struct sc_pipe *pipe, void *data, int len);
 int sc_pipe_read(struct sc_pipe *pipe, void *data, int len);
+
+/**
+* If you want to log or abort on errors like mutex init,
+* put your error function here. It will be called with printf like error msg.
+*
+* my_on_error(const char* fmt, ...);
+*/
+#define sc_pipe_on_error(...)
 
 #endif
