@@ -52,11 +52,11 @@ struct sc_timer
 #define sc_timer_free   free
 
 /**
- * If you want to log or abort on errors like out of memory,
- * put your error function here. It will be called with printf like error msg.
- *
- * my_on_error(const char* fmt, ...);
- */
+* If you want to log or abort on errors like out of memory,
+* put your error function here. It will be called with printf like error msg.
+*
+* my_on_error(const char* fmt, ...);
+*/
 #define sc_timer_on_error(...)
 
 /**
