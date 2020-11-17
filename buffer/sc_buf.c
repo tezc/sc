@@ -394,18 +394,22 @@ void sc_buf_put_64(struct sc_buf *buf, uint64_t val)
 
 double sc_buf_get_double(struct sc_buf *buf)
 {
-    double val = 0;
+    double d;
+    uint64_t val;
 
     sc_buf_get_data(buf, &val, 8);
+    val = sc_swap64(val);
 
-    return sc_swap64(val);
+    memcpy(&d, &val, 8);
+    return d;
 }
 
 void sc_buf_put_double(struct sc_buf *buf, double val)
 {
-    double sw = 0;
+    uint64_t sw;
+    memcpy(&sw, &val, 8);
 
-    sw = sc_swap64(val);
+    sw = sc_swap64(sw);
     sc_buf_put_data(buf, &sw, 8);
 }
 
