@@ -8,14 +8,14 @@ uint64_t time_ms();
 void sleep_ms(uint64_t milliseconds);
 
 
-void callback(void *arg, uint64_t timeout, void *data)
+void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
 {
     struct sc_timer *timer = arg;
     char *timer_name = data;
 
     printf("timeout : %lu, data : %s \n", (unsigned long) timeout, timer_name);
     // Schedule back
-    sc_timer_add(timer, "timer1", 1000);
+    sc_timer_add(timer, 1000, 1, "timer1");
 }
 
 int main(int argc, char *argv[])
@@ -24,7 +24,7 @@ int main(int argc, char *argv[])
     struct sc_timer timer;
 
     sc_timer_init(&timer, time_ms());
-    sc_timer_add(&timer, "timer1", 1000);
+    sc_timer_add(&timer, 1000, 1, "timer1");
 
     while (true) {
         next_timeout = sc_timer_timeout(&timer, time_ms(), &timer, callback);

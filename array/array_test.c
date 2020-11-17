@@ -58,6 +58,8 @@ static void test1(void)
     sc_array_add(arr, 2);
     sc_array_add(arr, 0);
 
+    assert(sc_array_last(arr) == 0);
+
     sc_array_sort(arr, compare);
 
     for (int i = 0; i < sc_array_size(arr); i++) {

@@ -35,6 +35,7 @@
 struct sc_timer_data
 {
     uint64_t timeout;
+    uint64_t type;
     void *data;
 };
 
@@ -51,11 +52,11 @@ struct sc_timer
 #define sc_timer_free   free
 
 /**
-* If you want to log or abort on errors like out of memory,
-* put your error function here. It will be called with printf like error msg.
-*
-* my_on_error(const char* fmt, ...);
-*/
+ * If you want to log or abort on errors like out of memory,
+ * put your error function here. It will be called with printf like error msg.
+ *
+ * my_on_error(const char* fmt, ...);
+ */
 #define sc_timer_on_error(...)
 
 /**
@@ -88,13 +89,16 @@ void sc_timer_clear(struct sc_timer *timer);
  *
  *
  * @param timer   Timer
- * @param data    User data to pass into callback on 'sc_timer_timeout' call.
  * @param timeout Timeout value, this is relative to 'sc_timer_init's timer.
- *                e.g sc_timer_init(&timer, 10); // say, start time 10 milliseconds
+ *                e.g sc_timer_init(&timer, 10); // say, start time 10
+ * milliseconds
+ * @param data    User data to pass into callback on 'sc_timer_timeout' call.
+ * @param type    User data to pass into callback on 'sc_timer_timeout' call.
  * @return        SC_TIMER_INVALID on out of memory. Otherwise, timer id. You
  *                can cancel this timer via this id.
  */
-uint64_t sc_timer_add(struct sc_timer *timer, void *data, uint64_t timeout);
+uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
+                      void *data);
 
 /**
  * uint64_t id = sc_timer_add(&timer, arg, 10);
@@ -124,10 +128,11 @@ void sc_timer_cancel(struct sc_timer *timer, uint64_t *id);
  * @param arg       User data to user callback
  * @param callback  'arg' is user data.
  *                  'timeout' is scheduled timeout for that timer.
+ *                  'type' is what user passed on 'sc_timer_add'.
  *                  'data' is what user passed on 'sc_timer_add'.
  * @return          next timeout.
  */
 uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
                           void (*callback)(void *arg, uint64_t timeout,
-                                           void *data));
+                                           uint64_t type, void *data));
 #endif
