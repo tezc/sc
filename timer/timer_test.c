@@ -58,7 +58,7 @@ void sleep_ms(uint64_t milliseconds)
 
 uint64_t ids[1000];
 
-void callback(void *arg, uint64_t timeout, void *data)
+void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
 {
     static int idx = 0;
 
@@ -76,7 +76,7 @@ void test1(void)
 
     assert(sc_timer_init(&timer, time_ms()));
     for (int i = 0; i < 1000; i++) {
-        ids[i] = sc_timer_add(&timer, (void *) (uintptr_t) i, rand() % 100);
+        ids[i] = sc_timer_add(&timer, rand() % 100, i, (void *) (uintptr_t) i);
         assert(ids[i] != SC_TIMER_INVALID);
     }
 
@@ -106,7 +106,7 @@ void test2(void)
     assert(sc_timer_init(&timer, time_ms()));
     for (int i = 0; i < 1000; i++) {
         ids[i] = SC_TIMER_INVALID;
-        sc_timer_add(&timer, (void *) (uintptr_t) i, rand() % 100);
+        sc_timer_add(&timer, rand() % 100, i, (void *) (uintptr_t) i);
     }
 
     sc_timer_clear(&timer);
@@ -129,7 +129,7 @@ void test2(void)
     }
 
     for (int i = 0; i < 1000; i++) {
-        ids[i] = sc_timer_add(&timer, (void *) (uintptr_t) i, rand() % 100);
+        ids[i] = sc_timer_add(&timer, rand() % 100, i, (void *) (uintptr_t) i);
         assert(ids[i] != SC_TIMER_INVALID);
     }
 
@@ -159,7 +159,7 @@ void test3(void)
 
     assert(sc_timer_init(&timer, time_ms()));
     for (int i = 0; i < 1000; i++) {
-        ids[i] = sc_timer_add(&timer, (void *) (uintptr_t) i, rand() % 20);
+        ids[i] = sc_timer_add(&timer,  rand() % 20, i, (void *) (uintptr_t) i);
         assert(ids[i] != SC_TIMER_INVALID);
     }
 
@@ -215,7 +215,7 @@ void fail_test(void)
 
     uint64_t id;
     for (size_t i = 0; i < max + 100; i++) {
-        id = sc_timer_add(&timer, 0, i);
+        id = sc_timer_add(&timer, i, i, 0);
         if (id == SC_TIMER_INVALID) {
             break;
         }
@@ -229,7 +229,7 @@ void fail_test(void)
     fail_malloc = true;
 
     for (size_t i = 0; i < 65; i++) {
-        id = sc_timer_add(&timer, 0, i);
+        id = sc_timer_add(&timer, i, i, 0);
         if (id == SC_TIMER_INVALID) {
             break;
         }

@@ -173,5 +173,20 @@ bool sc_array_expand(void **arr, size_t elem_size);
 #define sc_array_sort(arr, cmp)                                                \
     (qsort((arr), sc_array_size((arr)), sizeof(*(arr)), cmp))
 
+/**
+ *  @param arr   Array Pointer
+ *  @param value Value
+ */
+#define sc_array_foreach(arr, value)                                           \
+    if (sc_array_size(arr) > 0) {                                              \
+        (value) = (arr)[0];                                                    \
+    }                                                                          \
+    for (int _i = 0; _i < sc_array_size(arr); _i++, (value) = (arr)[_i])
+
+/**
+ * Return last element. If array is empty, result is undefined.
+ */
+#define sc_array_last(arr)                                                     \
+    assert(sc_array_size(arr) > 0), (arr)[sc_array_size(arr) - 1]
 
 #endif

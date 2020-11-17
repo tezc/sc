@@ -119,7 +119,8 @@ static bool expand(struct sc_timer *timer)
     return true;
 }
 
-uint64_t sc_timer_add(struct sc_timer *timer, void *data, uint64_t timeout)
+uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
+                      void *data)
 {
     const size_t pos = (timeout / TICK + timer->head) & (WHEEL_COUNT - 1);
     uint64_t id;
@@ -146,6 +147,7 @@ uint64_t sc_timer_add(struct sc_timer *timer, void *data, uint64_t timeout)
 
 out:
     timer->list[index].timeout = timeout + timer->timestamp;
+    timer->list[index].type = type;
     timer->list[index].data = data;
 
     id = (((uint64_t) seq) << 32u) | pos;
@@ -171,7 +173,7 @@ void sc_timer_cancel(struct sc_timer *timer, uint64_t *id)
 }
 
 uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
-                          void (*callback)(void *, uint64_t, void *))
+                          void (*callback)(void *, uint64_t, uint64_t, void *))
 {
 #define min(a, b) (a) < (b) ? (a) : (b)
 
@@ -199,7 +201,7 @@ uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
                 item->timeout = UINT64_MAX;
 
                 timer->count--;
-                callback(arg, timeout, item->data);
+                callback(arg, timeout, item->type, item->data);
 
                 // Recalculates position each time because there might be newly
                 // added timers in the callback and it might require expansion
