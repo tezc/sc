@@ -40,7 +40,6 @@ int sc_pipe_init(struct sc_pipe *p)
     int addrlen = sizeof(addr);
     int val = 1;
     BOOL nodelay = 1;
-    u_long nonblock;
 
     p->w = INVALID_SOCKET;
     p->r = INVALID_SOCKET;
@@ -110,7 +109,6 @@ wsafail:
 int sc_pipe_term(struct sc_pipe *p)
 {
     int rc = 0, rv;
-    SOCKET s;
 
     rv = closesocket(p->r);
     if (rv != 0) {
