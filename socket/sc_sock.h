@@ -29,6 +29,7 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #include <windows.h>
 #pragma comment(lib, "ws2_32.lib")
 #else
@@ -60,11 +61,12 @@ typedef int sc_sock_int;
 
 struct sc_sock
 {
-    bool blocking;
     int type;
+    bool blocking;
+    sc_sock_int fd;
     int family;
     int op;
-    sc_sock_int fd;
+    char err[128];
 };
 
 struct sc_sock* sc_sock_create(int type, bool blocking, int family);
@@ -73,34 +75,17 @@ int sc_sock_destroy(struct sc_sock* sock);
 void sc_sock_init(struct sc_sock* sock, int type, bool blocking, int family);
 int sc_sock_term(struct sc_sock* sock);
 
-int sc_sock_bind(struct sc_sock* sock, const char* host, const char* port);
-int sc_sock_listen(struct sc_sock* sock, int backlog);
-int sc_sock_listen_on(struct sc_sock* sock, const char* host, const char* port);
-int sc_sock_accept(struct sc_sock* sock, struct sc_sock* accepted);
+int sc_sock_listen(struct sc_sock* sock, const char* host, const char* port);
+int sc_sock_accept(struct sc_sock* sock, struct sc_sock* in);
 
 int sc_sock_connect(struct sc_sock* sock, const char* addr, const char* port,
                     const char* source_addr, const char* source_port);
-
 int sc_sock_finish_connect(struct sc_sock* sock);
-
-int sc_sock_disconnect(struct sc_sock* sock);
-
-int sc_sock_close(struct sc_sock* sock);
-
-int sc_sock_set_nodelay(struct sc_sock* sock);
-int sc_sock_set_reusable(struct sc_sock* sock);
-int sc_sock_set_blocking(struct sc_sock* sock, bool blocking);
-
-int sc_sock_set_recvbuf(struct sc_sock* sock, uint32_t size);
-int sc_sock_set_sendbuf(struct sc_sock* sock, uint32_t size);
 
 int sc_sock_send(struct sc_sock* sock, char* buf, int len);
 int sc_sock_recv(struct sc_sock* sock, char* buf, int len);
 
-
-const char* sc_sock_local_str(struct sc_sock* sock, char* buf, int len);
-const char* sc_sock_remote_str(struct sc_sock* sock, char* buf, int len);
-
+const char* sc_sock_error(struct sc_sock* sock);
 void sc_sock_print(struct sc_sock* sock, char* buf, int len);
 
 

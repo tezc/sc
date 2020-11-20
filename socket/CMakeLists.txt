@@ -8,7 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 add_executable(sc_socket sock_example.c sc_sock.h sc_sock.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -Werror -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -pthread -Werror -D_GNU_SOURCE")
 endif ()
 
 

@@ -24,29 +24,38 @@
 
 #include "sc_sock.h"
 
-
 #include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <afunix.h>
 #include <Ws2tcpip.h>
+#include <afunix.h>
 
 #pragma warning(disable : 4996)
+#define SC_UNLINK(n)   DeleteFileA(n)
+#define SC_ERR         SOCKET_ERROR
+#define SC_INVALID     INVALID_SOCKET
+#define SC_EAGAIN      WSAEWOULDBLOCK
+#define SC_EINPROGRESS WSAEINPROGRESS
+#define SC_EINTR       WSAEINTR
 #else
+#include <arpa/inet.h>
 #include <netdb.h>
 #include <netinet/tcp.h>
-#include <arpa/inet.h>
 #include <sys/un.h>
 #include <unistd.h>
 
-#define INVALID_SOCKET (-1)
+#define SC_UNLINK(n)   unlink(n)
+#define SC_ERR         (-1)
+#define SC_INVALID     (-1)
+#define SC_EAGAIN      EAGAIN
+#define SC_EINPROGRESS EINPROGRESS
+#define SC_EINTR       EINTR
 #endif
 
 static int sc_sock_err()
@@ -55,6 +64,27 @@ static int sc_sock_err()
     return WSAGetLastError();
 #else
     return errno;
+#endif
+}
+
+static void sc_sock_errstr(struct sc_sock* sock, int gai_err)
+{
+#if defined(_WIN32) || defined(_WIN64)
+    int rc;
+    DWORD err = GetLastError();
+    LPSTR errstr = 0;
+
+    rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+        FORMAT_MESSAGE_FROM_SYSTEM,
+        NULL, err, 0, (LPSTR)&errstr, 0, NULL);
+    if (rc != 0) {
+        strncpy(sock->err, errstr, sizeof(sock->err) - 1);
+        LocalFree(errstr);
+    }
+
+#else
+    const char* str = gai_err ? gai_strerror(gai_err) : strerror(errno);
+    strncpy(sock->err, str, sizeof(sock->err) - 1);
 #endif
 }
 
@@ -73,15 +103,6 @@ struct sc_sock* sc_sock_create(int type, bool blocking, int family)
     return socket;
 }
 
-void sc_sock_init(struct sc_sock* sock, int type, bool blocking, int family)
-{
-    sock->type = type;
-    sock->blocking = blocking;
-    sock->family = family;
-    sock->op = SC_SOCK_OP_UNREGISTERED;
-    sock->fd = -1;
-}
-
 int sc_sock_destroy(struct sc_sock* sock)
 {
     int rc;
@@ -92,135 +113,137 @@ int sc_sock_destroy(struct sc_sock* sock)
     return rc;
 }
 
-int sc_sock_term(struct sc_sock* sock)
+void sc_sock_init(struct sc_sock* sock, int type, bool blocking, int family)
 {
-    int rc = 0;
-
-    rc |= sc_sock_disconnect(sock);
-    rc |= sc_sock_close(sock);
-
-    return rc;
+    sock->type = type;
+    sock->blocking = blocking;
+    sock->family = family;
+    sock->op = SC_SOCK_OP_UNREGISTERED;
+    sock->fd = -1;
+    memset(sock->err, 0, sizeof(sock->err));
 }
 
-int sc_sock_disconnect(struct sc_sock* sock)
-{
-    int rc = 0;
-
-    if (sock->fd != -1) {
-#if defined(_WIN32) || defined(_WIN64)
-            rc = shutdown(sock->fd, SD_BOTH);
-            rc = (rc == 0) ? 0 : -1;
-#else
-            rc = shutdown(sock->fd, SHUT_RDWR);
-#endif
-
-    }
-
-    return rc;
-}
-
-int sc_sock_close(struct sc_sock* sock)
+static int sc_sock_close(struct sc_sock* sock)
 {
     int rc = 0;
 
     if (sock->fd != -1) {
 #if defined(_WIN32) || defined(_WIN64)
         rc = closesocket(sock->fd);
-        rc = (rc == SOCKET_ERROR) ? -1 : 0;
 #else
         rc = close(sock->fd);
 #endif
         sock->fd = -1;
     }
 
+    return (rc == 0) ? 0 : -1;
+}
+
+int sc_sock_term(struct sc_sock* sock)
+{
+    int rc;
+
+    rc = sc_sock_close(sock);
+    if (rc != 0) {
+        sc_sock_errstr(sock, 0);
+    }
+
     return rc;
 }
 
-int sc_sock_set_reusable(struct sc_sock* sock)
+static int sc_sock_set_blocking(struct sc_sock* sock, bool blocking)
 {
-    const int on = 1;
-    return setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void*) &on, sizeof(on));
-}
-
-int sc_sock_set_nodelay(struct sc_sock* sock)
-{
-    const int opt = 1;
-
-    if (sock->family == AF_UNIX) {
-        return 0;
+#ifdef _WIN32
+    int mode = blocking ? 0 : 1;
+    return (ioctlsocket(sock->fd, FIONBIO, &mode) == 0) ? 0 : -1;
+#else
+    int flags = fcntl(sock->fd, F_GETFL, 0);
+    if (flags == -1) {
+        return -1;
     }
 
-    return setsockopt(sock->fd, IPPROTO_TCP, TCP_NODELAY, (void*) &opt, sizeof(opt));
-}
-
-static int sc_sock_set_ipv6(struct sc_sock* sock)
-{
-    const int opt = 1;
-    return setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY, (void*) &opt, sizeof(opt));
+    flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
+    return (fcntl(sock->fd, F_SETFL, flags) == 0) ? 0 : -1;
+#endif
 }
 
 static int sc_sock_bind_unix(struct sc_sock* sock, const char* host)
 {
+    int rc;
     struct sockaddr_un addr = { .sun_family = AF_UNIX };
 
     strncpy(addr.sun_path, host, sizeof(addr.sun_path) - 1);
-    unlink(host);
+    SC_UNLINK(host);
 
-    return bind(sock->fd, (struct sockaddr*)&addr, sizeof(addr));
+    rc = bind(sock->fd, (struct sockaddr*)&addr, sizeof(addr));
+
+    return rc == 0 ? 0 : -1;
 }
 
-int sc_sock_bind(struct sc_sock* sock, const char* host,
-    const char* port)
+static int sc_sock_bind(struct sc_sock* sock, const char* host, const char* prt)
 {
-    int rc, rv = 0;
-    struct addrinfo* servinfo;
+    const int bf = SC_SOCK_BUF_SIZE;
+    const int sz = sizeof(bf);
+
+    int rc = 0, rv = 0;
+    struct addrinfo* servinfo = NULL;
     struct addrinfo hints = { .ai_family = sock->family,
                              .ai_socktype = SOCK_STREAM };
 
+    *sock->err = '\0';
+
     if (sock->family == AF_UNIX) {
         sc_sock_int fd = socket(AF_UNIX, SOCK_STREAM, 0);
-        if (fd == INVALID_SOCKET) {
-            return -1;
+        if (fd == SC_INVALID) {
+            goto error_unix;
         }
 
         sock->fd = fd;
 
-        rc = sc_sock_set_reusable(sock);
-        rc |= sc_sock_set_nodelay(sock);
-        rc |= sc_sock_set_recvbuf(sock, SC_SOCK_BUF_SIZE);
-        rc |= sc_sock_set_sendbuf(sock, SC_SOCK_BUF_SIZE);
-        rc |= sc_sock_bind_unix(sock, host);
-
+        rc = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&bf, sz);
         if (rc != 0) {
-            sc_sock_close(sock);
-            return -1;
+            goto error_unix;
+        }
+
+        rc = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&bf, sz);
+        if (rc != 0) {
+            goto error_unix;
+        }
+
+        rc = sc_sock_bind_unix(sock, host);
+        if (rc != 0) {
+            goto error_unix;
         }
 
         return 0;
+
+    error_unix:
+        sc_sock_errstr(sock, 0);
+        sc_sock_close(sock);
+
+        return -1;
     }
 
-    rc = getaddrinfo(host, port, &hints, &servinfo);
+    rc = getaddrinfo(host, prt, &hints, &servinfo);
     if (rc != 0) {
+        sc_sock_errstr(sock, rc);
         return -1;
     }
 
     for (struct addrinfo* p = servinfo; p != NULL; p = p->ai_next) {
         sc_sock_int fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (fd == INVALID_SOCKET) {
+        if (fd == SC_INVALID) {
             continue;
         }
 
         sock->fd = fd;
 
         if (sock->family == AF_INET6) {
-            if (sc_sock_set_ipv6(sock) != 0) {
+            rc = setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY, &(int){1},
+                sizeof(int));
+            if (rc != 0) {
                 goto error;
             }
-        }
-
-        rc = sc_sock_set_reusable(sock);
-        if (rc != 0) {
-            goto error;
         }
 
         rc = sc_sock_set_blocking(sock, sock->blocking);
@@ -228,17 +251,22 @@ int sc_sock_bind(struct sc_sock* sock, const char* host,
             goto error;
         }
 
-        rc = sc_sock_set_nodelay(sock);
+        rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
         if (rc != 0) {
             goto error;
         }
 
-        rc = sc_sock_set_recvbuf(sock, SC_SOCK_BUF_SIZE);
+        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int));
         if (rc != 0) {
             goto error;
         }
 
-        rc = sc_sock_set_sendbuf(sock, SC_SOCK_BUF_SIZE);
+        rc = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&bf, sz);
+        if (rc != 0) {
+            goto error;
+        }
+
+        rc = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&bf, sz);
         if (rc != 0) {
             goto error;
         }
@@ -252,6 +280,7 @@ int sc_sock_bind(struct sc_sock* sock, const char* host,
     }
 
 error:
+    sc_sock_errstr(sock, 0);
     sc_sock_close(sock);
     rv = -1;
 out:
@@ -263,11 +292,16 @@ out:
 int sc_sock_finish_connect(struct sc_sock* sock)
 {
     int result, rc;
-    socklen_t result_len = sizeof(result);
+    socklen_t len = sizeof(result);
 
-    rc = getsockopt(sock->fd, SOL_SOCKET, SO_ERROR, (void*) &result, &result_len);
+    rc = getsockopt(sock->fd, SOL_SOCKET, SO_ERROR, (void*)&result, &len);
+    if (rc != 0 || result != 0) {
+        sc_sock_errstr(sock, 0);
+        sc_sock_close(sock);
+        rc = -1;
+    }
 
-    return rc < 0 || result != 0 ? -1 : 0;
+    return rc;
 }
 
 static int sc_sock_connect_unix(struct sc_sock* sock, const char* addr)
@@ -283,9 +317,12 @@ static int sc_sock_connect_unix(struct sc_sock* sock, const char* addr)
     strcpy(addr_un.sun_path, addr);
 
     rc = connect(sock->fd, (struct sockaddr*)&addr_un, sizeof(addr_un));
-    err = sc_sock_err();
-    if (rc == -1 && (err == EINTR || err == EINPROGRESS)) {
-        rc = 0;
+    if (rc != 0) {
+        err = sc_sock_err();
+        if (!sock->blocking && ((err == SC_EINTR || err == SC_EINPROGRESS))) {
+            return 0;
+        }
+        sc_sock_errstr(sock, 0);
     }
 
     return rc;
@@ -294,37 +331,54 @@ static int sc_sock_connect_unix(struct sc_sock* sock, const char* addr)
 int sc_sock_connect(struct sc_sock* sock, const char* addr, const char* port,
     const char* source_addr, const char* source_port)
 {
+    const int bf = SC_SOCK_BUF_SIZE;
+    const int sz = sizeof(bf);
+
     int rc = 0, rv = 0;
     struct addrinfo inf = { .ai_family = AF_UNSPEC, .ai_socktype = SOCK_STREAM };
-    struct addrinfo* servinfo, * bindinfo, * p, * s;
+    struct addrinfo* servinfo = NULL, * bindinfo = NULL, * p, * s;
 
     if (sock->family == AF_UNIX) {
         sc_sock_int fd = socket(AF_UNIX, SOCK_STREAM, 0);
-        if (fd == INVALID_SOCKET) {
-            return -1;
+        if (fd == SC_INVALID) {
+            goto error_unix;
         }
 
         sock->fd = fd;
-        rc |= sc_sock_set_reusable(sock);
-        rc |= sc_sock_set_nodelay(sock);
-        rc |= sc_sock_set_recvbuf(sock, SC_SOCK_BUF_SIZE);
-        rc |= sc_sock_set_sendbuf(sock, SC_SOCK_BUF_SIZE);
 
+        rc = setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF, (void*)&bf, sz);
         if (rc != 0) {
-            return -1;
+            goto error_unix;
         }
 
-        return sc_sock_connect_unix(sock, addr);
+        rc = setsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF, (void*)&bf, sz);
+        if (rc != 0) {
+            goto error_unix;
+        }
+
+        rc = sc_sock_connect_unix(sock, addr);
+        if (rc != 0) {
+            goto error_unix;
+        }
+
+        return 0;
+
+    error_unix:
+        sc_sock_errstr(sock, 0);
+        sc_sock_close(sock);
+
+        return -1;
     }
 
     rc = getaddrinfo(addr, port, &inf, &servinfo);
     if (rc != 0) {
+        sc_sock_errstr(sock, rc);
         return -1;
     }
 
     for (p = servinfo; p != NULL; p = p->ai_next) {
         sc_sock_int fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (fd == INVALID_SOCKET) {
+        if (fd == SC_INVALID) {
             continue;
         }
 
@@ -332,11 +386,26 @@ int sc_sock_connect(struct sc_sock* sock, const char* addr, const char* port,
         sock->fd = fd;
 
         rc = sc_sock_set_blocking(sock, sock->blocking);
-        rc |= sc_sock_set_reusable(sock);
-        rc |= sc_sock_set_nodelay(sock);
-        rc |= sc_sock_set_recvbuf(sock, SC_SOCK_BUF_SIZE);
-        rc |= sc_sock_set_sendbuf(sock, SC_SOCK_BUF_SIZE);
+        if (rc != 0) {
+            goto error;
+        }
 
+        rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
+        if (rc != 0) {
+            goto error;
+        }
+
+        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int));
+        if (rc != 0) {
+            goto error;
+        }
+
+        rc = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void*)&bf, sizeof(int));
+        if (rc != 0) {
+            goto error;
+        }
+
+        rc = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void*)&bf, sizeof(int));
         if (rc != 0) {
             goto error;
         }
@@ -344,7 +413,8 @@ int sc_sock_connect(struct sc_sock* sock, const char* addr, const char* port,
         if (source_addr || source_port) {
             rc = getaddrinfo(source_addr, source_port, &inf, &bindinfo);
             if (rc != 0) {
-                return -1;
+                sc_sock_errstr(sock, rc);
+                goto error_gai;
             }
 
             for (s = bindinfo; s != NULL; s = s->ai_next) {
@@ -363,7 +433,8 @@ int sc_sock_connect(struct sc_sock* sock, const char* addr, const char* port,
 
         rc = connect(sock->fd, p->ai_addr, p->ai_addrlen);
         if (rc != 0) {
-            if (sc_sock_err() == EINPROGRESS && sock->blocking) {
+            if (!sock->blocking && (sc_sock_err() == SC_EINPROGRESS ||
+                sc_sock_err() == SC_EAGAIN)) {
                 rv = 0;
                 goto end;
             }
@@ -380,6 +451,8 @@ int sc_sock_connect(struct sc_sock* sock, const char* addr, const char* port,
     }
 
 error:
+    sc_sock_errstr(sock, 0);
+error_gai:
     sc_sock_close(sock);
     rv = -1;
 end:
@@ -392,18 +465,25 @@ int sc_sock_send(struct sc_sock* sock, char* buf, int len)
 {
     int n;
 
+    assert(len > 0);
+
     if (len <= 0) {
         return len;
     }
 
 retry:
     n = send(sock->fd, buf, len, 0);
-    if (n == -1) {
-        if (sc_sock_err() == EINTR) {
+    if (n == SC_ERR) {
+        int err = sc_sock_err();
+        if (err == SC_EINTR) {
             goto retry;
         }
 
-        n = (sc_sock_err() == EAGAIN) ? 0 : n;
+        if (!sock->blocking && err == SC_EAGAIN) {
+            return 0;
+        }
+
+        sc_sock_errstr(sock, 0);
     }
 
     return n;
@@ -412,6 +492,8 @@ retry:
 int sc_sock_recv(struct sc_sock* sock, char* buf, int len)
 {
     int n;
+
+    assert(len > 0);
 
     if (len <= 0) {
         return len;
@@ -422,77 +504,72 @@ retry:
     if (n == 0) {
         return -1;
     }
-    else if (n == -1) {
-        if (sc_sock_err() == EINTR) {
+    else if (n == SC_ERR) {
+        int err = sc_sock_err();
+        if (err == SC_EINTR) {
             goto retry;
         }
 
-        n = (sc_sock_err() == EAGAIN) ? 0 : n;
+        if (!sock->blocking && err == SC_EAGAIN) {
+            return 0;
+        }
+
+        sc_sock_errstr(sock, 0);
     }
 
     return n;
 }
 
-int sc_sock_listen(struct sc_sock* sock, int backlog)
+int sc_sock_accept(struct sc_sock* sock, struct sc_sock* in)
 {
-    return listen(sock->fd, backlog);
-}
+    const int bf = SC_SOCK_BUF_SIZE;
+    const int sz = sizeof(bf);
 
-int sc_sock_accept(struct sc_sock* sock, struct sc_sock* accepted)
-{
-    int rc = 0;
+    int rc;
     sc_sock_int fd;
 
     fd = accept(sock->fd, NULL, NULL);
-    if (fd == -1) {
+    if (fd == SC_INVALID) {
+        sc_sock_errstr(sock, 0);
         return -1;
     }
 
-    accepted->op = SC_SOCK_OP_UNREGISTERED;
-    accepted->fd = fd;
-    accepted->family = sock->family;
+    in->op = SC_SOCK_OP_UNREGISTERED;
+    in->fd = fd;
+    in->family = sock->family;
 
-    rc |= sc_sock_set_blocking(accepted, sock->blocking);
-    rc |= sc_sock_set_nodelay(accepted);
-    rc |= sc_sock_set_recvbuf(accepted, SC_SOCK_BUF_SIZE);
-    rc |= sc_sock_set_sendbuf(accepted, SC_SOCK_BUF_SIZE);
+    if (in->family != AF_UNIX) {
+        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int));
+        if (rc != 0) {
+            goto error;
+        }
+    }
 
+    rc = sc_sock_set_blocking(in, sock->blocking);
     if (rc != 0) {
-        sc_sock_close(accepted);
-        return -1;
+        goto error;
+    }
+
+    rc = setsockopt(in->fd, SOL_SOCKET, SO_RCVBUF, (void*)&bf, sz);
+    if (rc != 0) {
+        goto error;
+    }
+
+    rc = setsockopt(in->fd, SOL_SOCKET, SO_SNDBUF, (void*)&bf, sz);
+    if (rc != 0) {
+        goto error;
     }
 
     return 0;
+
+error:
+    sc_sock_errstr(sock, 0);
+    sc_sock_close(in);
+
+    return -1;
 }
 
-
-int sc_sock_set_blocking(struct sc_sock* sock, bool blocking)
-{
-#ifdef _WIN32
-    int mode = blocking ? 0 : 1;
-    return (ioctlsocket(sock->fd, FIONBIO, &mode) == 0) ? 0 : -1;
-#else
-    int flags = fcntl(sock->fd, F_GETFL, 0);
-    if (flags == -1) {
-        return -1;
-    }
-
-    flags = blocking ? (flags & ~O_NONBLOCK) : (flags | O_NONBLOCK);
-    return (fcntl(sock->fd, F_SETFL, flags) == 0) ? 0 : -1;
-#endif
-}
-
-int sc_sock_set_recvbuf(struct sc_sock* sock, uint32_t size)
-{
-    return setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF, (void*) &size, sizeof(size));
-}
-
-int sc_sock_set_sendbuf(struct sc_sock* sock, uint32_t size)
-{
-    return setsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF, (void*) &size, sizeof(size));
-}
-
-int sc_sock_listen_on(struct sc_sock* sock, const char* host, const char* port)
+int sc_sock_listen(struct sc_sock* sock, const char* host, const char* port)
 {
     int rc;
 
@@ -501,18 +578,18 @@ int sc_sock_listen_on(struct sc_sock* sock, const char* host, const char* port)
         return rc;
     }
 
-    return sc_sock_listen(sock, 200);
+    rc = listen(sock->fd, 4096);
+    if (rc != 0) {
+        sc_sock_errstr(sock, 0);
+    }
+
+    return rc == 0 ? 0 : -1;
 }
 
-void sc_sock_print(struct sc_sock* sock, char* buf, int len)
+const char* sc_sock_error(struct sc_sock* sock)
 {
-    char l[128];
-    char r[128];
-
-    sc_sock_local_str(sock, l, sizeof(l));
-    sc_sock_remote_str(sock, r, sizeof(r));
-
-    snprintf(buf, len, "Fd(%ld), Local(%s), Remote(%s) ", (long) sock->fd, l, r);
+    sock->err[sizeof(sock->err) - 1]  = '\0';
+    return sock->err;
 }
 
 static const char* sc_sock_addr(struct sc_sock* sock, int af, void* cp,
@@ -522,6 +599,7 @@ static const char* sc_sock_addr(struct sc_sock* sock, int af, void* cp,
 
     dest = inet_ntop(af, cp, buf, len);
     if (dest == NULL) {
+        sc_sock_errstr(sock, 0);
         *buf = '\0';
     }
 
@@ -566,14 +644,15 @@ static const char* sc_sock_print_storage(struct sc_sock* sock,
     return buf;
 }
 
-const char* sc_sock_local_str(struct sc_sock* sock, char* buf, int len)
+static const char* sc_sock_local_str(struct sc_sock* sock, char* buf, int len)
 {
     int rc;
     struct sockaddr_storage st;
     socklen_t storage_len = sizeof(st);
 
     rc = getsockname(sock->fd, (struct sockaddr*)&st, &storage_len);
-    if (rc == -1) {
+    if (rc != 0) {
+        sc_sock_errstr(sock, 0);
         *buf = '\0';
         return NULL;
     }
@@ -581,17 +660,29 @@ const char* sc_sock_local_str(struct sc_sock* sock, char* buf, int len)
     return sc_sock_print_storage(sock, &st, buf, len);
 }
 
-const char* sc_sock_remote_str(struct sc_sock* sock, char* buf, int len)
+static const char* sc_sock_remote_str(struct sc_sock* sock, char* buf, int len)
 {
     int rc;
     struct sockaddr_storage st;
     socklen_t storage_len = sizeof(st);
 
     rc = getpeername(sock->fd, (struct sockaddr*)&st, &storage_len);
-    if (rc == -1) {
+    if (rc != 0) {
+        sc_sock_errstr(sock, 0);
         *buf = '\0';
         return NULL;
     }
 
     return sc_sock_print_storage(sock, &st, buf, len);
+}
+
+void sc_sock_print(struct sc_sock* sock, char* buf, int len)
+{
+    char l[128];
+    char r[128];
+
+    sc_sock_local_str(sock, l, sizeof(l));
+    sc_sock_remote_str(sock, r, sizeof(r));
+
+    snprintf(buf, len, "Local(%s), Remote(%s) ", l, r);
 }
