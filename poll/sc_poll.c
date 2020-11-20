@@ -30,7 +30,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#if  defined(__linux__)
+#if defined(__linux__)
 
 int sc_poll_init(struct sc_poll *poll)
 {
@@ -102,6 +102,10 @@ int sc_poll_mod_fd(struct sc_poll *poll, int fd, int events, void *data)
     struct epoll_event ep_ev = {.data.ptr = data,
                                 .events = EPOLLERR | EPOLLHUP | EPOLLRDHUP};
 
+    if ((events & (SC_POLL_READ | SC_POLL_WRITE)) == 0) {
+        return 0;
+    }
+
     if (events & SC_POLL_WRITE) {
         ep_ev.events |= EPOLLOUT;
     }
@@ -118,9 +122,13 @@ int sc_poll_mod_fd(struct sc_poll *poll, int fd, int events, void *data)
     return rc;
 }
 
-int sc_poll_del_fd(struct sc_poll *poll, int fd)
+int sc_poll_del_fd(struct sc_poll *poll, int fd, int events)
 {
     int rc;
+
+    if ((events & (SC_POLL_READ | SC_POLL_WRITE)) == 0) {
+        return 0;
+    }
 
     rc = epoll_ctl(poll->fds, EPOLL_CTL_DEL, fd, NULL);
     if (rc != 0) {
@@ -162,7 +170,6 @@ uint32_t sc_poll_event(struct sc_poll *poll, int i)
 int sc_poll_wait(struct sc_poll *poll, int timeout)
 {
     int n;
-    char err[128];
 
     do {
         n = epoll_wait(poll->fds, &poll->events[0], poll->fd_cap, timeout);
@@ -176,160 +183,119 @@ int sc_poll_wait(struct sc_poll *poll, int timeout)
 }
 
 #elif defined(__APPLE__) || defined(__FREE_BSD__)
-void sc_poll_init(struct sc_poll *poll)
+int sc_poll_init(struct sc_poll *poll)
 {
     int fds;
 
+    *poll = (struct sc_poll){0};
+
     fds = kqueue();
     if (fds == -1) {
-        sc_proc_abort();
+        sc_poll_on_error("kqueue(): %s ", strerror(errno));
+        return -1;
     }
 
     poll->fds = fds;
-    poll->fd_count = 0;
-    poll->fd_cap = 16;
-    poll->events = sc_mem_alloc(poll->fd_cap * sizeof(struct kevent));
 
-    sc_thread_update_timestamp();
+    return 0;
 }
 
-void sc_poll_term(struct sc_poll *poll)
+int sc_poll_term(struct sc_poll *poll)
 {
-    sc_mem_free(poll->events);
-    sc_fd_close(poll->fds);
+    sc_poll_free(poll->events);
+    return close(poll->fds);
 }
 
-void sc_poll_register_fd(struct sc_poll *poll, struct sc_fd *nfd,
-                         enum sc_fd_op events)
+int sc_poll_add_fd(struct sc_poll *poll, int fd, int events, void *data)
 {
-    int rc;
-    struct kevent ev;
-
-    nfd->op = events;
-
-    if (events & sc_FD_WRITE) {
-        EV_SET(&ev, nfd->fd, EVFILT_WRITE, EV_ADD, 0, 0, nfd);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
-    }
-
-    if (events & sc_FD_READ) {
-        EV_SET(&ev, nfd->fd, EVFILT_READ, EV_ADD, 0, 0, nfd);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
-    }
+    int rc, count = 0;
+    struct kevent ev[2];
 
     if (poll->fd_count == poll->fd_cap) {
-        poll->fd_cap *= 2;
-        poll->events = sc_mem_realloc(poll->events,
-                                      poll->fd_cap * sizeof(struct kevent));
+        cap = poll->fd_cap == 0 ? 16 : poll->fd_cap * 2;
+        size = sizeof(struct epoll_event) * cap;
+
+        p = sc_poll_realloc(poll->events, size);
+        if (p == NULL) {
+            sc_poll_on_error("Out of memory. size : %s ", size);
+            return -1;
+        }
+
+        poll->events = p;
+        poll->fd_cap = cap;
+    }
+
+    if (events & SC_POLL_WRITE) {
+        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_ADD, 0, 0, nfd);
+    }
+
+    if (events & SC_POLL_READ) {
+        EV_SET(&ev[count++], fd, EVFILT_READ, EV_ADD, 0, 0, nfd);
+    }
+
+    rc = kevent(poll->fds, &ev, count, NULL, 0, NULL);
+    if (rc != 0) {
+        sc_poll_on_error("kevent : %s ", strerror(errno));
+        return -1;
     }
 
     poll->fd_count++;
+
+    return 0;
 }
 
-void sc_poll_unregister_fd(struct sc_poll *poll, struct sc_fd *nfd)
+int sc_poll_mod_fd(struct sc_poll *poll, int fd, int events, void *data)
 {
-    int rc;
-    struct kevent ev;
+    int rc, count = 0;
+    struct kevent ev[4];
+
+    EV_SET(&ev[count++], fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+    EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+
+    if (events & SC_POLL_READ) {
+        EV_SET(&ev[count++], fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+    }
+
+    if (events & SC_POLL_WRITE) {
+        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    }
+
+    rc = kevent(poll->fds, &ev, count, NULL, 0, NULL);
+    if (rc != 0) {
+        sc_poll_on_error("kevent : %s ", strerror(errno));
+        return -1;
+    }
+
+    return 0;
+}
+
+int sc_poll_del_fd(struct sc_poll *poll, int fd, int events)
+{
+    int rc, count = 0;
+    struct kevent ev[2];
     int i;
 
-    if (nfd->op & sc_FD_READ) {
-        EV_SET(&ev, nfd->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
+    if ((events & (SC_POLL_READ | SC_POLL_WRITE)) == 0) {
+        return 0;
     }
 
-    if (nfd->op & sc_FD_WRITE) {
-        EV_SET(&ev, nfd->fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
+    if (events & SC_POLL_READ) {
+        EV_SET(&ev[count++], fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
     }
 
-    nfd->op = sc_FD_UNREGISTERED;
+    if (events & SC_POLL_WRITE) {
+        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    }
+
+    rc = kevent(poll->fds, &ev, count, NULL, 0, NULL);
+    if (rc != 0) {
+        sc_poll_on_error("kevent : %s ", strerror(errno));
+        return -1;
+    }
+
     poll->fd_count--;
-}
 
-void sc_poll_add_event(struct sc_poll *poll, struct sc_fd *nfd,
-                       enum sc_fd_op event)
-{
-    int rc;
-    struct kevent ev;
-
-    if ((nfd->op & event)) {
-        return;
-    }
-
-    nfd->op |= event;
-
-    if (event & sc_FD_WRITE) {
-        EV_SET(&ev, nfd->fd, EVFILT_WRITE, EV_ADD, 0, 0, nfd);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
-    }
-
-    if (event & sc_FD_READ) {
-        EV_SET(&ev, nfd->fd, EVFILT_READ, EV_ADD, 0, 0, nfd);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
-    }
-
-    if (poll->fd_count == poll->fd_cap) {
-        poll->fd_cap *= 2;
-        poll->events = sc_mem_realloc(poll->events,
-                                      poll->fd_cap * sizeof(struct kevent));
-    }
-
-    poll->fd_count++;
-}
-
-void sc_poll_del_event(struct sc_poll *poll, struct sc_fd *nfd,
-                       enum sc_fd_op event)
-{
-    int rc;
-    struct kevent ev;
-
-    if (!(nfd->op & event)) {
-        return;
-    }
-
-    nfd->op &= ~event;
-
-    if (event & sc_FD_READ) {
-        EV_SET(&ev, nfd->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
-    }
-
-    if (event & sc_FD_WRITE) {
-        EV_SET(&ev, nfd->fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-        rc = kevent(poll->fds, &ev, 1, NULL, 0, NULL);
-        if (rc != 0) {
-            sc_proc_abort();
-        }
-    }
-
-    if (poll->fd_count == poll->fd_cap) {
-        poll->fd_cap *= 2;
-        poll->events = sc_mem_realloc(poll->events,
-                                      poll->fd_cap * sizeof(struct kevent));
-    }
-
-    poll->fd_count++;
+    return 0;
 }
 
 void *sc_poll_data(struct sc_poll *poll, int i)
@@ -343,15 +309,15 @@ uint32_t sc_poll_event(struct sc_poll *poll, int i)
     uint32_t kqueue_flags = poll->events[i].flags;
 
     if (kqueue_flags & EVFILT_READ) {
-        events |= sc_FD_READ;
+        events |= SC_POLL_READ;
     }
 
     if (kqueue_flags & EVFILT_WRITE) {
-        events |= sc_FD_WRITE;
+        events |= SC_POLL_WRITE;
     }
 
     if (kqueue_flags & EV_EOF) {
-        events = (FD_READ | sc_FD_WRITE);
+        events = (SC_POLL_READ | SC_POLL_WRITE);
     }
 
     return events;
@@ -371,7 +337,7 @@ int sc_poll_wait(struct sc_poll *poll, int timeout)
     } while (n < 0 && errno == EINTR);
 
     if (n == -1) {
-        sc_proc_abort();
+        sc_poll_on_error("kevent : %s ", strerror(errno));
     }
 
     return n;

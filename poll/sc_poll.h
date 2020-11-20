@@ -26,6 +26,7 @@
 #define SC_POLL_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #if  defined(__linux__)
 #include <sys/epoll.h>
@@ -67,7 +68,7 @@ int sc_poll_term(struct sc_poll *poll);
 
 int sc_poll_add_fd(struct sc_poll *poll, int fd, int events, void *data);
 int sc_poll_mod_fd(struct sc_poll *poll, int fd, int events, void *data);
-int sc_poll_del_fd(struct sc_poll *poll, int fd);
+int sc_poll_del_fd(struct sc_poll *poll, int fd, int events);
 
 void *sc_poll_data(struct sc_poll *poll, int i);
 uint32_t sc_poll_event(struct sc_poll *poll, int i);

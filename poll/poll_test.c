@@ -209,7 +209,7 @@ void *server(void *arg)
                         assert(strcmp(buf, "dataxxx") == 0);
                         received++;
                     } else if (n == 0 || n < 0) {
-                        assert(sc_poll_del_fd(&poll, fd) == 0);
+                        assert(sc_poll_del_fd(&poll, fd, SC_POLL_READ | SC_POLL_WRITE) == 0);
                         assert(close(fd) == 0);
                         done = true;
                         break;
