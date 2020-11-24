@@ -510,10 +510,17 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
     const int bf = SC_SOCK_BUF_SIZE;
     const int sz = sizeof(bf);
 
+
     int rc;
     sc_sock_int fd;
 
-    fd = accept(sock->fdt.fd, NULL, NULL);
+    if (sock->family == AF_UNIX) {
+        struct sockaddr_un xx = {0};
+        socklen_t tt = sizeof(xx);
+        fd = accept(sock->fdt.fd, &xx, &tt);
+    } else {
+        fd = accept(sock->fdt.fd, NULL, NULL);
+    }
     if (fd == SC_INVALID) {
         sc_sock_errstr(sock, 0);
         return -1;
