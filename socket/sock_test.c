@@ -281,7 +281,7 @@ void* server_unix(void* arg)
         printf("error : %s\n", sock.err);
     }
 
-    assert(sc_sock_accept(&sock, &accepted) == 0);
+    assert(rc == 0);
     assert(sc_sock_recv(&accepted, buf, 5) == 5);
     assert(strcmp("test", buf) == 0);
 
