@@ -517,7 +517,7 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
     if (sock->family == AF_UNIX) {
         struct sockaddr_un xx = {0};
         socklen_t tt = sizeof(xx);
-        fd = accept(sock->fdt.fd, &xx, &tt);
+        fd = accept(sock->fdt.fd, (struct sockaddr*)&xx, &tt);
     } else {
         fd = accept(sock->fdt.fd, NULL, NULL);
     }
