@@ -6,28 +6,28 @@
 #include <stdlib.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <synchapi.h>
-    #define sleep(n) (Sleep(n * 1000))
+#include <synchapi.h>
+#define sleep(n) (Sleep(n * 1000))
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
 
-    #include <windows.h>
+#include <windows.h>
 
 struct sc_thread
 {
     HANDLE id;
-    void *(*fn)(void *);
-    void *arg;
-    void *ret;
+    void* (*fn)(void*);
+    void* arg;
+    void* ret;
 };
 
 #else
 
-    #include <errno.h>
-    #include <pthread.h>
-    #include <string.h>
-    #include <unistd.h>
+#include <errno.h>
+#include <pthread.h>
+#include <string.h>
+#include <unistd.h>
 
 struct sc_thread
 {
@@ -36,28 +36,28 @@ struct sc_thread
 
 #endif
 
-void sc_thread_init(struct sc_thread *thread);
-int sc_thread_term(struct sc_thread *thread);
-int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg);
-int sc_thread_stop(struct sc_thread *thread, void **ret);
+void sc_thread_init(struct sc_thread* thread);
+int sc_thread_term(struct sc_thread* thread);
+int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg);
+int sc_thread_stop(struct sc_thread* thread, void** ret);
 
-void sc_thread_init(struct sc_thread *thread)
+void sc_thread_init(struct sc_thread* thread)
 {
     thread->id = 0;
 }
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <process.h>
+#include <process.h>
 
-unsigned int __stdcall sc_thread_fn(void *arg)
+unsigned int __stdcall sc_thread_fn(void* arg)
 {
-    struct sc_thread *thread = arg;
+    struct sc_thread* thread = arg;
 
     thread->ret = thread->fn(thread->arg);
     return 0;
 }
 
-int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
+int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
 {
     int rc;
 
@@ -65,13 +65,13 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
     thread->arg = arg;
 
     thread->id =
-            (HANDLE) _beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
+        (HANDLE)_beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
     rc = thread->id == 0 ? -1 : 0;
 
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread *thread, void **ret)
+int sc_thread_stop(struct sc_thread* thread, void** ret)
 {
     int rc = 0;
     DWORD rv;
@@ -100,7 +100,7 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 }
 #else
 
-int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
+int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
 {
     int rc;
     pthread_attr_t hndl;
@@ -121,10 +121,10 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread *thread, void **ret)
+int sc_thread_stop(struct sc_thread* thread, void** ret)
 {
     int rc;
-    void *val;
+    void* val;
 
     if (thread->id == 0) {
         return -1;
@@ -142,12 +142,12 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 
 #endif
 
-int sc_thread_term(struct sc_thread *thread)
+int sc_thread_term(struct sc_thread* thread)
 {
     return sc_thread_stop(thread, NULL);
 }
 
-void *server_ip4(void *arg)
+void* server_ip4(void* arg)
 {
     char buf[5];
     char tmp[128];
@@ -168,7 +168,7 @@ void *server_ip4(void *arg)
     return NULL;
 }
 
-void *client_ip4(void *arg)
+void* client_ip4(void* arg)
 {
     int rc;
     char tmp[128];
@@ -208,7 +208,7 @@ void test_ip4()
     assert(sc_thread_term(&thread2) == 0);
 }
 
-void *server_ip6(void *arg)
+void* server_ip6(void* arg)
 {
     char buf[5];
     char tmp[128];
@@ -228,7 +228,7 @@ void *server_ip6(void *arg)
     return NULL;
 }
 
-void *client_ip6(void *arg)
+void* client_ip6(void* arg)
 {
     int rc;
     struct sc_sock sock;
@@ -266,7 +266,7 @@ void test_ip6()
     assert(sc_thread_term(&thread2) == 0);
 }
 
-void *server_unix(void *arg)
+void* server_unix(void* arg)
 {
     char buf[5];
     char tmp[128];
@@ -286,13 +286,14 @@ void *server_unix(void *arg)
     return NULL;
 }
 
-void *client_unix(void *arg)
+void* client_unix(void* arg)
 {
     int rc;
     struct sc_sock sock;
 
+    sleep(3);
     sc_sock_init(&sock, 0, true, AF_UNIX);
-    for (int i = 0; i < 5; i++) {
+    for (int i = 0; i < 10; i++) {
         rc = sc_sock_connect(&sock, "x.sock", NULL, NULL, NULL);
         if (rc == 0) {
             break;
@@ -361,7 +362,7 @@ void test_pipe(void)
 }
 
 #ifdef SC_HAVE_WRAP
-    #include <unistd.h>
+#include <unistd.h>
 
 bool fail_close = false;
 int __real_close(int fd);
@@ -406,7 +407,7 @@ void pipe_fail_test()
 #endif
 
 
-void *server(void *arg)
+void* server(void* arg)
 {
     int write_triggered = 2;
     int rc, received = 0;
@@ -433,11 +434,16 @@ void *server(void *arg)
 
         for (int i = 0; i < rc; i++) {
             int ev = sc_sock_poll_event(&poll, i);
-            struct sc_sock *sock = sc_sock_poll_data(&poll, i);
+            struct sc_sock* sock = sc_sock_poll_data(&poll, i);
+
+            if (ev == 0) {
+                continue;
+            }
 
             if (sock == &server) {
                 if (ev & SC_SOCK_READ) {
                     rc = sc_sock_accept(&server, &accepted);
+
                     assert(rc == 0);
                     assert(sc_sock_poll_add(&poll, &accepted.fdt,
                                             SC_SOCK_WRITE,
@@ -447,18 +453,20 @@ void *server(void *arg)
                 if (ev & SC_SOCK_WRITE) {
                     assert(false);
                 }
-            } else {
+            }
+            else {
                 if (ev & SC_SOCK_READ) {
                     char buf[8];
                     rc = sc_sock_recv(&accepted, buf, sizeof(buf));
                     if (rc == 8) {
                         assert(strcmp(buf, "dataxxx") == 0);
                         received++;
-                    } else if (rc == 0 || rc < 0) {
+                    }
+                    else if (rc == 0 || rc < 0) {
                         rc = sc_sock_poll_del(&poll, &accepted.fdt,
-                                               SC_SOCK_READ |
-                                               SC_SOCK_WRITE,
-                                               &accepted);
+                                              SC_SOCK_READ |
+                                              SC_SOCK_WRITE,
+                                              &accepted);
                         assert(rc == 0);
                         rc = sc_sock_term(&accepted);
                         assert(rc == 0);
@@ -472,7 +480,8 @@ void *server(void *arg)
                     if (write_triggered == 0) {
                         rc = sc_sock_poll_del(&poll, &accepted.fdt, SC_SOCK_WRITE, &accepted);
                         assert(rc == 0);
-                    } else {
+                    }
+                    else {
                         rc = sc_sock_poll_add(&poll, &accepted.fdt, SC_SOCK_READ, &accepted);
                     }
                 }
@@ -491,7 +500,7 @@ void *server(void *arg)
     return NULL;
 }
 
-void *client(void *arg)
+void* client(void* arg)
 {
     int rc;
     struct sc_sock sock;
