@@ -132,8 +132,8 @@ struct sc_sock_poll
 struct sc_sock_poll
 {
     int fds;
-    size_t fd_count;
-    size_t fd_cap;
+    size_t count;
+    size_t cap;
     struct kevent *events;
 };
 #else

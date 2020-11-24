@@ -154,9 +154,10 @@ void *server_ip4(void *arg)
     struct sc_sock sock, accepted;
 
     sc_sock_init(&sock, 0, true, AF_INET);
-    assert(sc_sock_listen(&sock, "127.0.0.1", "8000") == 0);
+    assert(sc_sock_listen(&sock, "127.0.0.1", "8004") == 0);
+    printf("listening \n");
     sc_sock_print(&sock, tmp, sizeof(tmp));
-    assert(strcmp(tmp, "Local(127.0.0.1:8000), Remote() ") == 0);
+    assert(strcmp(tmp, "Local(127.0.0.1:8004), Remote() ") == 0);
 
     assert(sc_sock_accept(&sock, &accepted) == 0);
     assert(sc_sock_recv(&accepted, buf, 5) == 5);
@@ -177,17 +178,19 @@ void *client_ip4(void *arg)
     sc_sock_init(&sock, 0, true, AF_INET);
 
     for (int i = 0; i < 5; i++) {
-        rc = sc_sock_connect(&sock, "127.0.0.1", "8000", "127.0.0.1", "9090");
+        printf("will  connect 2\n");
+        rc = sc_sock_connect(&sock, "127.0.0.1", "8004", "127.0.0.1", "9094");
         if (rc == 0) {
             break;
         }
-
+        printf("failed to connect \n");
+        printf("failed to connect 2\n");
         sleep(1);
     }
 
     assert(rc == 0);
     sc_sock_print(&sock, tmp, sizeof(tmp));
-    assert(strcmp(tmp, "Local(127.0.0.1:9090), Remote(127.0.0.1:8000) ") == 0);
+    assert(strcmp(tmp, "Local(127.0.0.1:9094), Remote(127.0.0.1:8004) ") == 0);
     assert(sc_sock_send(&sock, "test", 5) == 5);
     assert(sc_sock_term(&sock) == 0);
 
@@ -216,9 +219,9 @@ void *server_ip6(void *arg)
     struct sc_sock sock, accepted;
 
     sc_sock_init(&sock, 0, true, AF_INET6);
-    assert(sc_sock_listen(&sock, "::1", "8000") == 0);
+    assert(sc_sock_listen(&sock, "::1", "8006") == 0);
     sc_sock_print(&sock, tmp, sizeof(tmp));
-    assert(strcmp(tmp, "Local(::1:8000), Remote() ") == 0);
+    assert(strcmp(tmp, "Local(::1:8006), Remote() ") == 0);
     assert(sc_sock_accept(&sock, &accepted) == 0);
     assert(sc_sock_recv(&accepted, buf, 5) == 5);
     assert(strcmp("test", buf) == 0);
@@ -237,7 +240,7 @@ void *client_ip6(void *arg)
     sc_sock_init(&sock, 0, true, AF_INET6);
 
     for (int i = 0; i < 5; i++) {
-        rc = sc_sock_connect(&sock, "::1", "8000", NULL, NULL);
+        rc = sc_sock_connect(&sock, "::1", "8006", NULL, NULL);
         if (rc == 0) {
             break;
         }
@@ -421,7 +424,7 @@ void *server(void *arg)
     assert(sc_sock_poll_init(&poll) == 0);
 
     sc_sock_init(&server, 0, true, SC_SOCK_INET);
-    rc = sc_sock_listen(&server, "127.0.0.1", "9000");
+    rc = sc_sock_listen(&server, "127.0.0.1", "11000");
     assert(rc == 0);
 
     rc = sc_sock_poll_add(&poll, &server.fdt, SC_SOCK_READ, &server);
@@ -500,7 +503,7 @@ void *client(void *arg)
     for (int i = 0; i < 10; i++) {
         sc_sock_init(&sock, 0, true, SC_SOCK_INET);
 
-        rc = sc_sock_connect(&sock, "127.0.0.1", "9000", NULL, NULL);
+        rc = sc_sock_connect(&sock, "127.0.0.1", "11000", NULL, NULL);
         if (rc != 0) {
             assert(sc_sock_term(&sock) == 0);
             sleep(1);

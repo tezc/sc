@@ -78,6 +78,7 @@ static int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
     #include <arpa/inet.h>
     #include <netdb.h>
     #include <netinet/tcp.h>
+#include <netinet/in.h>
     #include <sys/un.h>
     #include <unistd.h>
 
@@ -1125,8 +1126,6 @@ int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
                      enum sc_sock_ev events, void *data)
 {
     int rc, count = 0;
-    size_t cap, size;
-    void *p;
     struct kevent ev[2];
     int mask = fdt->op | events;
 
@@ -1142,11 +1141,11 @@ int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
     }
 
     if (events & SC_SOCK_WRITE) {
-        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
+        EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
     }
 
     if (events & SC_SOCK_READ) {
-        EV_SET(&ev[count++], fd, EVFILT_READ, EV_ADD, 0, 0, data);
+        EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
     }
 
     rc = kevent(poll->fds, ev, count, NULL, 0, NULL);
@@ -1166,18 +1165,18 @@ int sc_sock_poll_del(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
 {
     int rc, count = 0;
     struct kevent ev[2];
-    int i;
+    int mask = fdt->op & events;
 
     if (fdt->op == SC_SOCK_NONE || (fdt->op & events) == 0) {
         return 0;
     }
 
-    if (events & SC_SOCK_READ) {
-        EV_SET(&ev[count++], fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+    if (mask & SC_SOCK_READ) {
+        EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
     }
 
-    if (events & SC_SOCK_WRITE) {
-        EV_SET(&ev[count++], fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+    if (mask & SC_SOCK_WRITE) {
+        EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
     }
 
     rc = kevent(poll->fds, ev, count, NULL, 0, NULL);
@@ -1187,26 +1186,26 @@ int sc_sock_poll_del(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
     }
 
     fdt->op &= ~events;
-    poll->fd_count -= fdt->op == SC_SOCK_NONE;
+    poll->count -= fdt->op == SC_SOCK_NONE;
 
     return 0;
 }
 
-void *sc_sock_poll_data(struct sc_sock_poll *poll, int i)
+void *sc_sock_poll_data(struct sc_sock_poll *poll, size_t i)
 {
     return poll->events[i].udata;
 }
 
-uint32_t sc_sock_poll_event(struct sc_sock_poll *poll, int i)
+uint32_t sc_sock_poll_event(struct sc_sock_poll *poll, size_t i)
 {
     uint32_t events = 0;
 
     if (poll->events[i].flags & EV_EOF) {
-        events = (SC_POLL_READ | SC_POLL_WRITE);
+        events = (SC_SOCK_READ | SC_SOCK_WRITE);
     } else if (poll->events[i].filter == EVFILT_READ) {
-        events |= SC_POLL_READ;
+        events |= SC_SOCK_READ;
     } else if (poll->events[i].filter == EVFILT_WRITE) {
-        events |= SC_POLL_WRITE;
+        events |= SC_SOCK_WRITE;
     }
 
     return events;
@@ -1221,7 +1220,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *poll, int timeout)
         ts.tv_sec = timeout / 1000;
         ts.tv_nsec = (timeout % 1000) * 1000000;
 
-        n = kevent(poll->fds, NULL, 0, &poll->events[0], poll->fd_cap,
+        n = kevent(poll->fds, NULL, 0, &poll->events[0], poll->cap,
                    timeout >= 0 ? &ts : NULL);
     } while (n < 0 && errno == EINTR);
 
