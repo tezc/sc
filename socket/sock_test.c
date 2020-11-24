@@ -348,6 +348,19 @@ void test1()
     sc_sock_term(&sock);
 }
 
+void test_pipe(void)
+{
+    char buf[5];
+    struct sc_sock_pipe pipe;
+
+    sc_sock_pipe_init(&pipe, 0);
+    sc_sock_pipe_write(&pipe, "test", 5);
+    sc_sock_pipe_read(&pipe, buf, 5);
+    sc_sock_pipe_term(&pipe);
+
+    assert(strcmp("test", buf) == 0);
+}
+
 #ifdef SC_HAVE_WRAP
     #include <unistd.h>
 
@@ -373,19 +386,6 @@ int __wrap_pipe(int __pipedes[2])
     return __real_pipe(__pipedes);
 }
 
-void test_pipe(void)
-{
-    char buf[5];
-    struct sc_sock_pipe pipe;
-
-    sc_sock_pipe_init(&pipe, 0);
-    sc_sock_pipe_write(&pipe, "test", 5);
-    sc_sock_pipe_read(&pipe, buf, 5);
-    sc_sock_pipe_term(&pipe);
-
-    assert(strcmp("test", buf) == 0);
-}
-
 void pipe_fail_test()
 {
     struct sc_sock_pipe pipe;
@@ -400,7 +400,7 @@ void pipe_fail_test()
 }
 
 #else
-void fail_test()
+void pipe_fail_test()
 {
 }
 
