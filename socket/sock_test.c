@@ -278,7 +278,7 @@ void* server_unix(void* arg)
     assert(strcmp(tmp, "Local(x.sock), Remote() ") == 0);
     int rc = sc_sock_accept(&sock, &accepted);
     if (rc != 0) {
-        printf("error : % s\n", sock.err);
+        printf("error : %s\n", sock.err);
     }
 
     assert(sc_sock_accept(&sock, &accepted) == 0);
