@@ -273,9 +273,9 @@ void* server_unix(void* arg)
     struct sc_sock sock, accepted;
 
     sc_sock_init(&sock, 0, true, AF_UNIX);
-    assert(sc_sock_listen(&sock, "/tmp/x.sock", NULL) == 0);
+    assert(sc_sock_listen(&sock, "x.sock", NULL) == 0);
     sc_sock_print(&sock, tmp, sizeof(tmp));
-    assert(strcmp(tmp, "Local(/tmp/x.sock), Remote() ") == 0);
+    assert(strcmp(tmp, "Local(x.sock), Remote() ") == 0);
     int rc = sc_sock_accept(&sock, &accepted);
     if (rc != 0) {
         printf("error(%d) : %s\n", errno, sock.err);
@@ -299,13 +299,14 @@ void* client_unix(void* arg)
     sleep(3);
     sc_sock_init(&sock, 0, true, AF_UNIX);
     for (int i = 0; i < 10; i++) {
-        printf("Will connect to /tmp/x.sock \n");
-        rc = sc_sock_connect(&sock, "/tmp/x.sock", NULL, NULL, NULL);
+        printf("Will connect to x.sock \n");
+        rc = sc_sock_connect(&sock, "x.sock", NULL, NULL, NULL);
         if (rc == 0) {
+            printf("Connected to x.sock \n");
             break;
         }
 
-        printf("Failed to connect to /tmp/x.sock \n");
+        printf("Failed to connect to x.sock \n");
         sleep(1);
     }
 
