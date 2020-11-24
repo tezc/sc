@@ -155,7 +155,6 @@ void *server_ip4(void *arg)
 
     sc_sock_init(&sock, 0, true, AF_INET);
     assert(sc_sock_listen(&sock, "127.0.0.1", "8004") == 0);
-    printf("listening \n");
     sc_sock_print(&sock, tmp, sizeof(tmp));
     assert(strcmp(tmp, "Local(127.0.0.1:8004), Remote() ") == 0);
 
@@ -178,19 +177,16 @@ void *client_ip4(void *arg)
     sc_sock_init(&sock, 0, true, AF_INET);
 
     for (int i = 0; i < 5; i++) {
-        printf("will  connect 2\n");
-        rc = sc_sock_connect(&sock, "127.0.0.1", "8004", "127.0.0.1", "9094");
+        rc = sc_sock_connect(&sock, "127.0.0.1", "8004", NULL, NULL);
         if (rc == 0) {
             break;
         }
-        printf("failed to connect \n");
-        printf("failed to connect 2\n");
+
         sleep(1);
     }
 
     assert(rc == 0);
     sc_sock_print(&sock, tmp, sizeof(tmp));
-    assert(strcmp(tmp, "Local(127.0.0.1:9094), Remote(127.0.0.1:8004) ") == 0);
     assert(sc_sock_send(&sock, "test", 5) == 5);
     assert(sc_sock_term(&sock) == 0);
 
