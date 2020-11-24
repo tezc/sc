@@ -512,10 +512,8 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
 
     int rc;
     sc_sock_int fd;
-    struct sockaddr_storage sa = {0};
-    socklen_t sa_len = sizeof(sa);
 
-    fd = accept(sock->fdt.fd, (struct sockaddr*)&sa, &sa_len);
+    fd = accept(sock->fdt.fd, NULL, NULL);
     if (fd == SC_INVALID) {
         sc_sock_errstr(sock, 0);
         return -1;
