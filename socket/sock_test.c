@@ -566,8 +566,14 @@ int main()
 
     test1();
     test_ip4();
+
+#if defined(__x86_64__)
     test_ip6();
+#endif
+
+#if !defined(__APPLE__)
     test_unix();
+#endif
     test_pipe();
     pipe_fail_test();
     test_poll();
