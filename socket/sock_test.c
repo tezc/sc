@@ -429,10 +429,10 @@ void* server(void* arg)
     bool done = false;
 
     while (!done) {
-        rc = sc_sock_poll_wait(&poll, -1);
+        int count = sc_sock_poll_wait(&poll, -1);
         assert(rc != -1);
 
-        for (int i = 0; i < rc; i++) {
+        for (int i = 0; i < count; i++) {
             int ev = sc_sock_poll_event(&poll, i);
             struct sc_sock* sock = sc_sock_poll_data(&poll, i);
 
@@ -443,6 +443,7 @@ void* server(void* arg)
             if (sock == &server) {
                 if (ev & SC_SOCK_READ) {
                     rc = sc_sock_accept(&server, &accepted);
+                    printf("accepted \n");
 
                     assert(rc == 0);
                     assert(sc_sock_poll_add(&poll, &accepted.fdt,

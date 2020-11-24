@@ -62,7 +62,7 @@ add_custom_command(
 
 SET(MEMORYCHECK_COMMAND_OPTIONS
         "-q --log-fd=2 --trace-children=yes --track-origins=yes       \
-         --leak-check=full --show-leak-kinds=all --show-reachable=yes \
+         --leak-check=full --show-leak-kinds=all \
          --error-exitcode=255")
 
 add_custom_target(valgrind ${CMAKE_COMMAND}
