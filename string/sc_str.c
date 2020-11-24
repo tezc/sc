@@ -202,7 +202,7 @@ bool sc_str_append(char **str, const char *param)
     size_t alloc = sc_str_bytes(meta->len + len);
 
     if (alloc > SC_SIZE_MAX || (meta = sc_str_realloc(meta, alloc)) == NULL) {
-        sc_str_on_error("Out of memory. alloc(%zu). ", alloc);
+        sc_str_on_error("Out of memory. alloc(%zu bytes). ", alloc);
         return false;
     }
 

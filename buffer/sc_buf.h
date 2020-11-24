@@ -42,11 +42,19 @@ struct sc_buf
     bool oom;
 };
 
+/**
+ * If you want to log or abort on out of memory, put your error function here.
+ * It will be called with printf like error msg.
+ *
+ * my_on_oom(const char* fmt, ...);
+ */
+#define sc_buf_on_error(...)
+
 #define sc_buf_malloc malloc
 #define sc_buf_realloc realloc
 #define sc_buf_free free
 
-void sc_buf_init(struct sc_buf *buf, uint32_t cap);
+int sc_buf_init(struct sc_buf *buf, uint32_t cap);
 void sc_buf_term(struct sc_buf *buf);
 
 struct sc_buf sc_buf_wrap(void *data, uint32_t len, bool ref);
@@ -56,13 +64,11 @@ void sc_buf_limit(struct sc_buf *buf, uint32_t limit);
 void *sc_buf_at(struct sc_buf *buf, uint32_t pos);
 uint32_t sc_buf_cap(struct sc_buf *buf);
 
-bool sc_buf_is_valid(struct sc_buf *buf);
+bool sc_buf_valid(struct sc_buf *buf);
 uint32_t sc_buf_quota(struct sc_buf *buf);
-uint32_t sc_buf_count(struct sc_buf *buf);
+uint32_t sc_buf_size(struct sc_buf *buf);
 void sc_buf_clear(struct sc_buf *buf);
 void sc_buf_compact(struct sc_buf *buf);
-
-void sc_buf_memset(struct sc_buf *buf, int val, uint32_t offset, uint32_t len);
 
 void sc_buf_mark_read(struct sc_buf *buf, uint32_t len);
 void sc_buf_mark_write(struct sc_buf *buf, uint32_t len);
@@ -81,8 +87,9 @@ uint32_t sc_buf_peek_data(struct sc_buf *buf, uint32_t offset, void *dest,
                        uint32_t len);
 uint32_t sc_buf_set_data(struct sc_buf *buf, uint32_t offset, const void *src,
                       uint32_t len);
-void sc_buf_get_data(struct sc_buf *buf, void *dest, uint32_t len);
-void sc_buf_put_data(struct sc_buf *buf, const void *ptr, uint32_t len);
+
+void sc_buf_get_raw(struct sc_buf *buf, void *dest, uint32_t len);
+void sc_buf_put_raw(struct sc_buf *buf, const void *ptr, uint32_t len);
 
 bool sc_buf_get_bool(struct sc_buf *buf);
 void sc_buf_put_bool(struct sc_buf *buf, bool val);
@@ -93,26 +100,18 @@ void sc_buf_put_8(struct sc_buf *buf, uint8_t byte);
 uint16_t sc_buf_get_16(struct sc_buf *buf);
 void sc_buf_put_16(struct sc_buf *buf, uint16_t val);
 
-uint32_t sc_buf_peek_32_at(struct sc_buf *buf, uint32_t pos);
-uint32_t sc_buf_peek_32(struct sc_buf *buf);
 uint32_t sc_buf_get_32(struct sc_buf *buf);
-void sc_buf_set_32_at(struct sc_buf *buf, uint32_t pos, uint32_t val);
-void sc_buf_set_32(struct sc_buf *buf, uint32_t val);
 void sc_buf_put_32(struct sc_buf *buf, uint32_t val);
 
-uint64_t sc_buf_peek_64_at(struct sc_buf *buf, uint32_t pos);
 uint64_t sc_buf_get_64(struct sc_buf *buf);
-void sc_buf_set_64_at(struct sc_buf *buf, uint32_t pos, uint64_t val);
 void sc_buf_put_64(struct sc_buf *buf, uint64_t val);
 
 double sc_buf_get_double(struct sc_buf *buf);
 void sc_buf_put_double(struct sc_buf *buf, double val);
 
-
-uint32_t sc_buf_peek_strlen(struct sc_buf *buf);
 const char *sc_buf_get_str(struct sc_buf *buf);
 void sc_buf_put_str(struct sc_buf *buf, const char *str);
-void sc_buf_put_as_str(struct sc_buf *buf, const char *fmt, ...);
+void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...);
 
 void sc_buf_put_blob(struct sc_buf *buf, const void *ptr, uint32_t len);
 void *sc_buf_get_blob(struct sc_buf *buf, uint32_t len);

@@ -25,68 +25,140 @@
 #define SC_SOCK_H
 
 #include <stdbool.h>
+#include <stddef.h>
 #include <stdint.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <winsock2.h>
-#include <Ws2tcpip.h>
-#include <windows.h>
-#pragma comment(lib, "ws2_32.lib")
+    #include <Ws2tcpip.h>
+    #include <windows.h>
+    #include <winsock2.h>
+    #pragma comment(lib, "ws2_32.lib")
+
+typedef SOCKET sc_sock_int;
+
 #else
-#include <sys/socket.h>
+    #include <sys/socket.h>
+typedef int sc_sock_int;
 #endif
 
 #define SC_SOCK_BUF_SIZE 8192
 
-enum sc_sock_op
+
+enum sc_sock_rc
 {
-    SC_SOCK_OP_UNREGISTERED = 0,
-    SC_SOCK_OP_NONE = 1,
-    SC_SOCK_OP_READ = 2,
-    SC_SOCK_OP_WRITE = 4
+    SC_SOCK_WANT_READ = -4,
+    SC_SOCK_WANT_WRITE = -2,
+    SC_SOCK_ERROR = -1,
+    SC_SOCK_OK = 0
+};
+
+enum sc_sock_ev
+{
+    SC_SOCK_NONE = 0u,
+    SC_SOCK_READ = 1u,
+    SC_SOCK_WRITE = 2u,
 };
 
 enum sc_sock_family
 {
-    SC_SOCK_FAMILY_INET = AF_INET,
-    SC_SOCK_FAMILY_INET6 = AF_INET6,
-    SC_SOCK_FAMILY_UNIX = AF_UNIX
+    SC_SOCK_INET = AF_INET,
+    SC_SOCK_INET6 = AF_INET6,
+    SC_SOCK_UNIX = AF_UNIX
 };
 
-#if defined(_WIN32) || defined(_WIN64)
-typedef SOCKET sc_sock_int;
-#else
-typedef int sc_sock_int;
-#endif
+struct sc_sock_fd
+{
+    sc_sock_int fd;
+    enum sc_sock_ev op;
+    int type;
+    int index;
+};
 
 struct sc_sock
 {
-    int type;
+    struct sc_sock_fd fdt;
     bool blocking;
-    sc_sock_int fd;
     int family;
-    int op;
     char err[128];
 };
 
-struct sc_sock* sc_sock_create(int type, bool blocking, int family);
-int sc_sock_destroy(struct sc_sock* sock);
+void sc_sock_init(struct sc_sock *sock, int type, bool blocking, int family);
+int sc_sock_term(struct sc_sock *sock);
 
-void sc_sock_init(struct sc_sock* sock, int type, bool blocking, int family);
-int sc_sock_term(struct sc_sock* sock);
+int sc_sock_listen(struct sc_sock *sock, const char *host, const char *port);
+int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in);
 
-int sc_sock_listen(struct sc_sock* sock, const char* host, const char* port);
-int sc_sock_accept(struct sc_sock* sock, struct sc_sock* in);
+int sc_sock_connect(struct sc_sock *sock, const char *dest_addr,
+                    const char *dest_port, const char *source_addr,
+                    const char *source_port);
 
-int sc_sock_connect(struct sc_sock* sock, const char* addr, const char* port,
-                    const char* source_addr, const char* source_port);
-int sc_sock_finish_connect(struct sc_sock* sock);
+int sc_sock_finish_connect(struct sc_sock *sock);
 
-int sc_sock_send(struct sc_sock* sock, char* buf, int len);
-int sc_sock_recv(struct sc_sock* sock, char* buf, int len);
+int sc_sock_send(struct sc_sock *sock, char *buf, int len);
+int sc_sock_recv(struct sc_sock *sock, char *buf, int len);
 
-const char* sc_sock_error(struct sc_sock* sock);
-void sc_sock_print(struct sc_sock* sock, char* buf, int len);
+const char *sc_sock_error(struct sc_sock *sock);
+void sc_sock_print(struct sc_sock *sock, char *buf, int len);
 
+
+struct sc_sock_pipe
+{
+    struct sc_sock_fd fdt;
+    sc_sock_int fds[2];
+};
+
+int sc_sock_pipe_init(struct sc_sock_pipe *pipe, int type);
+int sc_sock_pipe_term(struct sc_sock_pipe *pipe);
+int sc_sock_pipe_write(struct sc_sock_pipe *pipe, void *data, int len);
+int sc_sock_pipe_read(struct sc_sock_pipe *pipe, void *data, int len);
+
+#define sc_sock_on_error(...)
+
+#if defined(__linux__)
+    #include <sys/epoll.h>
+
+
+struct sc_sock_poll
+{
+    int fds;
+    size_t count;
+    size_t cap;
+    struct epoll_event *events;
+};
+
+#elif defined(__FreeBSD__) || defined(__APPLE__)
+    #include <sys/event.h>
+
+struct sc_sock_poll
+{
+    int fds;
+    size_t fd_count;
+    size_t fd_cap;
+    struct kevent *events;
+};
+#else
+#include <sys/poll.h>
+
+struct sc_sock_poll
+{
+    size_t count;
+    size_t cap;
+    void** data;
+    struct pollfd *events;
+};
+
+#endif
+
+int sc_sock_poll_init(struct sc_sock_poll *poll);
+int sc_sock_poll_term(struct sc_sock_poll *poll);
+
+int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
+                     enum sc_sock_ev events, void *data);
+int sc_sock_poll_del(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
+                     enum sc_sock_ev events, void *data);
+
+void *sc_sock_poll_data(struct sc_sock_poll *poll, size_t i);
+uint32_t sc_sock_poll_event(struct sc_sock_poll *poll, size_t i);
+int sc_sock_poll_wait(struct sc_sock_poll *poll, int timeout);
 
 #endif

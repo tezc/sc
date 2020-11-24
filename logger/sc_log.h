@@ -54,7 +54,7 @@ const static struct sc_log_level_pair
 // clang-format on
 
 /**
- * If you want to log or abort on errors like mutex init which is not supposed
+ * If you want to log or abort on errors like 'mutex init' which is not supposed
  * to fail ever(?), put your error function here. It will be called with printf
  * like error msg.
  *

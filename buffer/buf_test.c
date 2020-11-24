@@ -34,16 +34,14 @@ void test1()
     double x = sc_buf_get_double(&buf);
     assert(x == (double)123211.323321);
     sc_buf_put_str(&buf, "test");
-    assert(sc_buf_peek_strlen(&buf) == 4);
     assert(strcmp("test", sc_buf_get_str(&buf)) == 0);
     sc_buf_put_str(&buf, NULL);
-    assert(sc_buf_peek_strlen(&buf) == 0);
     assert(sc_buf_get_str(&buf) == NULL);
     sc_buf_clear(&buf);
-    assert(sc_buf_count(&buf) == 0);
+    assert(sc_buf_size(&buf) == 0);
     assert(sc_buf_cap(&buf) == 100);
     sc_buf_compact(&buf);
-    sc_buf_put_as_str(&buf, "%d", 3);
+    sc_buf_put_fmt(&buf, "%d", 3);
     assert(strcmp("3", sc_buf_get_str(&buf)) == 0);
     sc_buf_put_bool(&buf, true);
     assert(sc_buf_get_bool(&buf) == true);
@@ -55,48 +53,44 @@ void test1()
 
     sc_buf_put_64(&buf, 122);
     sc_buf_put_64(&buf, 133);
-    sc_buf_set_64_at(&buf, 8, 144);
     sc_buf_get_64(&buf);
-    assert(sc_buf_get_64(&buf) == 144);
+    assert(sc_buf_get_64(&buf) == 133);
     sc_buf_clear(&buf);
 
     sc_buf_put_32(&buf, 122);
-    sc_buf_put_32(&buf, 133);
-    sc_buf_set_32_at(&buf, 4, 144);
+    sc_buf_put_32(&buf, 144);
     sc_buf_get_32(&buf);
     assert(sc_buf_get_32(&buf) == 144);
     sc_buf_clear(&buf);
     sc_buf_put_64(&buf, 222);
     sc_buf_mark_read(&buf, 8);
-    assert(sc_buf_count(&buf) == 0);
+    assert(sc_buf_size(&buf) == 0);
     char *c = sc_buf_write_buf(&buf);
     *c = 'c';
     sc_buf_mark_write(&buf, 1);
     assert(sc_buf_get_8(&buf) == 'c');
     sc_buf_clear(&buf);
-    sc_buf_put_64(&buf, 0xFFFFFFF);
-    sc_buf_memset(&buf, 0, 0, 8);
-    assert(sc_buf_get_64(&buf) == 0);
 
     sc_buf_clear(&buf);
     sc_buf_put_32(&buf, 2323);
-    sc_buf_set_32(&buf, 3311);
+    sc_buf_put_32(&buf, 3311);
     sc_buf_set_write_pos(&buf, 8);
     sc_buf_set_read_pos(&buf, 4);
     assert(sc_buf_get_32(&buf) == 3311);
     sc_buf_clear(&buf);
     sc_buf_put_64(&buf, UINT64_MAX);
-    assert(sc_buf_peek_64_at(&buf, 0) == UINT64_MAX);
+    assert(sc_buf_get_64(&buf) == UINT64_MAX);
+    sc_buf_put_64(&buf, UINT64_MAX);
 
     unsigned char* z = sc_buf_read_buf(&buf);
     assert(*z == 0xFF);
-    assert(sc_buf_get_write_pos(&buf) == 8);
-    assert(sc_buf_quota(&buf) == 100 - 8);
+    assert(sc_buf_get_write_pos(&buf) == 16);
+    assert(sc_buf_quota(&buf) == 100 - 16);
     assert(sc_buf_get_blob(&buf, 0) == NULL);
 
     sc_buf_move(&buf2, &buf);
     assert(sc_buf_get_64(&buf2) == UINT64_MAX);
-    assert(sc_buf_count(&buf) == 0);
+    assert(sc_buf_size(&buf) == 0);
 
     char tmp[] = "testtesttesttesttesttesttesttesttesttesttesttesttetesttesttesttesttesttesttesttesttesttesttesttesttestteststtest";
     sc_buf_put_str(&buf, tmp);
@@ -113,33 +107,21 @@ void test1()
     sc_buf_compact(&buf);
     assert(sc_buf_get_read_pos(&buf) == 0);
     assert(sc_buf_get_write_pos(&buf) == 8);
-    assert(sc_buf_is_valid(&buf));
+    assert(sc_buf_valid(&buf));
     sc_buf_term(&buf);
 
     sc_buf_init(&buf, 100);
     sc_buf_limit(&buf, 128);
     sc_buf_put_str(&buf, tmp);
-    assert(sc_buf_is_valid(&buf) == false);
+    assert(sc_buf_valid(&buf) == false);
     assert(sc_buf_get_64(&buf) == 0);
     sc_buf_term(&buf);
 
     sc_buf_init(&buf, 100);
     sc_buf_limit(&buf, 128);
-    sc_buf_put_as_str(&buf, tmp);
-    assert(sc_buf_is_valid(&buf) == false);
+    sc_buf_put_fmt(&buf, tmp);
+    assert(sc_buf_valid(&buf) == false);
     assert(sc_buf_get_64(&buf) == 0);
-    sc_buf_term(&buf);
-
-    sc_buf_init(&buf, 16);
-    sc_buf_put_64(&buf, 23131);
-    sc_buf_put_64(&buf, 23131);
-    sc_buf_peek_64_at(&buf, 32);
-    assert(sc_buf_is_valid(&buf) == false);
-    sc_buf_term(&buf);
-
-    sc_buf_init(&buf, 100);
-    sc_buf_set_32_at(&buf, 1000, 2332),
-    assert(sc_buf_is_valid(&buf) == false);
     sc_buf_term(&buf);
 
     sc_buf_term(&buf2);

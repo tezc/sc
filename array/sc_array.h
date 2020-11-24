@@ -55,10 +55,10 @@ bool sc_array_expand(void **arr, size_t elem_size);
 
 
 /**
- * If you want to log or abort on errors like out of memory,
- * put your error function here. It will be called with printf like error msg.
+ * If you want to log or abort on out of memory, put your error function here.
+ * It will be called with printf like error msg.
  *
- * my_on_error(const char* fmt, ...);
+ * my_on_oom(const char* fmt, ...);
  */
 #define sc_array_on_error(...)
 

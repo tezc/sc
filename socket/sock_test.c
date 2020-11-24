@@ -2,32 +2,32 @@
 #include "sc_sock.h"
 
 #include <assert.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <synchapi.h>
-#define sleep(n) (Sleep(n * 1000))
+    #include <synchapi.h>
+    #define sleep(n) (Sleep(n * 1000))
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
 
-#include <windows.h>
+    #include <windows.h>
 
 struct sc_thread
 {
     HANDLE id;
-    void* (*fn)(void*);
-    void* arg;
-    void* ret;
+    void *(*fn)(void *);
+    void *arg;
+    void *ret;
 };
 
 #else
 
-#include <errno.h>
-#include <pthread.h>
-#include <string.h>
-#include <unistd.h>
+    #include <errno.h>
+    #include <pthread.h>
+    #include <string.h>
+    #include <unistd.h>
 
 struct sc_thread
 {
@@ -36,28 +36,28 @@ struct sc_thread
 
 #endif
 
-void sc_thread_init(struct sc_thread* thread);
-int sc_thread_term(struct sc_thread* thread);
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg);
-int sc_thread_stop(struct sc_thread* thread, void** ret);
+void sc_thread_init(struct sc_thread *thread);
+int sc_thread_term(struct sc_thread *thread);
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg);
+int sc_thread_stop(struct sc_thread *thread, void **ret);
 
-void sc_thread_init(struct sc_thread* thread)
+void sc_thread_init(struct sc_thread *thread)
 {
     thread->id = 0;
 }
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <process.h>
+    #include <process.h>
 
-unsigned int __stdcall sc_thread_fn(void* arg)
+unsigned int __stdcall sc_thread_fn(void *arg)
 {
-    struct sc_thread* thread = arg;
+    struct sc_thread *thread = arg;
 
     thread->ret = thread->fn(thread->arg);
     return 0;
 }
 
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 {
     int rc;
 
@@ -65,13 +65,13 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
     thread->arg = arg;
 
     thread->id =
-        (HANDLE)_beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
+            (HANDLE) _beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
     rc = thread->id == 0 ? -1 : 0;
 
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread* thread, void** ret)
+int sc_thread_stop(struct sc_thread *thread, void **ret)
 {
     int rc = 0;
     DWORD rv;
@@ -100,7 +100,7 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
 }
 #else
 
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 {
     int rc;
     pthread_attr_t hndl;
@@ -121,10 +121,10 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread* thread, void** ret)
+int sc_thread_stop(struct sc_thread *thread, void **ret)
 {
     int rc;
-    void* val;
+    void *val;
 
     if (thread->id == 0) {
         return -1;
@@ -142,12 +142,12 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
 
 #endif
 
-int sc_thread_term(struct sc_thread* thread)
+int sc_thread_term(struct sc_thread *thread)
 {
     return sc_thread_stop(thread, NULL);
 }
 
-void* server_ip4(void* arg)
+void *server_ip4(void *arg)
 {
     char buf[5];
     char tmp[128];
@@ -168,7 +168,7 @@ void* server_ip4(void* arg)
     return NULL;
 }
 
-void* client_ip4(void* arg)
+void *client_ip4(void *arg)
 {
     int rc;
     char tmp[128];
@@ -209,7 +209,7 @@ void test_ip4()
     assert(sc_thread_term(&thread2) == 0);
 }
 
-void* server_ip6(void* arg)
+void *server_ip6(void *arg)
 {
     char buf[5];
     char tmp[128];
@@ -229,7 +229,7 @@ void* server_ip6(void* arg)
     return NULL;
 }
 
-void* client_ip6(void* arg)
+void *client_ip6(void *arg)
 {
     int rc;
     struct sc_sock sock;
@@ -267,7 +267,7 @@ void test_ip6()
     assert(sc_thread_term(&thread2) == 0);
 }
 
-void* server_unix(void* arg)
+void *server_unix(void *arg)
 {
     char buf[5];
     char tmp[128];
@@ -287,7 +287,7 @@ void* server_unix(void* arg)
     return NULL;
 }
 
-void* client_unix(void* arg)
+void *client_unix(void *arg)
 {
     int rc;
     struct sc_sock sock;
@@ -329,25 +329,212 @@ void test_unix()
 void test1()
 {
     char tmp[5];
-    struct sc_sock *sock;
+    struct sc_sock sock;
 
-    sock = sc_sock_create(0, false, AF_INET);
-    assert(sc_sock_connect(sock, "3127.0.0.1", "2131", NULL, NULL) != 0);
-    assert(sc_sock_finish_connect(sock) != 0);
-    assert(sc_sock_connect(sock, "3127.0.0.1", "2131", "127.90.1.1", "50") != 0);
-    assert(sc_sock_finish_connect(sock) != 0);
-    assert(sc_sock_send(sock, "test", 5) == -1);
-    assert(sc_sock_recv(sock, tmp, sizeof(tmp)) == -1);
-    assert(sc_sock_connect(sock, "131s::1", "2131", "::1", "50") != 0);
-    assert(sc_sock_finish_connect(sock) != 0);
-    assert(sc_sock_connect(sock, "d::1", "2131", "dsad", "50") != 0);
-    assert(sc_sock_finish_connect(sock) != 0);
-    assert(sc_sock_connect(sock, "dsadas", "2131", "::1", "50") != 0);
+    sc_sock_init(&sock, 0, false, AF_INET);
+    assert(sc_sock_connect(&sock, "3127.0.0.1", "2131", NULL, NULL) != 0);
+    assert(sc_sock_finish_connect(&sock) != 0);
+    assert(sc_sock_connect(&sock, "3127.0.0.1", "2131", "127.90.1.1", "50") !=
+           0);
+    assert(sc_sock_finish_connect(&sock) != 0);
+    assert(sc_sock_send(&sock, "test", 5) == -1);
+    assert(sc_sock_recv(&sock, tmp, sizeof(tmp)) == -1);
+    assert(sc_sock_connect(&sock, "131s::1", "2131", "::1", "50") != 0);
+    assert(sc_sock_finish_connect(&sock) != 0);
+    assert(sc_sock_connect(&sock, "d::1", "2131", "dsad", "50") != 0);
+    assert(sc_sock_finish_connect(&sock) != 0);
+    assert(sc_sock_connect(&sock, "dsadas", "2131", "::1", "50") != 0);
 
-    assert(sock != NULL);
-    sc_sock_destroy(sock);
+    sc_sock_term(&sock);
 }
 
+#ifdef SC_HAVE_WRAP
+    #include <unistd.h>
+
+bool fail_close = false;
+int __real_close(int fd);
+int __wrap_close(int fd)
+{
+    if (fail_close) {
+        return -1;
+    }
+
+    return __real_close(fd);
+}
+
+bool fail_pipe = false;
+int __real_pipe(int __pipedes[2]);
+int __wrap_pipe(int __pipedes[2])
+{
+    if (fail_pipe) {
+        return -1;
+    }
+
+    return __real_pipe(__pipedes);
+}
+
+void test_pipe(void)
+{
+    char buf[5];
+    struct sc_sock_pipe pipe;
+
+    sc_sock_pipe_init(&pipe, 0);
+    sc_sock_pipe_write(&pipe, "test", 5);
+    sc_sock_pipe_read(&pipe, buf, 5);
+    sc_sock_pipe_term(&pipe);
+
+    assert(strcmp("test", buf) == 0);
+}
+
+void pipe_fail_test()
+{
+    struct sc_sock_pipe pipe;
+    fail_pipe = true;
+    assert(sc_sock_pipe_init(&pipe, 0) != 0);
+    fail_pipe = false;
+    assert(sc_sock_pipe_init(&pipe, 0) == 0);
+    fail_close = true;
+    assert(sc_sock_pipe_term(&pipe) == -1);
+    fail_close = false;
+    assert(sc_sock_pipe_term(&pipe) == 0);
+}
+
+#else
+void fail_test()
+{
+}
+
+#endif
+
+
+void *server(void *arg)
+{
+    int write_triggered = 2;
+    int rc, received = 0;
+    struct sc_sock server;
+    struct sc_sock accepted;
+    struct sc_sock_poll poll;
+
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+    assert(sc_sock_poll_init(&poll) == 0);
+
+    sc_sock_init(&server, 0, true, SC_SOCK_INET);
+    rc = sc_sock_listen(&server, "127.0.0.1", "9000");
+    assert(rc == 0);
+
+    rc = sc_sock_poll_add(&poll, &server.fdt, SC_SOCK_READ, &server);
+    assert(rc == 0);
+    bool done = false;
+
+    while (!done) {
+        rc = sc_sock_poll_wait(&poll, -1);
+        assert(rc != -1);
+
+        for (int i = 0; i < rc; i++) {
+            int ev = sc_sock_poll_event(&poll, i);
+            struct sc_sock *sock = sc_sock_poll_data(&poll, i);
+
+            if (sock == &server) {
+                if (ev & SC_SOCK_READ) {
+                    rc = sc_sock_accept(&server, &accepted);
+                    assert(rc == 0);
+                    assert(sc_sock_poll_add(&poll, &accepted.fdt,
+                                            SC_SOCK_WRITE,
+                                            &accepted) == 0);
+                }
+
+                if (ev & SC_SOCK_WRITE) {
+                    assert(false);
+                }
+            } else {
+                if (ev & SC_SOCK_READ) {
+                    char buf[8];
+                    rc = sc_sock_recv(&accepted, buf, sizeof(buf));
+                    if (rc == 8) {
+                        assert(strcmp(buf, "dataxxx") == 0);
+                        received++;
+                    } else if (rc == 0 || rc < 0) {
+                        rc = sc_sock_poll_del(&poll, &accepted.fdt,
+                                               SC_SOCK_READ |
+                                               SC_SOCK_WRITE,
+                                               &accepted);
+                        assert(rc == 0);
+                        rc = sc_sock_term(&accepted);
+                        assert(rc == 0);
+                        done = true;
+                        break;
+                    }
+                }
+
+                if (write_triggered > 0) {
+                    write_triggered--;
+                    if (write_triggered == 0) {
+                        rc = sc_sock_poll_del(&poll, &accepted.fdt, SC_SOCK_WRITE, &accepted);
+                        assert(rc == 0);
+                    } else {
+                        rc = sc_sock_poll_add(&poll, &accepted.fdt, SC_SOCK_READ, &accepted);
+                    }
+                }
+            }
+        }
+    }
+
+    assert(write_triggered == 0);
+    assert(sc_sock_term(&server) == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+
+    printf("Received :%d \n", received);
+    assert(received == 10000);
+
+
+    return NULL;
+}
+
+void *client(void *arg)
+{
+    int rc;
+    struct sc_sock sock;
+
+    for (int i = 0; i < 10; i++) {
+        sc_sock_init(&sock, 0, true, SC_SOCK_INET);
+
+        rc = sc_sock_connect(&sock, "127.0.0.1", "9000", NULL, NULL);
+        if (rc != 0) {
+            assert(sc_sock_term(&sock) == 0);
+            sleep(1);
+            continue;
+        }
+
+        for (int j = 0; j < 10000; j++) {
+            rc = sc_sock_send(&sock, "dataxxx", 8);
+            assert(rc == 8);
+        }
+
+        rc = sc_sock_term(&sock);
+        assert(rc == 0);
+        break;
+    }
+
+    return NULL;
+}
+
+
+void test_poll()
+{
+    struct sc_thread thread1;
+    struct sc_thread thread2;
+
+    sc_thread_init(&thread1);
+    sc_thread_init(&thread2);
+
+    assert(sc_thread_start(&thread1, server, NULL) == 0);
+    assert(sc_thread_start(&thread2, client, NULL) == 0);
+
+    assert(sc_thread_term(&thread1) == 0);
+    assert(sc_thread_term(&thread2) == 0);
+}
 
 
 int main()
@@ -357,13 +544,20 @@ int main()
 
     int rc = WSAStartup(MAKEWORD(2, 2), &data);
     assert(rc == 0);
-    assert(LOBYTE(data.wVersion) == 2 &&
-        HIBYTE(data.wVersion) == 2);
+    assert(LOBYTE(data.wVersion) == 2 && HIBYTE(data.wVersion) == 2);
 #endif
 
     test1();
     test_ip4();
     test_ip6();
     test_unix();
+    test_pipe();
+    pipe_fail_test();
+    test_poll();
+
+#if defined(_WIN32) || defined(_WIN64)
+    rc = WSACleanup();
+    assert(rc == 0);
+#endif
     return 0;
 }

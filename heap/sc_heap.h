@@ -45,8 +45,8 @@ struct sc_heap
 };
 
 /**
- * If you want to log or abort on errors like out of memory,
- * put your error function here. It will be called with printf like error msg.
+ * If you want to log or abort on out of memory, put your error function here.
+ * It will be called with printf like error msg.
  *
  * my_on_error(const char* fmt, ...);
  */
