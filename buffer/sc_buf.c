@@ -404,6 +404,7 @@ void sc_buf_put_str(struct sc_buf *buf, const char *str)
 void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
 {
     int rc;
+    uint32_t tmp;
     va_list args;
     void *mem = (char *) sc_buf_write_buf(buf) + sc_buf_32bit_len(0);
     uint32_t pos = sc_buf_get_write_pos(buf);
@@ -418,7 +419,8 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
         return;
     }
 
-    sc_buf_set_data(buf, pos, &rc, sizeof(rc));
+    tmp = sc_swap32(rc);
+    sc_buf_set_data(buf, pos, &tmp, sizeof(tmp));
     sc_buf_mark_write(buf, rc + sc_buf_32bit_len(0) + sc_buf_8bit_len('\0'));
 }
 
