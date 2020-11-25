@@ -101,7 +101,7 @@ int sc_log_mutex_init(struct sc_log_mutex *mtx)
 
     rc = pthread_mutexattr_init(&attr);
     if (rc != 0) {
-        sc_log_on_error("pthread_mutexattr_init : errcode(%d) ", rc);
+        sc_log_on_error("pthread_mutexattr_init : %s ", strerror(rc));
         return -1;
     }
 
@@ -109,7 +109,7 @@ int sc_log_mutex_init(struct sc_log_mutex *mtx)
 
     rc = pthread_mutex_init(&mtx->mtx, &attr);
     if (rc != 0) {
-        sc_log_on_error("pthread_mutex_init : errcode(%d) ", rc);
+        sc_log_on_error("pthread_mutex_init : %s ", strerror(rc));
         return -1;
     }
 
@@ -123,7 +123,7 @@ int sc_log_mutex_term(struct sc_log_mutex *mtx)
 
     rc = pthread_mutex_destroy(&mtx->mtx);
     if (rc != 0) {
-        sc_log_on_error("pthread_mutex_destroy : errcode(%d) ", rc);
+        sc_log_on_error("pthread_mutex_destroy : %s ", strerror(rc));
     }
 
     return rc;
@@ -131,18 +131,12 @@ int sc_log_mutex_term(struct sc_log_mutex *mtx)
 
 void sc_log_mutex_lock(struct sc_log_mutex *mtx)
 {
-    int rc;
-
-    rc = pthread_mutex_lock(&mtx->mtx);
-    assert(rc == 0);
+    pthread_mutex_lock(&mtx->mtx);
 }
 
 void sc_log_mutex_unlock(struct sc_log_mutex *mtx)
 {
-    int rc;
-
-    rc = pthread_mutex_unlock(&mtx->mtx);
-    assert(rc == 0);
+    pthread_mutex_unlock(&mtx->mtx);
 }
 
 #endif
@@ -174,14 +168,21 @@ int sc_log_init(void)
 
 int sc_log_term(void)
 {
-    int rc = 0;
+    int rc = 0, rv;
 
     if (sc_log.fp) {
-        rc = fclose(sc_log.fp);
-        assert(rc == 0);
+        rv = fclose(sc_log.fp);
+        if (rv != 0) {
+            rc = -1;
+            sc_log_on_error("fclose() : %s ", strerror(errno));
+        }
     }
 
-    sc_log_mutex_term(&sc_log.mtx);
+    rv = sc_log_mutex_term(&sc_log.mtx);
+    if (rv == -1) {
+        rc = -1;
+    }
+
     sc_log = (struct sc_log){0};
 
     return rc;
@@ -220,14 +221,17 @@ int sc_log_set_stdout(bool enable)
 
 int sc_log_set_file(const char *prev_file, const char *current_file)
 {
-    int rc = 0;
+    int rc = 0, rv;
     long size;
     FILE *fp = NULL;
 
     sc_log_mutex_lock(&sc_log.mtx);
 
     if (sc_log.fp != NULL) {
-        rc = fclose(sc_log.fp);
+        rv = fclose(sc_log.fp);
+        if (rv != 0) {
+            sc_log_on_error("fclose() : %s ", strerror(errno));
+        }
         sc_log.fp = NULL;
     }
 

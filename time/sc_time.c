@@ -73,7 +73,7 @@ uint64_t sc_time_ns()
     rc = clock_gettime(CLOCK_REALTIME, &ts);
     assert(rc == 0);
 
-    return ts.tv_sec * 1000000000 + ts.tv_nsec;
+    return ts.tv_sec * (uint64_t)1000000000 + ts.tv_nsec;
 #endif
 }
 
@@ -127,21 +127,27 @@ uint64_t sc_time_mono_ns()
 #endif
 }
 
-void sc_time_sleep(uint64_t milliseconds)
+int sc_time_sleep(uint64_t milliseconds)
 {
 #if defined(_WIN32) || defined(_WIN64)
     Sleep(milliseconds);
+    return 0;
 #else
     int rc;
-    struct timespec t;
+    struct timespec t, rem;
 
-    t.tv_sec = milliseconds / 1000;
-    t.tv_nsec = (milliseconds % 1000) * 1000000;
+    rem.tv_sec = milliseconds / 1000;
+    rem.tv_nsec = (milliseconds % 1000) * 1000000;
 
     do {
-        rc = nanosleep(&t, NULL);
+        t = rem;
+        rc = nanosleep(&t, &rem);
     } while (rc != 0 && errno != EINTR);
 
-    assert(rc == 0);
+    if (rc != 0) {
+        sc_time_on_error("nanosleep() : %s ", strerror(errno));
+    }
+
+    return rc;
 #endif
 }

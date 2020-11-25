@@ -50,7 +50,7 @@ add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
 
 SET(MEMORYCHECK_COMMAND_OPTIONS
         "-q --log-fd=2 --trace-children=yes --track-origins=yes       \
-         --leak-check=full --show-leak-kinds=all --show-reachable=yes \
+         --leak-check=full --show-leak-kinds=all  \
          --error-exitcode=255")
 
 add_custom_target(valgrind_${PROJECT_NAME} ${CMAKE_COMMAND}

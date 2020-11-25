@@ -27,6 +27,14 @@
 #include <stdint.h>
 
 /**
+* If you want to log or abort on errors, put your error function here.
+ * It will be called with printf like error msg.
+*
+* my_on_error(const char* fmt, ...);
+*/
+#define sc_time_on_error(...)
+
+/**
  * This is not a monotonic timer.
  * @return Current timestamp in milliseconds.
  */
@@ -52,7 +60,8 @@ uint64_t sc_time_mono_ns();
 
 /**
  * @param milliseconds Milliseconds to sleep.
+ * @return '0' on success, negative number on failure.
  */
-void sc_time_sleep(uint64_t milliseconds);
+int sc_time_sleep(uint64_t milliseconds);
 
 #endif

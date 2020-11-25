@@ -20,10 +20,11 @@ add_subdirectory(ini)
 add_subdirectory(linked-list)
 add_subdirectory(logger)
 add_subdirectory(map)
+add_subdirectory(memory-map)
 add_subdirectory(mutex)
 add_subdirectory(queue)
 add_subdirectory(perf)
-add_subdirectory(pipe)
+add_subdirectory(socket)
 add_subdirectory(string)
 add_subdirectory(time)
 add_subdirectory(timer)
@@ -61,7 +62,7 @@ add_custom_command(
 
 SET(MEMORYCHECK_COMMAND_OPTIONS
         "-q --log-fd=2 --trace-children=yes --track-origins=yes       \
-         --leak-check=full --show-leak-kinds=all --show-reachable=yes \
+         --leak-check=full --show-leak-kinds=all \
          --error-exitcode=255")
 
 add_custom_target(valgrind ${CMAKE_COMMAND}

@@ -93,7 +93,7 @@ bool sc_array_expand(void **arr, size_t elem_size)
 
         // Check overflow
         if (meta->cap > max / 2) {
-            sc_array_on_error("Max capacity(%zu) has been reached. ", max / 2);
+            sc_array_on_error("Max+ capacity(%zu) has been reached. ", max / 2);
             return false;
         }
 

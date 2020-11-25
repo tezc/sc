@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(sc_pipe C)
+project(sc_socket C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_pipe pipe_example.c sc_pipe.h sc_pipe.c)
+add_executable(sc_socket sock_example.c sc_sock.h sc_sock.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -Werror -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -pthread -Werror -D_GNU_SOURCE")
 endif ()
 
 
@@ -21,20 +21,21 @@ include(CheckCCompilerFlag)
 
 enable_testing()
 
-add_executable(${PROJECT_NAME}_test pipe_test.c sc_pipe.c)
+add_executable(${PROJECT_NAME}_test sock_test.c sc_sock.c)
 
-target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=4000ul)
+target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
             "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-omit-frame-pointer)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
-        target_link_options(${PROJECT_NAME}_test PRIVATE
-                -Wl,--wrap=pipe,--wrap=close)
+        target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=pipe,--wrap=close)
     endif ()
 endif ()
+
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
         "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang" OR
         "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
@@ -47,11 +48,12 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
     endif ()
 endif ()
 
+
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
 
 SET(MEMORYCHECK_COMMAND_OPTIONS
         "-q --log-fd=2 --trace-children=yes --track-origins=yes       \
-         --leak-check=full --show-leak-kinds=all --show-reachable=yes \
+         --leak-check=full --show-leak-kinds=all  \
          --error-exitcode=255")
 
 add_custom_target(valgrind_${PROJECT_NAME} ${CMAKE_COMMAND}

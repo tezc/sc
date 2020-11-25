@@ -105,71 +105,81 @@ int sc_cond_init(struct sc_cond *cond)
 
     cond->mtx = mut;
 
-    // May fail on OOM
     rc = pthread_mutexattr_init(&attr);
     if (rc != 0) {
-        sc_cond_on_error("pthread_mutexattr_init : errno(%d) \n", rc);
-        return rc;
+        sc_cond_on_error("pthread_mutexattr_init : %s \n",  strerror(rc));
+        return -1;
     }
 
     // This won't fail as long as we pass correct params.
     rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     assert(rc == 0);
 
-    // May fail on OOM
     rc = pthread_mutex_init(&cond->mtx, &attr);
     if (rc != 0) {
-        sc_cond_on_error("pthread_mutex_init : errno(%d) \n", rc);
+        sc_cond_on_error("pthread_mutex_init : %s ",  strerror(rc));
         return -1;
     }
 
-    // This won't fail as long as we pass correct param.
     pthread_mutexattr_destroy(&attr);
 
-    return pthread_cond_init(&cond->cond, NULL);
+    rc = pthread_cond_init(&cond->cond, NULL);
+    if (rc != 0) {
+        sc_cond_on_error("pthread_cond_init : %s ",  strerror(rc));
+        return -1;
+    }
+
+    return 0;
 }
 
 int sc_cond_term(struct sc_cond *cond)
 {
-    int rc;
+    int rv, rc = 0;
 
-    rc = pthread_mutex_destroy(&cond->mtx);
-    rc |= pthread_cond_destroy(&cond->cond);
+    rv = pthread_mutex_destroy(&cond->mtx);
+    if (rv != 0) {
+        rc = -1;
+        sc_cond_on_error("pthread_mutex_destroy : %s ",  strerror(rv));
+    }
+
+    rv = pthread_cond_destroy(&cond->cond);
+    if (rv != 0) {
+        rc = -1;
+        sc_cond_on_error("pthread_cond_destroy : %s ",  strerror(rv));
+    }
 
     return rc;
 }
 
 int sc_cond_finish(struct sc_cond *cond, void *var)
 {
-    int rc, rv;
+    int rc;
 
-    rv = pthread_mutex_lock(&cond->mtx);
-    assert(rv == 0);
+    pthread_mutex_lock(&cond->mtx);
 
     cond->data = var;
     cond->done = true;
 
     rc = pthread_cond_signal(&cond->cond);
     if (rc != 0) {
-        sc_cond_on_error("pthread_cond_signal : errno(%d) \n", rc);
+        sc_cond_on_error("pthread_cond_signal : %s ",  strerror(rc));
     }
-    rv = pthread_mutex_unlock(&cond->mtx);
-    assert(rv == 0);
+
+    pthread_mutex_unlock(&cond->mtx);
 
     return rc;
 }
 
 int sc_cond_sync(struct sc_cond *cond, void **data)
 {
-    int rc, rv;
+    int rc;
 
-    rv = pthread_mutex_lock(&cond->mtx);
-    assert(rv == 0);
+    pthread_mutex_lock(&cond->mtx);
 
     while (cond->done == false) {
         rc = pthread_cond_wait(&cond->cond, &cond->mtx);
         if (rc != 0) {
-            sc_cond_on_error("pthread_mutex_init : errno(%d) \n", rc);
+            sc_cond_on_error("pthread_mutex_init : %s ", strerror(rc));
             goto out;
         }
     }
@@ -182,8 +192,7 @@ int sc_cond_sync(struct sc_cond *cond, void **data)
     cond->done = false;
 
 out:
-    rv = pthread_mutex_unlock(&cond->mtx);
-    assert(rv == 0);
+    pthread_mutex_unlock(&cond->mtx);
 
     return rc;
 }
