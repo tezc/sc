@@ -26,9 +26,19 @@
 
 #include <ctype.h>
 #include <errno.h>
-#include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#if (SIZE_MAX == 0xFFFF)
+    #define SIZE_T_BITS 16
+#elif (SIZE_MAX == 0xFFFFFFFF)
+    #define SIZE_T_BITS 32
+#elif (SIZE_MAX == 0xFFFFFFFFFFFFFFFF)
+    #define SIZE_T_BITS 64
+#else
+    #error TBD code SIZE_T_BITS
+#endif
 
 bool sc_math_is_pow2(size_t num)
 {
@@ -42,12 +52,11 @@ size_t sc_math_to_pow2(size_t size)
     }
 
     size--;
-    size |= size >> 1u;
-    size |= size >> 2u;
-    size |= size >> 4u;
-    size |= size >> 8u;
-    size |= size >> 16u;
-    size |= size >> 32u;
+
+    for (uint32_t i = 1; i < sizeof(size) * 8; i *= 2) {
+        size |= size >> i;
+    }
+
     size++;
 
     return size;

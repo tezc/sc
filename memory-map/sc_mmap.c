@@ -179,6 +179,26 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
     len = (len == 0) ? st.st_size - offset : len;
 
     if (prot & PROT_WRITE) {
+#if defined(__APPLE__)
+        int block = st.st_blksize;
+        size_t pos = (st.st_size / block) * block + block - 1;
+
+        for (; pos < len + block - 1; pos += block) {
+            if (pos >= len) {
+                pos = len - 1;
+            }
+
+            ssize_t seek = lseek(fd, pos, SEEK_SET);
+            if (seek == -1) {
+                return -1;
+            }
+
+            ssize_t written = write(fd, "", 1);
+            if (written != 1) {
+                return -1;
+            }
+        }
+#else
         do {
             rc = posix_fallocate(fd, offset, len);
         } while (rc == EINTR);
@@ -187,6 +207,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
             errno = rc;
             goto cleanup_fd;
         }
+#endif
     }
 
     p = mmap(NULL, len, prot, map_flags, fd, offset);
