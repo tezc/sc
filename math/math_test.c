@@ -8,7 +8,7 @@
 
 void test1()
 {
-    size_t x;
+    uint64_t x;
     char *t;
     char buf[32];
 
