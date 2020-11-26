@@ -35,6 +35,15 @@ void test1()
 
     rc = sc_mmap_init(&mmap, "x.txt" ,O_RDWR | O_CREAT | O_TRUNC, PROT_READ | PROT_WRITE, MAP_SHARED, 3, 4095);
     assert(rc == -1);
+
+    rc = sc_mmap_init(&mmap, "x.txt" ,O_RDWR | O_CREAT | O_TRUNC, PROT_READ | PROT_WRITE, MAP_SHARED, 0, 4095);
+    assert(rc == 0);
+    rc = sc_mmap_mlock(&mmap, 0, 4095);
+    assert(rc == 0);
+    rc = sc_mmap_munlock(&mmap, 0, 4095);
+    assert(rc == 0);
+    rc = sc_mmap_term(&mmap);
+    assert(rc == 0);
 }
 
 int main(int argc, char *argv[])
