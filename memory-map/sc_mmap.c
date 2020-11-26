@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <stdint.h>
 
 
 #if defined(_WIN32)
@@ -32,9 +33,8 @@ int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
 {
     const int mode = prot & PROT_WRITE ? _S_IREAD | _S_IWRITE : _S_IREAD;
     struct _stat64 st;
-    int fd, rc;
+    int fd, rc, saved_err = 0;
     void* p = NULL;
-    BOOL b;
 
     *m = (struct sc_mmap){ 0 };
 
@@ -48,15 +48,15 @@ int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
         goto cleanup_fd;
     }
 
-    len = (len == 0) ? st.st_size - offset : len;
+    len = (len == 0) ? (size_t)st.st_size - offset : len;
 
     HANDLE fm, h = INVALID_HANDLE_VALUE;
     const size_t max_size = offset + len;
 
-    const DWORD offset_low = (DWORD)(offset & 0xFFFFFFFFL);
-    const DWORD offset_high = (DWORD)((offset >> 32) & 0xFFFFFFFFL);
-    const DWORD size_low = (DWORD)(max_size & 0xFFFFFFFFL);
-    const DWORD size_high = (DWORD)((max_size >> 32) & 0xFFFFFFFFL);
+    const DWORD offset_low = (offset & 0xFFFFFFFFL);
+    const DWORD offset_high = ((uint64_t)offset >> 32) & 0xFFFFFFFFL;
+    const DWORD size_low = (max_size & 0xFFFFFFFFL);
+    const DWORD size_high = ((uint64_t)max_size >> 32) & 0xFFFFFFFFL;
     const DWORD protect = (prot & PROT_WRITE) ? PAGE_READWRITE : PAGE_READONLY;
 
     if ((map_flags & MAP_ANONYMOUS) == 0) {
@@ -87,7 +87,9 @@ int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
     return 0;
 
 cleanup_fd:
+    saved_err = GetLastError();
     _close(fd);
+    SetLastError(saved_err);
 error:
     sc_mmap_err(m);
 
