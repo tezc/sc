@@ -3,40 +3,40 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <stdint.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <stdint.h>
 
 
 #if defined(_WIN32)
-#include <io.h>
+    #include <io.h>
 
-#pragma warning(disable : 4996)
+    #pragma warning(disable : 4996)
 
-static void sc_mmap_err(struct sc_mmap* m)
+static void sc_mmap_err(struct sc_mmap *m)
 {
     int rc;
     DWORD err = GetLastError();
     LPSTR errstr = 0;
 
     rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-        FORMAT_MESSAGE_FROM_SYSTEM,
-        NULL, err, 0, (LPSTR)&errstr, 0, NULL);
+                                FORMAT_MESSAGE_FROM_SYSTEM,
+                        NULL, err, 0, (LPSTR) &errstr, 0, NULL);
     if (rc != 0) {
         strncpy(m->err, errstr, sizeof(m->err) - 1);
         LocalFree(errstr);
     }
 }
 
-int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
-    int map_flags, size_t offset, size_t len)
+int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
+                 int map_flags, size_t offset, size_t len)
 {
     const int mode = prot & PROT_WRITE ? _S_IREAD | _S_IWRITE : _S_IREAD;
     struct _stat64 st;
     int fd, rc, saved_err = 0;
-    void* p = NULL;
+    void *p = NULL;
 
-    *m = (struct sc_mmap){ 0 };
+    *m = (struct sc_mmap){0};
 
     fd = _open(name, file_flags, mode);
     if (fd == -1) {
@@ -48,19 +48,19 @@ int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
         goto cleanup_fd;
     }
 
-    len = (len == 0) ? (size_t)st.st_size - offset : len;
+    len = (len == 0) ? (size_t) st.st_size - offset : len;
 
     HANDLE fm, h = INVALID_HANDLE_VALUE;
     const size_t max_size = offset + len;
 
     const DWORD offset_low = (offset & 0xFFFFFFFFL);
-    const DWORD offset_high = ((uint64_t)offset >> 32) & 0xFFFFFFFFL;
+    const DWORD offset_high = ((uint64_t) offset >> 32) & 0xFFFFFFFFL;
     const DWORD size_low = (max_size & 0xFFFFFFFFL);
-    const DWORD size_high = ((uint64_t)max_size >> 32) & 0xFFFFFFFFL;
+    const DWORD size_high = ((uint64_t) max_size >> 32) & 0xFFFFFFFFL;
     const DWORD protect = (prot & PROT_WRITE) ? PAGE_READWRITE : PAGE_READONLY;
 
     if ((map_flags & MAP_ANONYMOUS) == 0) {
-        h = (HANDLE)_get_osfhandle(fd);
+        h = (HANDLE) _get_osfhandle(fd);
         if (h == INVALID_HANDLE_VALUE) {
             goto cleanup_fd;
         }
@@ -96,10 +96,10 @@ error:
     return -1;
 }
 
-int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len)
+int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len)
 {
     BOOL b;
-    char* p = (char*)m->ptr + offset;
+    char *p = (char *) m->ptr + offset;
 
     b = FlushViewOfFile(p, len);
     if (b == 0) {
@@ -110,12 +110,12 @@ int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len)
     return 0;
 }
 
-int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len)
+int sc_mmap_mlock(struct sc_mmap *m, size_t offset, size_t len)
 {
     BOOL b;
-    char* p = (char*)m->ptr + offset;
+    char *p = (char *) m->ptr + offset;
 
-    b = VirtualLock((LPVOID)p, len);
+    b = VirtualLock((LPVOID) p, len);
     if (b == 0) {
         sc_mmap_err(m);
         return -1;
@@ -124,12 +124,12 @@ int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len)
     return 0;
 }
 
-int sc_mmap_munlock(struct sc_mmap* m, size_t offset, size_t len)
+int sc_mmap_munlock(struct sc_mmap *m, size_t offset, size_t len)
 {
     BOOL b;
-    char* p = (char*)m->ptr + offset;
+    char *p = (char *) m->ptr + offset;
 
-    b = VirtualUnlock((LPVOID)p, len);
+    b = VirtualUnlock((LPVOID) p, len);
     if (b == 0) {
         sc_mmap_err(m);
         return -1;
@@ -138,7 +138,7 @@ int sc_mmap_munlock(struct sc_mmap* m, size_t offset, size_t len)
     return 0;
 }
 
-int sc_mmap_term(struct sc_mmap* m)
+int sc_mmap_term(struct sc_mmap *m)
 {
     BOOL b;
 
@@ -154,18 +154,17 @@ int sc_mmap_term(struct sc_mmap* m)
 #else
 
 
+    #include <unistd.h>
 
-#include <unistd.h>
-
-int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
-    int map_flags, size_t offset, size_t len)
+int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
+                 int map_flags, size_t offset, size_t len)
 {
     const int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
     struct stat st;
     int fd, rc, saved_errno;
-    void* p = NULL;
+    void *p = NULL;
 
-    *m = (struct sc_mmap){ 0 };
+    *m = (struct sc_mmap){0};
 
     fd = open(name, file_flags, mode);
     if (fd == -1) {
@@ -212,7 +211,7 @@ error:
     return -1;
 }
 
-int sc_mmap_term(struct sc_mmap* m)
+int sc_mmap_term(struct sc_mmap *m)
 {
     int rc;
 
@@ -224,10 +223,10 @@ int sc_mmap_term(struct sc_mmap* m)
     return rc;
 }
 
-int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len)
+int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len)
 {
     int rc;
-    char* p = (char*)m->ptr + offset;
+    char *p = (char *) m->ptr + offset;
 
     rc = msync(p, len, MS_SYNC);
     if (rc != 0) {
@@ -237,10 +236,10 @@ int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len)
     return rc;
 }
 
-int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len)
+int sc_mmap_mlock(struct sc_mmap *m, size_t offset, size_t len)
 {
     int rc;
-    char* p = (char*)m->ptr + offset;
+    char *p = (char *) m->ptr + offset;
 
     rc = mlock(p, len);
     if (rc != 0) {
@@ -250,10 +249,10 @@ int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len)
     return rc;
 }
 
-int sc_mmap_munlock(struct sc_mmap* m, size_t offset, size_t len)
+int sc_mmap_munlock(struct sc_mmap *m, size_t offset, size_t len)
 {
     int rc;
-    char* p = (char*)m->ptr + offset;
+    char *p = (char *) m->ptr + offset;
 
     rc = munlock(p, len);
     if (rc != 0) {
