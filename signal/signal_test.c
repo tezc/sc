@@ -1,4 +1,3 @@
-#define SY_HAVE_BACKTRACE
 #include "sc_signal.h"
 
 #include <assert.h>

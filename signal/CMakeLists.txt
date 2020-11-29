@@ -25,6 +25,12 @@ add_executable(${PROJECT_NAME}_test signal_test.c sc_signal.c)
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR
+        ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD" OR
+        ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
+    target_link_options(${PROJECT_NAME}_test PRIVATE -lexecinfo)
+endif ()
+
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
             "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
@@ -32,7 +38,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-omit-frame-pointer)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
-#        target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=realloc)
+        #target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=realloc)
     endif ()
 endif ()
 
@@ -73,9 +79,9 @@ if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
         target_compile_options(${PROJECT_NAME}_test PRIVATE --coverage)
         target_link_libraries(${PROJECT_NAME}_test gcov)
-    else()
+    else ()
         message(FATAL_ERROR "Only GCC is supported for coverage")
-    endif()
+    endif ()
 endif ()
 
 add_custom_target(coverage_${PROJECT_NAME})

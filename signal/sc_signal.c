@@ -1,5 +1,3 @@
-
-
 /*
  * MIT License
  *
@@ -268,7 +266,7 @@ void sc_signal_std_on_fatal(int type)
 
 void sc_signal_std_on_shutdown(int type)
 {
-    console_handler(CTRL_C_EVENT);
+    sc_console_handler(CTRL_C_EVENT);
 }
 int sc_signal_init()
 {
