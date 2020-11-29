@@ -177,7 +177,7 @@ static void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
     write(fd, buf, written);
 }
 
-BOOL WINAPI console_handler(DWORD type)
+BOOL WINAPI sc_console_handler(DWORD type)
 {
     int rc;
     char *err;
@@ -276,7 +276,7 @@ int sc_signal_init()
     sc_signal_log_fd = -1;
     sc_signal_shutdown_fd = -1;
 
-    b = SetConsoleCtrlHandler(console_handler, TRUE);
+    b = SetConsoleCtrlHandler(sc_console_handler, TRUE);
     if (!b) {
         return -1;
     }
@@ -290,6 +290,7 @@ int sc_signal_init()
 
 #else
 
+    // clang-format off
 #include <unistd.h>
 
 #if defined __has_include
@@ -299,6 +300,59 @@ int sc_signal_init()
     #endif
 #endif
 
+#ifdef HAVE_BACKTRACE
+static void *sc_instruction(ucontext_t *uc)
+{
+    void* insp = NULL;
+
+    #if defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)
+        #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
+            insp = (void *) uc->uc_mcontext->__ss.__rip;
+        #elif defined(__i386__)
+            insp = (void *) uc->uc_mcontext->__ss.__eip;
+        #else
+            insp = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
+        #endif
+    #elif defined(__linux__)
+        #if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
+            insp = (void *) uc->uc_mcontext.gregs[REG_EIP];
+        #elif defined(__x86_64__)
+            insp = (void *) uc->uc_mcontext.gregs[REG_RIP];
+        #elif defined(__ia64__)
+            insp = (void *) uc->uc_mcontext.sc_ip;
+        #elif defined(__arm__)
+            insp = (void *) uc->uc_mcontext.arm_pc;
+        #elif defined(__aarch64__)
+            insp = (void *) uc->uc_mcontext.pc;
+        #endif
+    #elif defined(__FreeBSD__)
+        #if defined(__i386__)
+            insp = (void *) uc->uc_mcontext.mc_eip;
+        #elif defined(__x86_64__)
+            insp = (void *) uc->uc_mcontext.mc_rip;
+        #endif
+    #elif defined(__OpenBSD__)
+        #if defined(__i386__)
+            insp = (void *) uc->sc_eip;
+        #elif defined(__x86_64__)
+            insp = (void *) uc->sc_rip;
+        #endif
+    #elif defined(__NetBSD__)
+        #if defined(__i386__)
+            insp = (void *) uc->uc_mcontext.__gregs[_REG_EIP];
+        #elif defined(__x86_64__)
+            insp = (void *) uc->uc_mcontext.__gregs[_REG_RIP];
+        #endif
+    #elif defined(__DragonFly__)
+            insp = (void *) uc->uc_mcontext.mc_rip;
+    #endif
+
+    return insp;
+}
+
+#endif
+
+// clang-format on
 
 static void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
 {
@@ -360,8 +414,6 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDERR_FILENO;
 
     char buf[4096], *sig_str;
-    void *caller = NULL;
-    ucontext_t *uc = (ucontext_t *) context;
     struct sigaction act;
 
     switch (sig) {
@@ -391,13 +443,8 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     sc_signal_log(fd, buf, sizeof(buf),
                   "\n----------------- CRASH REPORT ---------------- \n");
 
-#if defined(REG_EIP)
-    caller = (void *) uc->uc_mcontext.gregs[REG_EIP];
-#elif defined(REG_RIP)
-    caller = (void *) uc->uc_mcontext.gregs[REG_RIP];
-#endif
-
 #ifdef HAVE_BACKTRACE
+    void *caller = sc_instruction((ucontext_t *) context);
     int trace_size;
     void *trace[100];
 
