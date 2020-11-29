@@ -90,6 +90,7 @@ void *__wrap_realloc(void *p, size_t n)
 
 void fail_test()
 {
+    int tmp;
     int *arr, total = 0;
 
     assert(sc_array_create(arr, SIZE_MAX) == false);
@@ -159,6 +160,12 @@ void fail_test()
     for (int i = 0; i < sc_array_size(arr); i++) {
         assert(arr[i] == i);
     }
+
+    total = 0;
+    sc_array_foreach(arr, tmp) {
+       total += tmp;
+    }
+    assert(total == 10);
 
     sc_array_destroy(arr);
 }

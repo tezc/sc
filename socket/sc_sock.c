@@ -466,7 +466,7 @@ retry:
         }
 
         if (!sock->blocking && err == SC_EAGAIN) {
-            return 0;
+            return SC_SOCK_WANT_WRITE;
         }
 
         sc_sock_errstr(sock, 0);

@@ -37,7 +37,7 @@
 #elif (SIZE_MAX == 0xFFFFFFFFFFFFFFFF)
     #define SIZE_T_BITS 64
 #else
-    #error TBD code SIZE_T_BITS
+    #error unknown size_t bits
 #endif
 
 bool sc_math_is_pow2(size_t num)
