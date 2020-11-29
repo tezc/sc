@@ -63,8 +63,7 @@ int sc_mutex_init(struct sc_mutex *mtx)
     // May fail on OOM
     rc = pthread_mutexattr_init(&attr);
     if (rc != 0) {
-        sc_mutex_on_error("pthread_mutexattr_init : errcode(%d) ", rc);
-        return rc;
+        return -1;
     }
 
     // This won't fail as long as we pass correct params.
@@ -73,15 +72,12 @@ int sc_mutex_init(struct sc_mutex *mtx)
 
     // May fail on OOM
     rc = pthread_mutex_init(&mtx->mtx, &attr);
-    if (rc != 0) {
-        sc_mutex_on_error("pthread_mutex_init : errcode(%d) ", rc);
-    }
 
     // This won't fail as long as we pass correct param.
     rv = pthread_mutexattr_destroy(&attr);
     assert(rv == 0);
 
-    return rc;
+    return rc != 0 ? -1 : 0;
 }
 
 int sc_mutex_term(struct sc_mutex *mtx)
@@ -89,11 +85,7 @@ int sc_mutex_term(struct sc_mutex *mtx)
     int rc;
 
     rc = pthread_mutex_destroy(&mtx->mtx);
-    if (rc != 0) {
-        sc_mutex_on_error("pthread_mutex_destroy : errcode(%d) ", rc);
-    }
-
-    return rc;
+    return rc != 0 ? -1 : 0;
 }
 
 void sc_mutex_lock(struct sc_mutex *mtx)

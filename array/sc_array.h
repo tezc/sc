@@ -55,14 +55,6 @@ bool sc_array_expand(void **arr, size_t elem_size);
 
 
 /**
- * If you want to log or abort on out of memory, put your error function here.
- * It will be called with printf like error msg.
- *
- * my_on_oom(const char* fmt, ...);
- */
-#define sc_array_on_error(...)
-
-/**
  * Configure memory allocators here. You can plug your allocator if you want,
  * replace 'realloc' and 'free' with your allocator, make sure you include
  * new allocator header.

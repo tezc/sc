@@ -50,14 +50,6 @@
 #define sc_str_free    free
 
 /**
-* If you want to log or abort on errors like out of memory,
-* put your error function here. It will be called with printf like error msg.
-*
-* my_on_error(const char* fmt, ...);
-*/
-#define sc_str_on_error(...)
-
-/**
  * @param str '\0' terminated C string, must not be NULL.
  * @return    Length prefixed string. NULL on out of memory.
  */

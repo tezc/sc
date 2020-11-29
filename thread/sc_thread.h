@@ -34,6 +34,7 @@ struct sc_thread
     void* (*fn)(void*);
     void* arg;
     void* ret;
+    char err[64];
 };
 
 #else
@@ -43,6 +44,7 @@ struct sc_thread
 struct sc_thread
 {
     pthread_t id;
+    char err[64];
 };
 
 #endif

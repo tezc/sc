@@ -52,7 +52,6 @@ bool sc_array_init(void **arr, size_t elem_size, size_t cap)
 
     // Check overflow
     if (cap > max) {
-        sc_array_on_error("Max capacity(%zu) has been reached. ", max);
         *arr = NULL;
         return false;
     }
@@ -60,7 +59,6 @@ bool sc_array_init(void **arr, size_t elem_size, size_t cap)
     bytes = sizeof(*meta) + (elem_size * cap);
     meta = sc_array_realloc(NULL, bytes);
     if (meta == NULL) {
-        sc_array_on_error("Failed to allocate %zu bytes. ", bytes);
         *arr = NULL;
         return false;
     }
@@ -93,7 +91,6 @@ bool sc_array_expand(void **arr, size_t elem_size)
 
         // Check overflow
         if (meta->cap > max / 2) {
-            sc_array_on_error("Max+ capacity(%zu) has been reached. ", max / 2);
             return false;
         }
 
@@ -104,7 +101,6 @@ bool sc_array_expand(void **arr, size_t elem_size)
         bytes =  sizeof(*meta) + (elem_size * cap);
         meta = sc_array_realloc(prev, bytes);
         if (meta == NULL) {
-            sc_array_on_error("Failed to allocate %zu bytes. ", bytes);
             return false;
         }
 

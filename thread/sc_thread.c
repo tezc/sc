@@ -24,52 +24,77 @@
 
 #include "sc_thread.h"
 
-void sc_thread_init(struct sc_thread* thread)
+#include <errno.h>
+#include <string.h>
+
+void sc_thread_init(struct sc_thread *thread)
 {
     thread->id = 0;
 }
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <process.h>
+    #include <process.h>
 
-unsigned int __stdcall sc_thread_fn(void* arg)
+static void sc_thread_err(struct sc_thread *thread)
 {
-    struct sc_thread* thread = arg;
+    int rc;
+    DWORD err = GetLastError();
+    LPSTR errstr = 0;
+
+    rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                                FORMAT_MESSAGE_FROM_SYSTEM,
+                        NULL, err, 0, (LPSTR) &errstr, 0, NULL);
+    if (rc != 0) {
+        strncpy(thread->err, errstr, sizeof(thread->err) - 1);
+        LocalFree(errstr);
+    }
+}
+
+unsigned int __stdcall sc_thread_fn(void *arg)
+{
+    struct sc_thread *thread = arg;
 
     thread->ret = thread->fn(thread->arg);
     return 0;
 }
 
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 {
-    int rc;
+    int rc = 0;
 
     thread->fn = fn;
     thread->arg = arg;
 
-    thread->id = (HANDLE)_beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
-    rc = thread->id == 0 ? -1 : 0;
+    thread->id =
+            (HANDLE) _beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
+    if (thread->id == 0) {
+        sc_thread_err(thread);
+        rc = -1;
+    }
 
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread* thread, void** ret)
+int sc_thread_stop(struct sc_thread *thread, void **ret)
 {
     int rc = 0;
     DWORD rv;
     BOOL brc;
 
     if (thread->id == 0) {
+        strncpy(thread->err, "Already stopped.", sizeof(thread->err));
         return -1;
     }
 
     rv = WaitForSingleObject(thread->id, INFINITE);
     if (rv == WAIT_FAILED) {
+        sc_thread_err(thread);
         rc = -1;
     }
 
     brc = CloseHandle(thread->id);
     if (!brc) {
+        sc_thread_err(thread);
         rc = -1;
     }
 
@@ -82,13 +107,14 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
 }
 #else
 
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 {
     int rc;
     pthread_attr_t hndl;
 
     rc = pthread_attr_init(&hndl);
     if (rc != 0) {
+        strncpy(thread->err, strerror(errno), sizeof(thread->err));
         return -1;
     }
 
@@ -96,6 +122,9 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
     pthread_attr_setdetachstate(&hndl, PTHREAD_CREATE_JOINABLE);
 
     rc = pthread_create(&thread->id, &hndl, fn, arg);
+    if (rc != 0) {
+        strncpy(thread->err, strerror(errno), sizeof(thread->err));
+    }
 
     // This may only fail with EINVAL.
     pthread_attr_destroy(&hndl);
@@ -103,16 +132,20 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread* thread, void** ret)
+int sc_thread_stop(struct sc_thread *thread, void **ret)
 {
     int rc;
-    void* val;
+    void *val;
 
     if (thread->id == 0) {
         return -1;
     }
 
     rc = pthread_join(thread->id, &val);
+    if (rc != 0) {
+        strncpy(thread->err, strerror(errno), sizeof(thread->err));
+    }
+
     thread->id = 0;
 
     if (ret != NULL) {
@@ -124,7 +157,7 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
 
 #endif
 
-int sc_thread_term(struct sc_thread* thread)
+int sc_thread_term(struct sc_thread *thread)
 {
     return sc_thread_stop(thread, NULL);
 }

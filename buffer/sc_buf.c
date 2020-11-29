@@ -84,7 +84,6 @@ int sc_buf_init(struct sc_buf *buf, uint32_t cap)
 {
     void *mem = sc_buf_malloc(cap);
     if (mem == NULL) {
-        sc_buf_on_error("Failed to allocate %zu bytes. ", cap);
         return -1;
     }
 
@@ -134,6 +133,7 @@ uint32_t sc_buf_cap(struct sc_buf *buf)
 static bool sc_buf_reserve(struct sc_buf *buf, uint32_t len)
 {
     uint32_t size;
+    void *tmp;
 
     if (buf->write_pos + len > buf->cap) {
         sc_buf_compact(buf);
@@ -146,8 +146,13 @@ static bool sc_buf_reserve(struct sc_buf *buf, uint32_t len)
                 return false;
             }
 
+            tmp = sc_buf_realloc(buf->mem, size);
+            if (tmp == NULL) {
+                return false;
+            }
+
             buf->cap = size;
-            buf->mem = sc_buf_realloc(buf->mem, buf->cap);
+            buf->mem = tmp;
         }
     }
 

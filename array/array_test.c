@@ -167,6 +167,11 @@ void fail_test()
     }
     assert(total == 10);
 
+    sc_array_sort(arr, compare);
+    sc_array_remove_unordered(arr, 0);
+    assert(arr[0] == 4);
+    assert(sc_array_size(arr) == 4);
+
     sc_array_destroy(arr);
 }
 #else

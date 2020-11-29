@@ -29,10 +29,24 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 
+static void sc_cond_errstr(struct sc_cond *cond)
+{
+    int rc;
+    DWORD err = GetLastError();
+    LPSTR errstr = 0;
+
+    rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+                                FORMAT_MESSAGE_FROM_SYSTEM,
+                        NULL, err, 0, (LPSTR) &errstr, 0, NULL);
+    if (rc != 0) {
+        strncpy(cond->err, errstr, sizeof(cond->err) - 1);
+        LocalFree(errstr);
+    }
+}
+
 int sc_cond_init(struct sc_cond *cond)
 {
-    cond->data = NULL;
-    cond->done = false;
+    *cond = (struct sc_cond){0};
 
     InitializeCriticalSection(&cond->mtx);
     InitializeConditionVariable(&cond->cond);
@@ -70,9 +84,8 @@ int sc_cond_sync(struct sc_cond *cond, void **data)
     while (cond->done == false) {
         rv = SleepConditionVariableCS(&cond->cond, &cond->mtx, INFINITE);
         if (rv == 0) {
-            sc_cond_on_error("SleepConditionVariableCS: errcode(%d) ",
-                             (int) GetLastError());
             rc = -1;
+            sc_cond_errstr(cond);
             goto out;
         }
     }
@@ -97,8 +110,7 @@ int sc_cond_init(struct sc_cond *cond)
 {
     int rc;
 
-    cond->data = NULL;
-    cond->done = false;
+    *cond = (struct sc_cond){0};
 
     pthread_mutexattr_t attr;
     pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
@@ -107,8 +119,7 @@ int sc_cond_init(struct sc_cond *cond)
 
     rc = pthread_mutexattr_init(&attr);
     if (rc != 0) {
-        sc_cond_on_error("pthread_mutexattr_init : %s \n",  strerror(rc));
-        return -1;
+        goto error;
     }
 
     // This won't fail as long as we pass correct params.
@@ -117,19 +128,25 @@ int sc_cond_init(struct sc_cond *cond)
 
     rc = pthread_mutex_init(&cond->mtx, &attr);
     if (rc != 0) {
-        sc_cond_on_error("pthread_mutex_init : %s ",  strerror(rc));
-        return -1;
+        goto cleanup_attr;
+    }
+
+    rc = pthread_cond_init(&cond->cond, NULL);
+    if (rc != 0) {
+        goto cleanup_mutex;
     }
 
     pthread_mutexattr_destroy(&attr);
 
-    rc = pthread_cond_init(&cond->cond, NULL);
-    if (rc != 0) {
-        sc_cond_on_error("pthread_cond_init : %s ",  strerror(rc));
-        return -1;
-    }
-
     return 0;
+
+cleanup_mutex:
+    pthread_mutex_destroy(&cond->mtx);
+cleanup_attr:
+    pthread_mutexattr_destroy(&attr);
+error:
+    strncpy(cond->err, strerror(rc), sizeof(cond->err));
+    return -1;
 }
 
 int sc_cond_term(struct sc_cond *cond)
@@ -139,13 +156,13 @@ int sc_cond_term(struct sc_cond *cond)
     rv = pthread_mutex_destroy(&cond->mtx);
     if (rv != 0) {
         rc = -1;
-        sc_cond_on_error("pthread_mutex_destroy : %s ",  strerror(rv));
+        strncpy(cond->err, strerror(rv), sizeof(cond->err));
     }
 
     rv = pthread_cond_destroy(&cond->cond);
     if (rv != 0) {
         rc = -1;
-        sc_cond_on_error("pthread_cond_destroy : %s ",  strerror(rv));
+        strncpy(cond->err, strerror(rv), sizeof(cond->err));
     }
 
     return rc;
@@ -162,7 +179,8 @@ int sc_cond_finish(struct sc_cond *cond, void *var)
 
     rc = pthread_cond_signal(&cond->cond);
     if (rc != 0) {
-        sc_cond_on_error("pthread_cond_signal : %s ",  strerror(rc));
+        strncpy(cond->err, strerror(rc), sizeof(cond->err));
+        rc = -1;
     }
 
     pthread_mutex_unlock(&cond->mtx);
@@ -179,7 +197,8 @@ int sc_cond_sync(struct sc_cond *cond, void **data)
     while (cond->done == false) {
         rc = pthread_cond_wait(&cond->cond, &cond->mtx);
         if (rc != 0) {
-            sc_cond_on_error("pthread_mutex_init : %s ", strerror(rc));
+            rc = -1;
+            strncpy(cond->err, strerror(rc), sizeof(cond->err));
             goto out;
         }
     }
@@ -198,3 +217,8 @@ out:
 }
 
 #endif
+
+const char* sc_cond_err(struct sc_cond *cond)
+{
+    return cond->err;
+}

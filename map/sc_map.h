@@ -100,12 +100,4 @@ sc_map_of_strkey(s64, char *,   uint64_t)
 
 // clang-format on
 
-/**
-* If you want to log or abort on errors like out of memory,
-* put your error function here. It will be called with printf like error msg.
-*
-* my_on_error(const char* fmt, ...);
-*/
-#define sc_map_on_error(...)
-
 #endif
