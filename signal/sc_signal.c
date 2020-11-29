@@ -449,8 +449,7 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     sc_signal_log(fd, buf, sizeof(buf),
                   "\n--------------- CRASH REPORT END -------------- \n");
 
-    sc_signal_log(fd, buf, sizeof(buf), "\nSignal handler completed! \n",
-                  caller);
+    sc_signal_log(fd, buf, sizeof(buf), "\nSignal handler completed! \n");
     close(fd);
 
     sigemptyset(&act.sa_mask);
