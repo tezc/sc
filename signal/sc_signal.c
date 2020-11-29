@@ -288,17 +288,12 @@ int sc_signal_init()
 
 #else
 
-    // clang-format off
+// clang-format off
 #include <unistd.h>
 
-#if defined __has_include
-    #if __has_include(<execinfo.h>)
-        #include <execinfo.h>
-        #define HAVE_BACKTRACE 1
-    #endif
-#endif
-
 #ifdef HAVE_BACKTRACE
+#include <execinfo.h>
+
 static void *sc_instruction(ucontext_t *uc)
 {
     void* insp = NULL;

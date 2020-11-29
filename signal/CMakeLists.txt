@@ -25,10 +25,24 @@ add_executable(${PROJECT_NAME}_test signal_test.c sc_signal.c)
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
 
-if (${CMAKE_SYSTEM_NAME} STREQUAL "FreeBSD" OR
-        ${CMAKE_SYSTEM_NAME} STREQUAL "OpenBSD" OR
-        ${CMAKE_SYSTEM_NAME} STREQUAL "NetBSD")
-    target_link_options(${PROJECT_NAME}_test PRIVATE -lexecinfo)
+check_c_source_compiles("
+    #include <execinfo.h>
+    #include <unistd.h>
+
+    int main(int argc, char **argv) {
+        void *array[10];
+        size_t size = backtrace(array, 10);
+        backtrace_symbols_fd(array, size, STDERR_FILENO);
+        return 0;
+}" HAVE_BACKTRACE)
+
+FIND_LIBRARY(EXECINFO_LIBRARY NAMES execinfo)
+IF (EXECINFO_LIBRARY)
+    SET(CMAKE_REQUIRED_LIBRARIES "${EXECINFO_LIBRARY}")
+ENDIF(EXECINFO_LIBRARY)
+
+if (${HAVE_BACKTRACE})
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_BACKTRACE")
 endif ()
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
