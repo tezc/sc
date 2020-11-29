@@ -72,7 +72,6 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
     }
 
     p = MapViewOfFile(fm, prot, offset_high, offset_low, len);
-
     CloseHandle(fm);
 
     if (p == NULL) {

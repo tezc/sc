@@ -57,11 +57,9 @@
     static void *sc_map_alloc_##name(uint32_t *cap, uint32_t factor)           \
     {                                                                          \
         uint32_t v = *cap;                                                     \
-        void *p;                                                               \
         struct sc_map_item_##name *t;                                          \
                                                                                \
         if (*cap > SC_SIZE_MAX / factor) {                                     \
-            sc_map_on_error("Out of memory. cap(%zu).", *cap);                 \
             return NULL;                                                       \
         }                                                                      \
                                                                                \
@@ -74,12 +72,7 @@
         v++;                                                                   \
                                                                                \
         *cap = v;                                                              \
-        p = sc_map_calloc(sizeof(*t), v);                                      \
-        if (p == NULL) {                                                       \
-            sc_map_on_error("Out of memory. t(%zu) v(%zu).", sizeof(*t), v);   \
-        }                                                                      \
-                                                                               \
-        return p;                                                              \
+        return sc_map_calloc(sizeof(*t), v);                                   \
     }                                                                          \
                                                                                \
     bool sc_map_init_##name(struct sc_map_##name *map, uint32_t cap,           \

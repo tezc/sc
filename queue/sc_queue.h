@@ -84,15 +84,6 @@ bool sc_queue_init(void **q, size_t elem_size, size_t cap);
 void sc_queue_term(void **q);
 bool sc_queue_expand(void **q, size_t elem_size);
 
-
-/**
-* If you want to log or abort on errors like out of memory,
-* put your error function here. It will be called with printf like error msg.
-*
-* my_on_error(const char* fmt, ...);
-*/
-#define sc_queue_on_error(...)
-
 /**
  * Plug your allocator if you want.
  */

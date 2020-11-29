@@ -42,14 +42,6 @@ struct sc_buf
     bool oom;
 };
 
-/**
- * If you want to log or abort on out of memory, put your error function here.
- * It will be called with printf like error msg.
- *
- * my_on_oom(const char* fmt, ...);
- */
-#define sc_buf_on_error(...)
-
 #define sc_buf_malloc malloc
 #define sc_buf_realloc realloc
 #define sc_buf_free free

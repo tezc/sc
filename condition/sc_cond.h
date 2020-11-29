@@ -37,6 +37,7 @@ struct sc_cond
 {
     bool done;
     void* data;
+    char err[64];
 
 #if defined(_WIN32) || defined(_WIN64)
     CONDITION_VARIABLE cond;
@@ -51,13 +52,6 @@ int sc_cond_init(struct sc_cond* cond);
 int sc_cond_term(struct sc_cond* cond);
 int sc_cond_finish(struct sc_cond* cond, void* data);
 int sc_cond_sync(struct sc_cond* cond, void** data);
-
-/**
- * If you want to log or abort on errors like out of memory,
- * put your error function here. It will be called with printf like error msg.
- *
- * my_on_error(const char* fmt, ...);
- */
-#define sc_cond_on_error(...)
+const char* sc_cond_err(struct sc_cond *cond);
 
 #endif

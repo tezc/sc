@@ -37,7 +37,6 @@
     #elif defined _WIN32 && (defined _MSC_VER || defined __ICL ||              \
                              defined __DMC__ || defined __BORLANDC__)
         #define thread_local __declspec(thread)
-    /* note that ICC (linux) and Clang are covered by __GNUC__ */
     #elif defined __GNUC__ || defined __SUNPRO_C || defined __xlC__
         #define thread_local __thread
     #else
@@ -101,20 +100,14 @@ int sc_log_mutex_init(struct sc_log_mutex *mtx)
 
     rc = pthread_mutexattr_init(&attr);
     if (rc != 0) {
-        sc_log_on_error("pthread_mutexattr_init : %s ", strerror(rc));
         return -1;
     }
 
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
-
     rc = pthread_mutex_init(&mtx->mtx, &attr);
-    if (rc != 0) {
-        sc_log_on_error("pthread_mutex_init : %s ", strerror(rc));
-        return -1;
-    }
-
     pthread_mutexattr_destroy(&attr);
-    return 0;
+
+    return rc == 0 ? 0 : -1;
 }
 
 int sc_log_mutex_term(struct sc_log_mutex *mtx)
@@ -122,11 +115,7 @@ int sc_log_mutex_term(struct sc_log_mutex *mtx)
     int rc;
 
     rc = pthread_mutex_destroy(&mtx->mtx);
-    if (rc != 0) {
-        sc_log_on_error("pthread_mutex_destroy : %s ", strerror(rc));
-    }
-
-    return rc;
+    return rc == 0 ? 0 : -1;
 }
 
 void sc_log_mutex_lock(struct sc_log_mutex *mtx)
@@ -154,16 +143,26 @@ struct sc_log
     bool to_stdout;
     sc_log_callback cb;
     void *arg;
+    char err[64];
 };
 
 struct sc_log sc_log;
 
 int sc_log_init(void)
 {
+    int rc;
+
+    sc_log = (struct sc_log) {0};
+
     sc_log.level = SC_LOG_INFO;
     sc_log.to_stdout = true;
 
-    return sc_log_mutex_init(&sc_log.mtx);
+    rc = sc_log_mutex_init(&sc_log.mtx);
+    if (rc != 0) {
+        strncpy(sc_log.err, "Mutex init failed.", sizeof(sc_log.err));
+    }
+
+    return rc;
 }
 
 int sc_log_term(void)
@@ -174,16 +173,15 @@ int sc_log_term(void)
         rv = fclose(sc_log.fp);
         if (rv != 0) {
             rc = -1;
-            sc_log_on_error("fclose() : %s ", strerror(errno));
+            strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
         }
     }
 
     rv = sc_log_mutex_term(&sc_log.mtx);
     if (rv == -1) {
+        strncpy(sc_log.err, "Mutex term failed.", sizeof(sc_log.err));
         rc = -1;
     }
-
-    sc_log = (struct sc_log){0};
 
     return rc;
 }
@@ -230,7 +228,7 @@ int sc_log_set_file(const char *prev_file, const char *current_file)
     if (sc_log.fp != NULL) {
         rv = fclose(sc_log.fp);
         if (rv != 0) {
-            sc_log_on_error("fclose() : %s ", strerror(errno));
+            strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err));
         }
         sc_log.fp = NULL;
     }
@@ -254,6 +252,7 @@ int sc_log_set_file(const char *prev_file, const char *current_file)
 
 error:
     rc = -1;
+    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err));
     if (fp != NULL) {
         fclose(fp);
     }
@@ -275,17 +274,26 @@ int sc_log_set_callback(sc_log_callback cb, void *arg)
 
 static int sc_log_print_header(FILE *fp, enum sc_log_level level)
 {
+    int rc;
     time_t t = time(NULL);
     struct tm *tm = localtime(&t);
 
     if (tm == NULL) {
-        fprintf(fp, "[ERROR] localtime() returns null! \n");
-        return -1;
+        goto error;
     }
 
-    return fprintf(fp, "[%d-%02d-%02d %02d:%02d:%02d][%-5s][%s] ",
-                   tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
-                   tm->tm_min, tm->tm_sec, sc_log_levels[level].str, sc_name);
+    rc = fprintf(fp, "[%d-%02d-%02d %02d:%02d:%02d][%-5s][%s] ",
+                 tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
+                 tm->tm_min, tm->tm_sec, sc_log_levels[level].str, sc_name);
+    if (rc < 0) {
+        goto error;
+    }
+
+    return 0;
+
+error:
+    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err));
+    return -1;
 }
 
 static int sc_log_stdout(enum sc_log_level level, const char *fmt, va_list va)
@@ -297,7 +305,13 @@ static int sc_log_stdout(enum sc_log_level level, const char *fmt, va_list va)
         return -1;
     }
 
-    return vfprintf(stdout, fmt, va);
+    rc = vfprintf(stdout, fmt, va);
+    if (rc < 0) {
+        snprintf(sc_log.err, sizeof(sc_log.err), "vfprintf failure \n");
+        return -1;
+    }
+
+    return 0;
 }
 
 static int sc_log_file(enum sc_log_level level, const char *fmt, va_list va)
@@ -311,6 +325,7 @@ static int sc_log_file(enum sc_log_level level, const char *fmt, va_list va)
 
     size = vfprintf(sc_log.fp, fmt, va);
     if (size < 0) {
+        snprintf(sc_log.err, sizeof(sc_log.err) - 1, "vfprintf failure \n");
         return -1;
     }
 
@@ -322,8 +337,9 @@ static int sc_log_file(enum sc_log_level level, const char *fmt, va_list va)
 
         sc_log.fp = fopen(sc_log.current_file, "w+");
         if (sc_log.fp == NULL) {
-            fprintf(stderr, "fopen() failed for [%s], (%s)\n",
-                    sc_log.current_file, strerror(errno));
+            snprintf(sc_log.err, sizeof(sc_log.err) - 1,
+                     "fopen() failed for [%s], (%s)\n", sc_log.current_file,
+                     strerror(errno));
             return -1;
         }
 
