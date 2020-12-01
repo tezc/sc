@@ -36,15 +36,15 @@
 #define SC_INI_MAX_LINE_LEN 1024
 
 /**
- * @param line     current line number
  * @param arg      user arg.
+ * @param line     current line number
  * @param section  section.
  * @param key      key.
  * @param value    value.
  * @return         Return '0' on success, any other value will make parser
  *                 stop and return error.
  */
-typedef int (*sc_ini_on_item)(int line, void *arg, const char *section,
+typedef int (*sc_ini_on_item)(void *arg, int line, const char *section,
                               const char *key, const char *value);
 
 /**

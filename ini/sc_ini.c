@@ -99,7 +99,7 @@ static int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
 
         if (head > buf && *prev_key) {
             // Multi-line case. This line is another value to previous key.
-            rc = on_item(line, arg, section, prev_key, head);
+            rc = on_item(arg, line, section, prev_key, head);
         } else if (*head == '[') {
             if ((end = strchr(head, ']')) == NULL) {
                 return line;
@@ -116,7 +116,7 @@ static int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
             *end = '\0';
             trim_space(head);
             strncpy(prev_key, head, sizeof(prev_key) - 1);
-            rc = on_item(line, arg, section, head, trim_space(end + 1));
+            rc = on_item(arg, line, section, head, trim_space(end + 1));
         }
 
         if (rc != 0) {

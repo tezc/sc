@@ -125,6 +125,11 @@ void test1()
     sc_buf_term(&buf);
 
     sc_buf_term(&buf2);
+
+    char text[128];
+    sc_buf_wrap(text, sizeof(text), true);
+    sc_buf_put_text(&buf, "test %d test %s", 1, "test");
+    assert(strcmp(sc_buf_read_buf(&buf), "test 1 test test") == 0);
 }
 
 int main()
