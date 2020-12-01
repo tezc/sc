@@ -29,17 +29,19 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define SC_BUF_CORRUPT 1u
+#define SC_BUF_OOM 3u
+
 struct sc_buf
 {
-    uint8_t *mem;
+    unsigned char *mem;
     uint32_t cap;
     uint32_t limit;
     uint32_t read_pos;
     uint32_t write_pos;
+    unsigned int error;
 
     bool ref;
-    bool corrupt;
-    bool oom;
 };
 
 #define sc_buf_malloc malloc
@@ -104,6 +106,7 @@ void sc_buf_put_double(struct sc_buf *buf, double val);
 const char *sc_buf_get_str(struct sc_buf *buf);
 void sc_buf_put_str(struct sc_buf *buf, const char *str);
 void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...);
+void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...);
 
 void sc_buf_put_blob(struct sc_buf *buf, const void *ptr, uint32_t len);
 void *sc_buf_get_blob(struct sc_buf *buf, uint32_t len);

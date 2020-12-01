@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int cb(int line, void *arg, const char *section, const char *key,
+int cb(void *arg, int line, const char *section, const char *key,
        const char *value)
 {
     printf("%s %s %s \n", section, key, value);
@@ -22,7 +22,7 @@ void test1()
     assert(rc == 2);
 }
 
-int cb2(int line, void *arg, const char *section, const char *key,
+int cb2(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
     assert(strcmp(section, "section") == 0);
@@ -45,7 +45,7 @@ void test2()
     assert(rc == 0);
 }
 
-int cb3(int line, void *arg, const char *section, const char *key,
+int cb3(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
     assert(strcmp(section, "") == 0);
@@ -71,7 +71,7 @@ void test3()
     assert(count == 2);
 }
 
-int cb4(int line, void *arg, const char *section, const char *key,
+int cb4(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
     char tmp[16];
@@ -148,7 +148,7 @@ void test5()
     assert(count == 2);
 }
 
-int cb6(int line, void *arg, const char *section, const char *key,
+int cb6(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
     return -1;
@@ -170,7 +170,7 @@ void test6()
     assert(count == 0);
 }
 
-int cb7(int line, void *arg, const char *section, const char *key,
+int cb7(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
     char tmp[16];
@@ -206,7 +206,7 @@ void test7()
     assert(count == 1);
 }
 
-int cb8(int line, void *arg, const char *section, const char *key,
+int cb8(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
     char tmp[16];
@@ -283,7 +283,7 @@ void test8()
     assert(rc == -1);
 }
 
-int cb9(int line, void *arg, const char *section, const char *key,
+int cb9(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
     assert(strcmp(section, "section[test") == 0);
@@ -320,7 +320,7 @@ void test10()
     assert(rc == 2);
 }
 
-int cb11(int line, void *arg, const char *section, const char *key,
+int cb11(void *arg, int line, const char *section, const char *key,
          const char *value)
 {
     assert(strcmp(section, "section") == 0);
@@ -347,7 +347,7 @@ void test11()
     assert(rc == 0);
 }
 
-int cb12(int line, void *arg, const char *section, const char *key,
+int cb12(void *arg, int line, const char *section, const char *key,
          const char *value)
 {
     assert(strcmp(section, "") == 0);
@@ -374,7 +374,7 @@ void test12()
     assert(rc == 0);
 }
 
-int cb13(int line, void *arg, const char *section, const char *key,
+int cb13(void *arg, int line, const char *section, const char *key,
          const char *value)
 {
     char tmp[16];
@@ -414,7 +414,7 @@ const char *example_ini = "# My configuration"
                           "protocol = https \n"
                           "repo = any";
 
-int callback(int line, void *arg, const char *section, const char *key,
+int callback(void *arg, int line, const char *section, const char *key,
              const char *value)
 {
     printf("Line : %d, Section : %s, Key : %s, Value : %s \n", line, section,

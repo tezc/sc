@@ -21,37 +21,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-
-#ifndef SC_COND_H
-#define SC_COND_H
+#ifndef SC_OPT_H
+#define SC_OPT_H
 
 #include <stdbool.h>
+#include <stddef.h>
+#include <stdio.h>
 
-#if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
-#else
-#include <pthread.h>
-#endif
-
-struct sc_cond
+struct sc_option_item
 {
-    bool done;
-    void* data;
-    char err[64];
-
-#if defined(_WIN32) || defined(_WIN64)
-    CONDITION_VARIABLE cond;
-    CRITICAL_SECTION mtx;
-#else
-    pthread_cond_t cond;
-    pthread_mutex_t mtx;
-#endif
+    const char letter;
+    const char *name;
 };
 
-int sc_cond_init(struct sc_cond* cond);
-int sc_cond_term(struct sc_cond* cond);
-void sc_cond_finish(struct sc_cond* cond, void* data);
-void* sc_cond_sync(struct sc_cond* cond);
-const char* sc_cond_err(struct sc_cond *cond);
+struct sc_option
+{
+    struct sc_option_item *items;
+    int count;
+    char **argv;
+};
+
+/**
+ *
+ * @param opt    Already initialized sc_opt struct
+ * @param index  Index for argv
+ * @param value  [out] Value for the option if exists. It should come after '='
+ *               sign. E.g : -key=value or -k=value. If value does not exists
+ *               (*value) will point '\0' character. It won't be NULL itself.
+ *
+ *               To check if option has value associated : if (*value != '\0')
+ *
+ * @return       Letter for the option. If option is not known, '?' will be
+ *               returned.
+ */
+char sc_option_at(struct sc_option *opt, int index, char **value);
 
 #endif

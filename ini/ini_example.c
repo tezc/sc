@@ -11,7 +11,7 @@ const char *example_ini = "# My configuration"
                             "protocol = https \n"
                             "repo = any";
 
-int callback(int line, void *arg, const char *section, const char *key,
+int callback(void *arg, int line, const char *section, const char *key,
              const char *value)
 {
     printf("Line : %d, Section : %s, Key : %s, Value : %s \n", line, section,

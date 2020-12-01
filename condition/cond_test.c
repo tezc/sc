@@ -141,7 +141,7 @@ void* thread1_fn(void* arg)
     char* data;
     struct sc_cond* cond = arg;
 
-    assert(sc_cond_sync(cond, (void**)&data) == 0);
+    data = sc_cond_sync(cond);
     assert(strcmp(data, "finish") == 0);
 
     return NULL;
@@ -150,7 +150,7 @@ void* thread1_fn(void* arg)
 void* thread2_fn(void* arg)
 {
     struct sc_cond* cond = arg;
-    assert(sc_cond_finish(cond, "finish") == 0);
+    sc_cond_finish(cond, "finish");
     return NULL;
 }
 
@@ -179,26 +179,13 @@ int __wrap_pthread_mutex_init(pthread_mutex_t *__mutex,
     return -1;
 }
 
-bool mock_condwait = false;
-extern int __real_pthread_cond_wait (pthread_cond_t *__restrict __cond,
-                                     pthread_mutex_t *__restrict __mutex);
-int __wrap_pthread_cond_wait (pthread_cond_t *__restrict __cond,
-                              pthread_mutex_t *__restrict __mutex)
-{
-    if (!mock_condwait) {
-        return __real_pthread_cond_wait(__cond, __mutex);
-    }
-
-    return -1;
-}
-
 void fail_test()
 {
     struct sc_cond cond;
-    char* var;
 
     mock_attrinit = true;
     assert(sc_cond_init(&cond) == -1);
+    assert(*sc_cond_err(&cond) != '\0');
     mock_attrinit = false;
     assert(sc_cond_init(&cond) == 0);
     assert(sc_cond_term(&cond) == 0);
@@ -206,12 +193,6 @@ void fail_test()
     assert(sc_cond_init(&cond) == -1);
     mock_mutexinit = false;
     assert(sc_cond_init(&cond) == 0);
-    assert(sc_cond_term(&cond) == 0);
-
-    assert(sc_cond_init(&cond) == 0);
-    mock_condwait = true;
-    assert(sc_cond_sync(&cond, (void**) &var) == -1);
-    mock_condwait = false;
     assert(sc_cond_term(&cond) == 0);
 }
 

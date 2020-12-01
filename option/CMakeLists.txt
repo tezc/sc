@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(sc_cond C)
+project(sc_option C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_cond cond_example.c sc_cond.h sc_cond.c)
+add_executable(sc_option option_example.c sc_option.h sc_option.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread -pedantic -Werror -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -Werror -D_GNU_SOURCE -pthread")
 endif ()
 
 
@@ -21,23 +21,25 @@ include(CheckCCompilerFlag)
 
 enable_testing()
 
-add_executable(${PROJECT_NAME}_test cond_test.c sc_cond.c)
+add_executable(${PROJECT_NAME}_test option_test.c sc_option.c)
 
-target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=140000ul)
+target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
             "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+
         target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
         target_link_options(${PROJECT_NAME}_test PRIVATE
-                -Wl,--wrap=pthread_mutexattr_init,--wrap=pthread_mutex_init)
+                -Wl,--wrap=pthread_optattr_init)
     endif ()
 endif ()
 
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
         "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang" OR
         "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+
     target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-omit-frame-pointer)
 
     if (SANITIZER)
