@@ -29,8 +29,10 @@
 char sc_option_at(struct sc_option *opt, int index, char **value)
 {
     char id = '?';
+    int len;
     char *pos;
     const char *curr, *name;
+
 
     pos = opt->argv[index];
     *value = NULL;
@@ -57,7 +59,13 @@ char sc_option_at(struct sc_option *opt, int index, char **value)
         for (int i = 0; i < opt->count; i++) {
             curr = opt->argv[index] + 2; // Skip '--'
             name = opt->items[i].name;
-            if (name != NULL && strncmp(name, curr, pos - curr) == 0) {
+            len = (int) (pos - curr);
+
+            if (name == NULL) {
+                continue;
+            }
+
+            if (len == strlen(name) && memcmp(name, curr, len) == 0) {
                 id = opt->items[i].letter;
                 *value = pos + (*pos != '=' ? 0 : 1);
                 break;

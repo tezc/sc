@@ -110,12 +110,40 @@ void test4()
     }
 }
 
+static struct sc_option_item options2[] = {{.letter = 's', .name = "sadsa"},
+                                          {.letter = 'm', .name = "sad"},
+                                          {.letter = 'k', .name = "key3"},
+                                          {.letter = 'h', .name = "dsadsa"}};
+void test5()
+{
+    char *value;
+
+    int argc = 2;
+    char *argv[] = {"program", "--key=value"};
+
+    struct sc_option opt = {.argv = argv,
+            .count = sizeof(options2) / sizeof(struct sc_option_item),
+            .items = options2};
+
+    for (int i = 1; i < argc; i++) {
+        char c = sc_option_at(&opt, i, &value);
+        switch (c) {
+        case '?':
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     test1();
     test2();
     test3();
     test4();
+    test5();
 
     return 0;
 }
