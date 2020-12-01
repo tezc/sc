@@ -61,7 +61,7 @@ int sc_cond_term(struct sc_cond *cond)
     return 0;
 }
 
-int sc_cond_finish(struct sc_cond *cond, void *var)
+void sc_cond_finish(struct sc_cond *cond, void *var)
 {
     EnterCriticalSection(&cond->mtx);
 
@@ -70,37 +70,28 @@ int sc_cond_finish(struct sc_cond *cond, void *var)
 
     WakeConditionVariable(&cond->cond);
     LeaveCriticalSection(&cond->mtx);
-
-    return 0;
 }
 
-int sc_cond_sync(struct sc_cond *cond, void **data)
+void* sc_cond_sync(struct sc_cond *cond)
 {
-    int rc = 0;
-    BOOL rv;
+    BOOL rc;
+    void* data;
 
     EnterCriticalSection(&cond->mtx);
 
     while (cond->done == false) {
-        rv = SleepConditionVariableCS(&cond->cond, &cond->mtx, INFINITE);
-        if (rv == 0) {
-            rc = -1;
-            sc_cond_errstr(cond);
-            goto out;
-        }
+        // This should not fail as we pass INFINITE.
+        rc = SleepConditionVariableCS(&cond->cond, &cond->mtx, INFINITE);
+        assert(rc == 0);
     }
 
-    if (data != NULL) {
-        *data = cond->data;
-    }
-
+    data = cond->data;
     cond->data = NULL;
     cond->done = false;
 
-out:
     LeaveCriticalSection(&cond->mtx);
 
-    return rc;
+    return data;
 }
 
 #else
@@ -168,7 +159,7 @@ int sc_cond_term(struct sc_cond *cond)
     return rc;
 }
 
-int sc_cond_finish(struct sc_cond *cond, void *var)
+void sc_cond_finish(struct sc_cond *cond, void *var)
 {
     int rc;
 
@@ -177,48 +168,37 @@ int sc_cond_finish(struct sc_cond *cond, void *var)
     cond->data = var;
     cond->done = true;
 
+    // This won't fail as long as we pass correct params.
     rc = pthread_cond_signal(&cond->cond);
-    if (rc != 0) {
-        strncpy(cond->err, strerror(rc), sizeof(cond->err));
-        rc = -1;
-    }
+    assert(rc == 0);
 
     pthread_mutex_unlock(&cond->mtx);
-
-    return rc;
 }
 
-int sc_cond_sync(struct sc_cond *cond, void **data)
+void *sc_cond_sync(struct sc_cond *cond)
 {
     int rc;
+    void *data;
 
     pthread_mutex_lock(&cond->mtx);
 
     while (cond->done == false) {
         rc = pthread_cond_wait(&cond->cond, &cond->mtx);
-        if (rc != 0) {
-            rc = -1;
-            strncpy(cond->err, strerror(rc), sizeof(cond->err));
-            goto out;
-        }
+        assert(rc == 0);
     }
 
-    if (data != NULL) {
-        *data = cond->data;
-    }
-
+    data = cond->data;
     cond->data = NULL;
     cond->done = false;
 
-out:
     pthread_mutex_unlock(&cond->mtx);
 
-    return rc;
+    return data;
 }
 
 #endif
 
-const char* sc_cond_err(struct sc_cond *cond)
+const char *sc_cond_err(struct sc_cond *cond)
 {
     return cond->err;
 }

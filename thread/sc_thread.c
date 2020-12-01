@@ -24,7 +24,6 @@
 
 #include "sc_thread.h"
 
-#include <errno.h>
 #include <string.h>
 
 void sc_thread_init(struct sc_thread *thread)
@@ -114,7 +113,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 
     rc = pthread_attr_init(&hndl);
     if (rc != 0) {
-        strncpy(thread->err, strerror(errno), sizeof(thread->err));
+        strncpy(thread->err, strerror(rc), sizeof(thread->err));
         return -1;
     }
 
@@ -123,7 +122,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 
     rc = pthread_create(&thread->id, &hndl, fn, arg);
     if (rc != 0) {
-        strncpy(thread->err, strerror(errno), sizeof(thread->err));
+        strncpy(thread->err, strerror(rc), sizeof(thread->err));
     }
 
     // This may only fail with EINVAL.
@@ -143,7 +142,7 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 
     rc = pthread_join(thread->id, &val);
     if (rc != 0) {
-        strncpy(thread->err, strerror(errno), sizeof(thread->err));
+        strncpy(thread->err, strerror(rc), sizeof(thread->err));
     }
 
     thread->id = 0;

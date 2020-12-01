@@ -50,8 +50,8 @@ struct sc_cond
 
 int sc_cond_init(struct sc_cond* cond);
 int sc_cond_term(struct sc_cond* cond);
-int sc_cond_finish(struct sc_cond* cond, void* data);
-int sc_cond_sync(struct sc_cond* cond, void** data);
+void sc_cond_finish(struct sc_cond* cond, void* data);
+void* sc_cond_sync(struct sc_cond* cond);
 const char* sc_cond_err(struct sc_cond *cond);
 
 #endif
