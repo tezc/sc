@@ -28,6 +28,7 @@
 #include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)
+#pragma warning(disable : 4996)
 
 static void sc_cond_errstr(struct sc_cond *cond)
 {
@@ -82,7 +83,7 @@ void* sc_cond_sync(struct sc_cond *cond)
     while (cond->done == false) {
         // This should not fail as we pass INFINITE.
         rc = SleepConditionVariableCS(&cond->cond, &cond->mtx, INFINITE);
-        assert(rc == 0);
+        assert(rc != 0);
     }
 
     data = cond->data;
