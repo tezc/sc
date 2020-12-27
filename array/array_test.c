@@ -220,4 +220,6 @@ int main(int argc, char *argv[])
     test1();
     fail_test();
     bounds_test();
+
+    return 0;
 }
