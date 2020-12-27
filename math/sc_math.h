@@ -31,10 +31,33 @@
 #define sc_math_max(a, b) ((a) > (b) ? (a) : (b))
 #define sc_math_min(a, b) ((a) > (b) ? (b) : (a))
 
+/**
+ * @param num num
+ * @return    'true' if num is power of 2
+ */
 bool sc_math_is_pow2(size_t num);
+
+/**
+ * @param size size
+ * @return     next nearest power of two of size
+ */
 size_t sc_math_to_pow2(size_t size);
 
+/**
+ * Bytes to human readable form, e.g 10240 bytes  to 10 KB.
+ *
+ * @param buf  buf to write output
+ * @param max  buf size
+ * @param val  val to be converted into human readable form
+ * @return     'buf' on success, 'NULL' on failure.
+ */
 char *sc_math_bytes_to_size(char *buf, size_t max, uint64_t val);
+
+/**
+ * Human readable string to bytes, e.g 10 KB to 10240 bytes.
+ * @param buf buf to write output
+ * @return    positive value on success, '-1' on error
+ */
 int64_t sc_math_size_to_bytes(const char *buf);
 
 #endif

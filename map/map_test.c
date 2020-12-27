@@ -7,7 +7,7 @@
 
 void example(void)
 {
-    char *key, *value;
+    const char *key, *value;
     struct sc_map_str map;
 
     sc_map_init_str(&map, 0, 0);
@@ -17,11 +17,10 @@ void example(void)
     sc_map_put_str(&map, "janie", "atlanta");
 
     sc_map_foreach (&map, key, value) {
-            printf("Key:[%s], Value:[%s] \n", key, value);
-        }
+        printf("Key:[%s], Value:[%s] \n", key, value);
+    }
 
     sc_map_term_str(&map);
-
 }
 
 static char *str_random(size_t size)
@@ -47,7 +46,7 @@ void test1()
     struct sc_map_str map;
     char *keys[128];
     char *values[128];
-    char *key, *value;
+    const char *key, *value;
 
     for (int i = 0; i < 128; i++) {
         keys[i] = str_random((rand() % 64) + 32);
@@ -296,54 +295,54 @@ retry:
 
     bool found;
     sc_map_foreach (&map, key, value) {
-            found = false;
-            for (int j = 0; j < 128; j++) {
-                if (key == keys[j] && value == values[j]) {
-                    found = true;
-                    break;
-                }
+        found = false;
+        for (int j = 0; j < 128; j++) {
+            if (key == keys[j] && value == values[j]) {
+                found = true;
+                break;
             }
-            assert(found);
         }
+        assert(found);
+    }
 
     sc_map_foreach_key (&map, key) {
-            found = false;
-            for (int j = 0; j < 128; j++) {
-                if (key == keys[j]) {
-                    found = true;
-                    break;
-                }
+        found = false;
+        for (int j = 0; j < 128; j++) {
+            if (key == keys[j]) {
+                found = true;
+                break;
             }
-            assert(found);
         }
+        assert(found);
+    }
 
     sc_map_foreach_value (&map, value) {
-            found = false;
-            for (int j = 0; j < 128; j++) {
-                if (value == values[j]) {
-                    found = true;
-                    break;
-                }
+        found = false;
+        for (int j = 0; j < 128; j++) {
+            if (value == values[j]) {
+                found = true;
+                break;
             }
-            assert(found);
         }
+        assert(found);
+    }
 
     sc_map_term_64(&map);
 }
 
 void test4()
 {
-    char* c;
+    const char *c;
     struct sc_map_64s map64s;
 
     assert(sc_map_init_64s(&map64s, 1, 87));
-    for (int i = 0 ; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         assert(sc_map_put_64s(&map64s, i, NULL));
         assert(sc_map_get_64s(&map64s, i, &c));
         assert(c == NULL);
     }
     assert(sc_map_size_64s(&map64s) == 100);
-    for (int i = 0 ; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         assert(sc_map_del_64s(&map64s, i, &c));
         assert(c == NULL);
     }
@@ -355,17 +354,17 @@ void test4()
 
     sc_map_term_64s(&map64s);
 
-    void* v;
+    void *v;
     struct sc_map_64v map64v;
 
     assert(sc_map_init_64v(&map64v, 1, 87));
-    for (int i = 0 ; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         assert(sc_map_put_64v(&map64v, i, NULL));
         assert(sc_map_get_64v(&map64v, i, &v));
         assert(c == NULL);
     }
     assert(sc_map_size_64v(&map64v) == 100);
-    for (int i = 0 ; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         assert(sc_map_del_64v(&map64v, i, &v));
         assert(v == NULL);
     }
@@ -388,7 +387,7 @@ void test4()
     struct sc_map_sv mapsv;
 
     assert(sc_map_init_sv(&mapsv, 1, 87));
-    for (int i = 0 ; i < 100; i++) {
+    for (int i = 0; i < 100; i++) {
         assert(sc_map_put_sv(&mapsv, keys[i], values[i]));
         assert(sc_map_get_sv(&mapsv, keys[i], &v));
         assert(v == values[i]);
@@ -406,7 +405,7 @@ void test4()
     struct sc_map_s64 maps64;
 
     assert(sc_map_init_s64(&maps64, 0, 26));
-    for (int i =0 ; i< 64; i++) {
+    for (int i = 0; i < 64; i++) {
         assert(sc_map_put_s64(&maps64, keys[i], i));
     }
 
@@ -450,14 +449,14 @@ void fail_test()
 
     fail_calloc = true;
     bool success = true;
-    for (int i =0 ; i < 20; i++) {
+    for (int i = 0; i < 20; i++) {
         success = sc_map_put_32(&map, i, i);
     }
     assert(!success);
     fail_calloc = false;
     assert(sc_map_put_32(&map, 44444, 44444));
 
-    for (int i = 0 ; i < SC_SIZE_MAX; i++) {
+    for (int i = 0; i < SC_SIZE_MAX; i++) {
         success = sc_map_put_32(&map, i, i);
     }
     assert(!success);
