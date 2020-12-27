@@ -174,7 +174,8 @@ void fail_test()
 
     sc_array_destroy(arr);
 }
-static void bounds_test()
+
+void bounds_test()
 {
     int *arr, total = 0;
     int val;

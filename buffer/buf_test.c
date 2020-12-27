@@ -13,13 +13,13 @@ void test1()
     sc_buf_init(&buf, 100);
 
     assert(sc_buf_bool_len(true) == 1);
-    assert(sc_buf_8bit_len(true) == 1);
-    assert(sc_buf_16bit_len(true) == 2);
-    assert(sc_buf_32bit_len(true) == 4);
-    assert(sc_buf_64bit_len(true) == 8);
+    assert(sc_buf_8_len(true) == 1);
+    assert(sc_buf_16_len(true) == 2);
+    assert(sc_buf_32_len(true) == 4);
+    assert(sc_buf_64_len(true) == 8);
     assert(sc_buf_double_len(true) == 8);
-    assert(sc_buf_strlen("test") == 9);
-    assert(sc_buf_strlen(NULL) == 4);
+    assert(sc_buf_str_len("test") == 9);
+    assert(sc_buf_str_len(NULL) == 4);
     assert(sc_buf_blob_len("test", 4) == 8);
 
     sc_buf_put_8(&buf, 8);
@@ -65,7 +65,7 @@ void test1()
     sc_buf_put_64(&buf, 222);
     sc_buf_mark_read(&buf, 8);
     assert(sc_buf_size(&buf) == 0);
-    char *c = sc_buf_write_buf(&buf);
+    char *c = sc_buf_wbuf(&buf);
     *c = 'c';
     sc_buf_mark_write(&buf, 1);
     assert(sc_buf_get_8(&buf) == 'c');
@@ -74,17 +74,17 @@ void test1()
     sc_buf_clear(&buf);
     sc_buf_put_32(&buf, 2323);
     sc_buf_put_32(&buf, 3311);
-    sc_buf_set_write_pos(&buf, 8);
-    sc_buf_set_read_pos(&buf, 4);
+    sc_buf_set_wpos(&buf, 8);
+    sc_buf_set_rpos(&buf, 4);
     assert(sc_buf_get_32(&buf) == 3311);
     sc_buf_clear(&buf);
     sc_buf_put_64(&buf, UINT64_MAX);
     assert(sc_buf_get_64(&buf) == UINT64_MAX);
     sc_buf_put_64(&buf, UINT64_MAX);
 
-    unsigned char* z = sc_buf_read_buf(&buf);
+    unsigned char* z = sc_buf_rbuf(&buf);
     assert(*z == 0xFF);
-    assert(sc_buf_get_write_pos(&buf) == 16);
+    assert(sc_buf_wpos(&buf) == 16);
     assert(sc_buf_quota(&buf) == 100 - 16);
     assert(sc_buf_get_blob(&buf, 0) == NULL);
 
@@ -105,8 +105,8 @@ void test1()
     sc_buf_put_64(&buf, 43);
     sc_buf_mark_read(&buf, 8);
     sc_buf_compact(&buf);
-    assert(sc_buf_get_read_pos(&buf) == 0);
-    assert(sc_buf_get_write_pos(&buf) == 8);
+    assert(sc_buf_rpos(&buf) == 0);
+    assert(sc_buf_wpos(&buf) == 8);
     assert(sc_buf_valid(&buf));
     sc_buf_term(&buf);
 
@@ -128,7 +128,7 @@ void test1()
     char text[128];
     buf = sc_buf_wrap(text, sizeof(text), true);
     sc_buf_put_text(&buf, "test %d test %s", 1, "test");
-    assert(strcmp(sc_buf_read_buf(&buf), "test 1 test test") == 0);
+    assert(strcmp(sc_buf_rbuf(&buf), "test 1 test test") == 0);
 }
 
 int main()
