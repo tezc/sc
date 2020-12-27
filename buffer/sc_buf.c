@@ -36,7 +36,7 @@
               .c)
 
 #ifdef _MSC_VER
-#include <stdlib.h>
+    #include <stdlib.h>
     #define bswap_16(x) _byteswap_ushort(x)
     #define bswap_32(x) _byteswap_ulong(x)
     #define bswap_64(x) _byteswap_uint64(x)
@@ -47,22 +47,22 @@
     #define bswap_32(x) OSSwapInt32(x)
     #define bswap_64(x) OSSwapInt64(x)
 #elif defined(__sun) || defined(sun)
-#include <sys/byteorder.h>
+    #include <sys/byteorder.h>
     #define bswap_16(x) BSWAP_16(x)
     #define bswap_32(x) BSWAP_32(x)
     #define bswap_64(x) BSWAP_64(x)
 #elif defined(__FreeBSD__)
-#include <sys/endian.h>
+    #include <sys/endian.h>
     #define bswap_16(x) bswap16(x)
     #define bswap_32(x) bswap32(x)
     #define bswap_64(x) bswap64(x)
 #elif defined(__OpenBSD__)
-#include <sys/types.h>
+    #include <sys/types.h>
     #define bswap_16(x) swap16(x)
     #define bswap_32(x) swap32(x)
     #define bswap_64(x) swap64(x)
 #elif defined(__NetBSD__)
-#include <machine/bswap.h>
+    #include <machine/bswap.h>
     #include <sys/types.h>
     #if defined(__BSWAP_RENAME) && !defined(__bswap_32)
         #define bswap_16(x) bswap16(x)
@@ -70,7 +70,7 @@
         #define bswap_64(x) bswap64(x)
     #endif
 #else
-#include <byteswap.h>
+    #include <byteswap.h>
 #endif
 
 #define sc_swap16(n) (IS_BIG_ENDIAN ? bswap_16(n) : (n))
@@ -79,32 +79,33 @@
 
 #define sy_buf_min(a, b) ((a) > (b) ? (b) : (a))
 
-int sc_buf_init(struct sc_buf *buf, uint32_t cap)
+bool sc_buf_init(struct sc_buf *buf, uint32_t cap)
 {
-    void *mem;
+    void *mem = NULL;
 
-    mem = sc_buf_malloc(cap);
-    if (mem == NULL) {
-        *buf = (struct sc_buf) {0};
-        return -1;
+    *buf = (struct sc_buf){0};
+
+    if (cap > 0) {
+        mem = sc_buf_malloc(cap);
+        if (mem == NULL) {
+            return false;
+        }
     }
 
     *buf = sc_buf_wrap(mem, cap, false);
 
-    return 0;
+    return true;
 }
 
 struct sc_buf sc_buf_wrap(void *data, uint32_t len, bool ref)
 {
-    struct sc_buf buf = {
-            .mem = data,
-            .cap = len,
-            .limit = ref ? len : UINT32_MAX,
-            .wpos = 0,
-            .rpos = 0,
-            .ref = ref,
-            .error = 0
-    };
+    struct sc_buf buf = {.mem = data,
+                         .cap = len,
+                         .limit = ref ? len : UINT32_MAX,
+                         .wpos = 0,
+                         .rpos = 0,
+                         .ref = ref,
+                         .error = 0};
 
     return buf;
 }
@@ -142,12 +143,13 @@ bool sc_buf_reserve(struct sc_buf *buf, uint32_t len)
         if (buf->wpos + len > buf->cap) {
             size = ((buf->cap + len + 4095) / 4096) * 4096;
             if (size > buf->limit) {
-                buf->error = SC_BUF_OOM;
+                buf->error |= SC_BUF_OOM;
                 return false;
             }
 
             tmp = sc_buf_realloc(buf->mem, size);
             if (tmp == NULL) {
+                buf->error |= SC_BUF_OOM;
                 return false;
             }
 
@@ -178,6 +180,7 @@ void sc_buf_clear(struct sc_buf *buf)
 {
     buf->rpos = 0;
     buf->wpos = 0;
+    buf->error = 0;
 }
 
 void sc_buf_mark_read(struct sc_buf *buf, uint32_t len)
@@ -239,16 +242,16 @@ void sc_buf_compact(struct sc_buf *buf)
     }
 }
 
-uint32_t sc_buf_peek_data(struct sc_buf *buf, uint32_t offset, void *dest,
+uint32_t sc_buf_peek_data(struct sc_buf *buf, uint32_t pos, void *dest,
                           uint32_t len)
 {
-    if (buf->error != 0 || (offset + len > buf->wpos)) {
+    if (buf->error != 0 || (pos + len > buf->wpos)) {
         buf->error |= SC_BUF_CORRUPT;
         memset(dest, 0, len);
         return 0;
     }
 
-    memcpy(dest, &buf->mem[offset], len);
+    memcpy(dest, &buf->mem[pos], len);
 
     return len;
 }
@@ -465,7 +468,13 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
     va_list args;
     void *mem = (char *) sc_buf_wbuf(buf) + sc_buf_32_len(0);
     uint32_t pos = sc_buf_wpos(buf);
-    uint32_t quota = sc_buf_quota(buf) - sc_buf_32_len(0);
+    uint32_t quota = sc_buf_quota(buf);
+
+    if (quota > sc_buf_32_len(0)) {
+        quota -= sc_buf_32_len(0);
+    } else {
+        quota = 0;
+    }
 
     va_start(args, fmt);
     rc = vsnprintf(mem, quota, fmt, args);
@@ -508,7 +517,7 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
     uint32_t quota = sc_buf_quota(buf);
 
     va_start(args, fmt);
-    rc = vsnprintf((char*) sc_buf_wbuf(buf) - offset, quota, fmt, args);
+    rc = vsnprintf((char *) sc_buf_wbuf(buf) - offset, quota, fmt, args);
     va_end(args);
 
     if (rc < 0) {
@@ -524,7 +533,7 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
         }
 
         va_start(args, fmt);
-        rc = vsnprintf((char*) sc_buf_wbuf(buf) - offset, quota, fmt, args);
+        rc = vsnprintf((char *) sc_buf_wbuf(buf) - offset, quota, fmt, args);
         va_end(args);
 
         if (rc < 0 || rc >= quota) {
