@@ -27,7 +27,7 @@
 
 #include <stdint.h>
 
-void sc_crc32_global_init(void);
+void sc_crc32_init(void);
 
 uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len);
 

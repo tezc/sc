@@ -1,4 +1,4 @@
-# Generic array
+# Buffer
 
 #### Overview
 

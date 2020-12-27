@@ -160,13 +160,13 @@ int sc_cond_term(struct sc_cond *cond)
     return rc;
 }
 
-void sc_cond_finish(struct sc_cond *cond, void *var)
+void sc_cond_signal(struct sc_cond *cond, void *data)
 {
     int rc;
 
     pthread_mutex_lock(&cond->mtx);
 
-    cond->data = var;
+    cond->data = data;
     cond->done = true;
 
     // This won't fail as long as we pass correct params.
@@ -176,7 +176,7 @@ void sc_cond_finish(struct sc_cond *cond, void *var)
     pthread_mutex_unlock(&cond->mtx);
 }
 
-void *sc_cond_sync(struct sc_cond *cond)
+void *sc_cond_wait(struct sc_cond *cond)
 {
     int rc;
     void *data;
