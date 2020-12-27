@@ -40,8 +40,8 @@ struct sc_buf
     uint32_t limit;
     uint32_t rpos;
     uint32_t wpos;
-    unsigned int error;
 
+    unsigned int error;
     bool ref;
 };
 

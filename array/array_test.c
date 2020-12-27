@@ -75,6 +75,39 @@ static void test1(void)
     sc_array_destroy(arr);
 }
 
+void bounds_test()
+{
+    int *arr, total = 0;
+    int val;
+
+    sc_array_create(arr, 2);
+    sc_array_add(arr, 3);
+    sc_array_add(arr, 4);
+
+    sc_array_foreach (arr, val) {
+        total += val;
+    }
+
+    assert(total == 7);
+
+    sc_array_destroy(arr);
+
+    total = 0;
+
+    sc_array_create(arr, 0);
+    sc_array_foreach (arr, val) {
+        total += val;
+    }
+
+    sc_array_foreach (arr, val) {
+        total += val;
+    }
+
+    assert(total == 0);
+
+    sc_array_destroy(arr);
+}
+
 #ifdef SC_HAVE_WRAP
 
 bool fail_realloc = false;
@@ -171,39 +204,6 @@ void fail_test()
     sc_array_remove_unordered(arr, 0);
     assert(arr[0] == 4);
     assert(sc_array_size(arr) == 4);
-
-    sc_array_destroy(arr);
-}
-
-void bounds_test()
-{
-    int *arr, total = 0;
-    int val;
-
-    sc_array_create(arr, 2);
-    sc_array_add(arr, 3);
-    sc_array_add(arr, 4);
-
-    sc_array_foreach (arr, val) {
-        total += val;
-    }
-
-    assert(total == 7);
-
-    sc_array_destroy(arr);
-
-    total = 0;
-
-    sc_array_create(arr, 0);
-    sc_array_foreach (arr, val) {
-        total += val;
-    }
-
-    sc_array_foreach (arr, val) {
-        total += val;
-    }
-
-    assert(total == 0);
 
     sc_array_destroy(arr);
 }
