@@ -22,7 +22,6 @@
  * SOFTWARE.
  */
 #ifndef SC_OPT_H
-
 #define SC_OPT_H
 
 #include <stdbool.h>

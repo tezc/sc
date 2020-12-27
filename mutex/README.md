@@ -1,3 +1,11 @@
+# Mutex
+
+### Mutex wrapper 
+
+- Basic mutex wrapper for Unixes and Windows.
+- Just copy <b>sc_mutex.h</b> and <b>sc_mutex.c</b> to your project.
+
+```c
 
 #include "sc_mmap.h"
 
@@ -25,3 +33,5 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+```
+

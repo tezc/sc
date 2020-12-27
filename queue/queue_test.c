@@ -39,7 +39,7 @@ void fail_test(void)
     fail_realloc = false;
     assert(sc_queue_add_last(q, 1023) == true);
     for (int i = 0; i < 1024; i++) {
-        assert(sc_queue_remove_first(q) == i);
+        assert(sc_queue_del_first(q) == i);
     }
     assert(sc_queue_size(q) == 0);
     assert(sc_queue_cap(q) == 2048);
@@ -87,10 +87,10 @@ void example(void)
         printf("elem = [%d] \n", elem);
     }
 
-    elem = sc_queue_remove_last(queue);
+    elem = sc_queue_del_last(queue);
     printf("Last element was : [%d] \n", elem);
 
-    elem = sc_queue_remove_first(queue);
+    elem = sc_queue_del_first(queue);
     printf("First element was : [%d] \n", elem);
 
     sc_queue_destroy(queue);
@@ -136,11 +136,11 @@ void test1(void)
     assert(sc_queue_peek_last(p) == 0);
     assert(sc_queue_size(p) == 7);
 
-    t = sc_queue_remove_first(p);
+    t = sc_queue_del_first(p);
     assert(t == 6);
     assert(sc_queue_size(p) == 6);
 
-    t = sc_queue_remove_last(p);
+    t = sc_queue_del_last(p);
     assert(t == 0);
     assert(sc_queue_size(p) == 5);
 

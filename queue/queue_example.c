@@ -18,10 +18,10 @@ int main(int argc, char *argv[])
         printf("elem = [%d] \n", elem);
     }
 
-    elem = sc_queue_remove_last(queue);
+    elem = sc_queue_del_last(queue);
     printf("Last element was : [%d] \n", elem);
 
-    elem = sc_queue_remove_first(queue);
+    elem = sc_queue_del_first(queue);
     printf("First element was : [%d] \n", elem);
 
     sc_queue_destroy(queue);

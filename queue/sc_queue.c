@@ -27,7 +27,7 @@
 #include <stdbool.h>
 
 #ifndef SC_SIZE_MAX
-    #define SC_SIZE_MAX SIZE_MAX
+#define SC_SIZE_MAX SIZE_MAX
 #endif
 
 #define SC_MAX_CAP ((SC_SIZE_MAX - sizeof(struct sc_queue)) / 2ul)
@@ -82,7 +82,13 @@ bool sc_queue_init(void **q, size_t elem_size, size_t cap)
 
 void sc_queue_term(void **q)
 {
-    struct sc_queue *meta = sc_queue_meta(*q);
+    struct sc_queue *meta;
+
+    if (*q == NULL) {
+        return;
+    }
+
+    meta = sc_queue_meta(*q);
 
     if (meta != &sc_empty) {
         sc_queue_free(meta);

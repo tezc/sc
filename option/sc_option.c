@@ -33,7 +33,6 @@ char sc_option_at(struct sc_option *opt, int index, char **value)
     char *pos;
     const char *curr, *name;
 
-
     pos = opt->argv[index];
     *value = NULL;
 
@@ -44,7 +43,8 @@ char sc_option_at(struct sc_option *opt, int index, char **value)
     pos++; // Skip first '-'
     if (*pos != '-') {
         for (int i = 0; i < opt->count; i++) {
-            if (*pos == opt->options[i].letter) {
+            if (*pos == opt->options[i].letter &&
+                strchr("= \0", *(pos + 1)) != NULL) {
                 id = *pos;
                 pos++; // skip letter
                 *value = pos + (*pos != '=' ? 0 : 1);

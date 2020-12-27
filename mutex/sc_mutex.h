@@ -26,9 +26,9 @@
 #define SC_MUTEX_H
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <pthread.h>
+#include <pthread.h>
 #endif
 
 struct sc_mutex
@@ -44,13 +44,5 @@ int sc_mutex_init(struct sc_mutex *mtx);
 int sc_mutex_term(struct sc_mutex *mtx);
 void sc_mutex_lock(struct sc_mutex *mtx);
 void sc_mutex_unlock(struct sc_mutex *mtx);
-
-/**
-* If you want to log or abort on errors like mutex init,
-* put your error function here. It will be called with printf like error msg.
-*
-* my_on_error(const char* fmt, ...);
-*/
-#define sc_mutex_on_error(...)
 
 #endif
