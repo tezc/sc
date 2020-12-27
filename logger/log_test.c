@@ -292,20 +292,20 @@ void example(void)
     sc_log_init();
 
     //Default log-level is 'info' and default destination is 'stdout'
-    sc_log_info("Hello world!");
+    sc_log_info("Hello world!\n");
 
     //Enable logging to file.
     sc_log_set_file("log.0.txt", "log-latest.txt");
 
     //stdout and file will get the log line
-    sc_log_info("to stdout and file!");
+    sc_log_info("to stdout and file!\n");
 
     //Enable callback
     sc_log_set_callback(log_callback, (void*) my_app_name);
 
     //stdout, file and callback will get the log line
-    sc_log_info("to all!");
-    sc_log_info("to all!");
+    sc_log_info("to all!\n");
+    sc_log_info("to all!\n");
 
     //sc_log_term(); is not thread-safe, it must be called by a single thread.
     sc_log_term();

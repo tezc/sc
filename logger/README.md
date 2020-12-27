@@ -1,3 +1,17 @@
+# Logger
+
+### Overview
+
+- Log destination can be stdout, file and user callback.
+- Possible to get logs to all destinations at the same time.
+- Log files are rotated.
+- Thread-safe.
+- Just copy <b>sc_log.h</b> and <b>sc_log.c</b> to your project.
+
+#### Usage
+
+
+```c
 #include "sc_log.h"
 
 int log_callback(void *arg, enum sc_log_level level,
@@ -18,28 +32,28 @@ int main(int argc, char *argv[])
 
     //sc_log_init(); is not thread-safe, it must be called by a single thread.
     sc_log_init();
-
-    //This will set a thread local buffer
-    sc_log_set_thread_name("my app thread");
+    sc_log_set_thread_name("my-app-thread"); 
 
     //Default log-level is 'info' and default destination is 'stdout'
-    sc_log_info("Hello world! \n");
+    sc_log_info("Hello world!");
 
     //Enable logging to file.
     sc_log_set_file("log.0.txt", "log-latest.txt");
 
     //stdout and file will get the log line
-    sc_log_info("to stdout and file! \n");
+    sc_log_info("to stdout and file!");
 
     //Enable callback
     sc_log_set_callback(log_callback, (void*) my_app_name);
 
     //stdout, file and callback will get the log line
-    sc_log_info("to all! \n");
-    sc_log_info("to all! \n");
+    sc_log_info("to all!");
+    sc_log_info("to all!");
 
     //sc_log_term(); is not thread-safe, it must be called by a single thread.
     sc_log_term();
 
     return 0;
 }
+
+```

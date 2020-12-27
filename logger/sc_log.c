@@ -24,10 +24,8 @@
 
 #include "sc_log.h"
 
-#include <assert.h>
 #include <errno.h>
 #include <stdarg.h>
-#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
@@ -159,7 +157,7 @@ int sc_log_init(void)
 
     rc = sc_log_mutex_init(&sc_log.mtx);
     if (rc != 0) {
-        strncpy(sc_log.err, "Mutex init failed.", sizeof(sc_log.err));
+        strncpy(sc_log.err, "Mutex init failed.", sizeof(sc_log.err) - 1);
     }
 
     return rc;
@@ -179,7 +177,7 @@ int sc_log_term(void)
 
     rv = sc_log_mutex_term(&sc_log.mtx);
     if (rv == -1) {
-        strncpy(sc_log.err, "Mutex term failed.", sizeof(sc_log.err));
+        strncpy(sc_log.err, "Mutex term failed.", sizeof(sc_log.err) - 1);
         rc = -1;
     }
 
@@ -188,7 +186,7 @@ int sc_log_term(void)
 
 void sc_log_set_thread_name(const char *name)
 {
-    strncpy(sc_name, name, sizeof(sc_name));
+    strncpy(sc_name, name, sizeof(sc_name) - 1);
 }
 
 int sc_log_set_level(const char *str)
@@ -228,7 +226,7 @@ int sc_log_set_file(const char *prev_file, const char *current_file)
     if (sc_log.fp != NULL) {
         rv = fclose(sc_log.fp);
         if (rv != 0) {
-            strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err));
+            strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
         }
         sc_log.fp = NULL;
     }
@@ -252,7 +250,7 @@ int sc_log_set_file(const char *prev_file, const char *current_file)
 
 error:
     rc = -1;
-    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err));
+    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
     if (fp != NULL) {
         fclose(fp);
     }
@@ -292,7 +290,7 @@ static int sc_log_print_header(FILE *fp, enum sc_log_level level)
     return 0;
 
 error:
-    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err));
+    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
     return -1;
 }
 
