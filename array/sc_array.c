@@ -28,7 +28,7 @@
 #include <stddef.h>
 
 #ifndef SC_SIZE_MAX
-    #define SC_SIZE_MAX SIZE_MAX
+#define SC_SIZE_MAX SIZE_MAX
 #endif
 
 

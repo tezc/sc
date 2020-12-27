@@ -17,7 +17,7 @@ void test1()
 
     struct sc_option opt = {.argv = argv,
                          .count = sizeof(options) / sizeof(struct sc_option_item),
-                         .items = options};
+                         .options = options};
 
     for (int i = 1; i < argc; i++) {
         char c = sc_option_at(&opt, i, &value);
@@ -50,7 +50,7 @@ void test2()
 
     struct sc_option opt = {.argv = argv,
                          .count = sizeof(options) / sizeof(struct sc_option_item),
-                         .items = options};
+                         .options = options};
 
     for (int i = 1; i < argc; i++) {
         char c = sc_option_at(&opt, i, &value);
@@ -72,7 +72,7 @@ void test3()
 
     struct sc_option opt = {.argv = argv,
                          .count = sizeof(options) / sizeof(struct sc_option_item),
-                         .items = options};
+                         .options = options};
 
     for (int i = 1; i < argc; i++) {
         char c = sc_option_at(&opt, i, &value);
@@ -96,7 +96,7 @@ void test4()
 
     struct sc_option opt = {.argv = argv,
                          .count = sizeof(options) / sizeof(struct sc_option_item),
-                         .items = options};
+                         .options = options};
 
     for (int i = 1; i < argc; i++) {
         char c = sc_option_at(&opt, i, &value);
@@ -123,7 +123,7 @@ void test5()
 
     struct sc_option opt = {.argv = argv,
             .count = sizeof(options2) / sizeof(struct sc_option_item),
-            .items = options2};
+            .options = options2};
 
     for (int i = 1; i < argc; i++) {
         char c = sc_option_at(&opt, i, &value);

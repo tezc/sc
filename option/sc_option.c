@@ -44,7 +44,7 @@ char sc_option_at(struct sc_option *opt, int index, char **value)
     pos++; // Skip first '-'
     if (*pos != '-') {
         for (int i = 0; i < opt->count; i++) {
-            if (*pos == opt->items[i].letter) {
+            if (*pos == opt->options[i].letter) {
                 id = *pos;
                 pos++; // skip letter
                 *value = pos + (*pos != '=' ? 0 : 1);
@@ -58,7 +58,7 @@ char sc_option_at(struct sc_option *opt, int index, char **value)
 
         for (int i = 0; i < opt->count; i++) {
             curr = opt->argv[index] + 2; // Skip '--'
-            name = opt->items[i].name;
+            name = opt->options[i].name;
             len = (int) (pos - curr);
 
             if (name == NULL) {
@@ -66,7 +66,7 @@ char sc_option_at(struct sc_option *opt, int index, char **value)
             }
 
             if (len == strlen(name) && memcmp(name, curr, len) == 0) {
-                id = opt->items[i].letter;
+                id = opt->options[i].letter;
                 *value = pos + (*pos != '=' ? 0 : 1);
                 break;
             }

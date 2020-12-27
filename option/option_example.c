@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
 
     struct sc_option opt = {.argv = argv,
                             .count = sizeof(options) / sizeof(options[0]),
-                            .items = options};
+                            .options = options};
 
     for (int i = 1; i < argc; i++) {
         char c = sc_option_at(&opt, i, &value);

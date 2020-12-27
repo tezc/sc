@@ -170,15 +170,12 @@ bool sc_array_expand(void **arr, size_t elem_size);
  *  @param value Value
  */
 #define sc_array_foreach(arr, value)                                           \
-    if (sc_array_size(arr) > 0) {                                              \
-        (value) = (arr)[0];                                                    \
-    }                                                                          \
-    for (int _i = 0; _i < sc_array_size(arr); _i++, (value) = (arr)[_i])
+    for (int _k = 1, _i = 0; _k && _i != sc_array_size(arr); _k = !_k, _i++)  \
+        for ((value) = (arr)[_i]; _k; _k = !_k)
 
 /**
  * Return last element. If array is empty, result is undefined.
  */
-#define sc_array_last(arr)                                                     \
-    assert(sc_array_size(arr) > 0), (arr)[sc_array_size(arr) - 1]
+#define sc_array_last(arr) (arr)[sc_array_size(arr) - 1]
 
 #endif

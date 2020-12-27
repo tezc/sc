@@ -18,6 +18,7 @@ int main(int argc, char *argv[])
     printf("Capacity %zu \n", sc_array_cap(p));
     printf("Element count %zu \n", sc_array_size(p));
 
+
     // Simple loop
     for (int i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);

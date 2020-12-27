@@ -162,8 +162,8 @@ void fail_test()
     }
 
     total = 0;
-    sc_array_foreach(arr, tmp) {
-       total += tmp;
+    sc_array_foreach (arr, tmp) {
+        total += tmp;
     }
     assert(total == 10);
 
@@ -174,6 +174,39 @@ void fail_test()
 
     sc_array_destroy(arr);
 }
+static void bounds_test()
+{
+    int *arr, total = 0;
+    int val;
+
+    sc_array_create(arr, 2);
+    sc_array_add(arr, 3);
+    sc_array_add(arr, 4);
+
+    sc_array_foreach (arr, val) {
+        total += val;
+    }
+
+    assert(total == 7);
+
+    sc_array_destroy(arr);
+
+    total = 0;
+
+    sc_array_create(arr, 0);
+    sc_array_foreach (arr, val) {
+        total += val;
+    }
+
+    sc_array_foreach (arr, val) {
+        total += val;
+    }
+
+    assert(total == 0);
+
+    sc_array_destroy(arr);
+}
+
 #else
 void fail_test(void)
 {
@@ -185,4 +218,5 @@ int main(int argc, char *argv[])
     example();
     test1();
     fail_test();
+    bounds_test();
 }

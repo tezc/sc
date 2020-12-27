@@ -22,6 +22,7 @@
  * SOFTWARE.
  */
 #ifndef SC_OPT_H
+
 #define SC_OPT_H
 
 #include <stdbool.h>
@@ -36,7 +37,7 @@ struct sc_option_item
 
 struct sc_option
 {
-    struct sc_option_item *items;
+    struct sc_option_item *options;
     int count;
     char **argv;
 };
