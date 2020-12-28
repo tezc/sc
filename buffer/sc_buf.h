@@ -502,10 +502,13 @@ static inline uint32_t sc_buf_blob_len(void *ptr, uint32_t len)
 
 static inline uint32_t sc_buf_str_len(const char *str)
 {
+    if (str == NULL) {
+        return sc_buf_32_len(-1);
+    }
+
     assert(strlen(str) <= INT32_MAX - 5);
 
-    return str == NULL ? sc_buf_32_len(-1) :
-           sc_buf_32_len(-1) + strlen(str) + sc_buf_8_len('\0');
+    return sc_buf_32_len(-1) + strlen(str) + sc_buf_8_len('\0');
 }
 
 #endif
