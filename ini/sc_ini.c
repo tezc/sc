@@ -68,7 +68,7 @@ static char *trim_comment(char *str)
 
 static char *trim_bom(char *str)
 {
-    if (str != NULL && strlen(str)) {
+    if (str != NULL && strlen(str) >= 3) {
         if ((uint8_t) str[0] == 0xEF && (uint8_t) str[1] == 0xBB &&
             (uint8_t) str[2] == 0xBF) {
             str += 3;
@@ -78,8 +78,8 @@ static char *trim_bom(char *str)
     return str;
 }
 
-static int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
-                        char *(*next_line)(void *arg, char *buf, size_t size))
+int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
+                 char *(*next_line)(void *arg, char *buf, size_t size))
 {
     int rc = 0, line = 0;
     char buf[SC_INI_MAX_LINE_LEN];

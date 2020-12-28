@@ -141,7 +141,7 @@ void* thread1_fn(void* arg)
     char* data;
     struct sc_cond* cond = arg;
 
-    data = sc_cond_sync(cond);
+    data = sc_cond_wait(cond);
     assert(strcmp(data, "finish") == 0);
 
     return NULL;
@@ -150,7 +150,7 @@ void* thread1_fn(void* arg)
 void* thread2_fn(void* arg)
 {
     struct sc_cond* cond = arg;
-    sc_cond_finish(cond, "finish");
+    sc_cond_signal(cond, "finish");
     return NULL;
 }
 

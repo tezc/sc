@@ -4,7 +4,7 @@
 #include <string.h>
 
 #ifndef SC_SIZE_MAX
-    #define SC_SIZE_MAX UINT32_MAX
+#define SC_SIZE_MAX UINT32_MAX
 #endif
 
 #define sc_map_impl_of_strkey(name, K, V, cmp, hash_fn)                        \
@@ -331,26 +331,29 @@ uint32_t murmurhash(const char *key)
     case 2: h ^= (uint64_t) key[1] << 8ul;
     case 1: h ^= (uint64_t) key[0];
         h *= m;
+    default:
+        break;
     };
 
     h ^= h >> 47u;
     h *= m;
     h ^= h >> 47u;
 
-    return h;
+    return (uint32_t) h;
 }
+
 // clang-format off
 
 #define sc_map_varcmp(a, b) ((a) == (b))
 #define sc_map_strcmp(a, b) (!strcmp(a, b))
 
-//                   name, key type, value type,    cmp           hash
-sc_map_impl_of_scalar(32,  uint32_t, uint32_t, sc_map_varcmp, sc_map_hash_32)
-sc_map_impl_of_scalar(64,  uint64_t, uint64_t, sc_map_varcmp, sc_map_hash_64)
-sc_map_impl_of_scalar(64v, uint64_t, void *,   sc_map_varcmp, sc_map_hash_64)
-sc_map_impl_of_scalar(64s, uint64_t, char *,   sc_map_varcmp, sc_map_hash_64)
-sc_map_impl_of_strkey(str, char *,   char *,   sc_map_strcmp, murmurhash)
-sc_map_impl_of_strkey(sv,  char *,   void *,   sc_map_strcmp, murmurhash)
-sc_map_impl_of_strkey(s64, char *,   uint64_t, sc_map_strcmp, murmurhash)
+//                   name, key type,     value type,        cmp           hash
+sc_map_impl_of_scalar(32,  uint32_t,     uint32_t,     sc_map_varcmp, sc_map_hash_32)
+sc_map_impl_of_scalar(64,  uint64_t,     uint64_t,     sc_map_varcmp, sc_map_hash_64)
+sc_map_impl_of_scalar(64v, uint64_t,     void *,       sc_map_varcmp, sc_map_hash_64)
+sc_map_impl_of_scalar(64s, uint64_t,     const char *, sc_map_varcmp, sc_map_hash_64)
+sc_map_impl_of_strkey(str, const char *, const char *, sc_map_strcmp, murmurhash)
+sc_map_impl_of_strkey(sv,  const char *, void *,       sc_map_strcmp, murmurhash)
+sc_map_impl_of_strkey(s64, const char *, uint64_t,     sc_map_strcmp, murmurhash)
 
-        // clang-format on
+// clang-format on

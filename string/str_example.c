@@ -11,12 +11,12 @@ int main(int argc, char *argv[])
     printf("%s \n", s1); // prints **hello**
 
     sc_str_append_fmt(&s1, " %s", "world--");
-    printf("%s \n", s1); // prints **hello**world--
+    printf("%s \n", s1); // prints **hello** world--
 
     sc_str_trim(&s1, "*-");
-    printf("%s \n", s1); // prints **hello**world--
+    printf("%s \n", s1); // prints hello** world
 
-    sc_str_substring(&s1, 6, 11);
+    sc_str_substring(&s1, 8, 13);
     printf("%s \n", s1); // world
 
     sc_str_destroy(s1);

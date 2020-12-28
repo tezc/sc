@@ -32,9 +32,9 @@ void sc_thread_init(struct sc_thread *thread)
 }
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <process.h>
+#include <process.h>
 
-static void sc_thread_err(struct sc_thread *thread)
+static void sc_thread_errstr(struct sc_thread *thread)
 {
     int rc;
     DWORD err = GetLastError();
@@ -67,7 +67,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
     thread->id =
             (HANDLE) _beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
     if (thread->id == 0) {
-        sc_thread_err(thread);
+        sc_thread_errstr(thread);
         rc = -1;
     }
 
@@ -87,13 +87,13 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 
     rv = WaitForSingleObject(thread->id, INFINITE);
     if (rv == WAIT_FAILED) {
-        sc_thread_err(thread);
+        sc_thread_errstr(thread);
         rc = -1;
     }
 
     brc = CloseHandle(thread->id);
     if (!brc) {
-        sc_thread_err(thread);
+        sc_thread_errstr(thread);
         rc = -1;
     }
 
@@ -159,4 +159,9 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 int sc_thread_term(struct sc_thread *thread)
 {
     return sc_thread_stop(thread, NULL);
+}
+
+const char* sc_thread_err(struct sc_thread * thread)
+{
+    return thread->err;
 }

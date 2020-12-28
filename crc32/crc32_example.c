@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
     uint32_t crc;
     const uint8_t buf[100] = {0};
 
-    sc_crc32_global_init();
+    sc_crc32_init();
 
     // Partial calculation example
     crc = sc_crc32(0, buf, 10);

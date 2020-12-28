@@ -192,10 +192,10 @@ bool sc_queue_expand(void **q, size_t elem_size);
 
 /**
  * @param q Queue pointer
- * @return  Remove the last element from the queue and return its value.
+ * @return  Delete the last element from the queue and return its value.
  *            If queue is empty, result is undefined.
  */
-#define sc_queue_remove_last(q) ((q)[sc_queue_dec_last((q))])
+#define sc_queue_del_last(q) ((q)[sc_queue_dec_last((q))])
 
 /**
  * @param q    Queue pointer.
@@ -209,10 +209,10 @@ bool sc_queue_expand(void **q, size_t elem_size);
 
 /**
  * @param q Queue pointer
- * @return  Remove the first element from the queue and return its value.
+ * @return  Delete the first element from the queue and return its value.
  *          If queue is empty, result is undefined.
  */
-#define sc_queue_remove_first(q) (q)[sc_queue_inc_first((q))]
+#define sc_queue_del_first(q) (q)[sc_queue_inc_first((q))]
 
 /**
  *  For each loop,
@@ -226,10 +226,8 @@ bool sc_queue_expand(void **q, size_t elem_size);
  *  }
  */
 #define sc_queue_foreach(q, elem)                                              \
-    if (!sc_queue_empty(q)) {                                                  \
-        (elem) = (q)[sc_queue_first(q)];                                       \
-    }                                                                          \
-    for (size_t _i = sc_queue_first(q); _i != sc_queue_last(q);                \
-         _i = sc_queue_next(q, _i), (elem) = (q)[_i])
+    for (int _k = 1, _i = sc_queue_first(q); _k && _i != sc_queue_last(q);     \
+         _k = !_k, _i = sc_queue_next(q, _i))                                  \
+        for ((elem) = (q)[_i]; _k; _k = !_k)
 
 #endif

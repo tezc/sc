@@ -259,12 +259,21 @@ void sc_str_token_end(char *str, char **save)
     swap(str, (save != NULL && *save != NULL) ? *save : str + strlen(str));
 }
 
-bool sc_str_trim(char **str, char *list)
+bool sc_str_trim(char **str, const char *list)
 {
+    size_t len = strlen(*str);
     char *start = *str + strspn(*str, list);
-    char *end = start + strcspn(start, list);
+    char *end = (*str) + len;
 
-    if (start != *str || end != *str) {
+    while (end > start) {
+        end--;
+        if (!strchr(list, *end)) {
+            end++;
+            break;
+        }
+    }
+
+    if (start != *str || end != (*str) + len) {
         start = sc_str_create_len(start, end - start);
         if (start == NULL) {
             return false;
@@ -304,7 +313,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 
     size_t replace_len = strlen(replace);
     size_t with_len = strlen(with);
-    int64_t diff = (int64_t) with_len - (int64_t) replace_len;
+    int64_t diff;
     size_t len_unmatch;
     size_t count, size;
     struct sc_str *dest;
@@ -316,6 +325,8 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
     if (replace_len >= UINT32_MAX || with_len >= UINT32_MAX) {
         return false;
     }
+
+    diff = (int64_t)with_len - (int64_t)replace_len;
 
     // Fast path, same size replacement.
     if (diff == 0) {

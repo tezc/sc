@@ -13,7 +13,7 @@
 
     #pragma warning(disable : 4996)
 
-static void sc_mmap_err(struct sc_mmap *m)
+static void sc_mmap_errstr(struct sc_mmap *m)
 {
     int rc;
     DWORD err = GetLastError();
@@ -78,10 +78,9 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
         goto cleanup_fd;
     }
 
+    m->fd = fd;
     m->ptr = p;
     m->len = len;
-
-    _close(fd);
 
     return 0;
 
@@ -90,7 +89,7 @@ cleanup_fd:
     _close(fd);
     SetLastError(saved_err);
 error:
-    sc_mmap_err(m);
+    sc_mmap_errstr(m);
 
     return -1;
 }
@@ -102,7 +101,7 @@ int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len)
 
     b = FlushViewOfFile(p, len);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
@@ -116,7 +115,7 @@ int sc_mmap_mlock(struct sc_mmap *m, size_t offset, size_t len)
 
     b = VirtualLock((LPVOID) p, len);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
@@ -130,7 +129,7 @@ int sc_mmap_munlock(struct sc_mmap *m, size_t offset, size_t len)
 
     b = VirtualUnlock((LPVOID) p, len);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
@@ -141,9 +140,11 @@ int sc_mmap_term(struct sc_mmap *m)
 {
     BOOL b;
 
+    _close(m->fd);
+
     b = UnmapViewOfFile(m->ptr);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
@@ -151,7 +152,6 @@ int sc_mmap_term(struct sc_mmap *m)
 }
 
 #else
-
 
     #include <unistd.h>
 
@@ -178,7 +178,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
     len = (len == 0) ? st.st_size - offset : len;
 
     if (prot & PROT_WRITE) {
-#if defined(__APPLE__)
+    #if defined(__APPLE__)
         int block = st.st_blksize;
         size_t pos = (st.st_size / block) * block + block - 1;
 
@@ -197,7 +197,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
                 return -1;
             }
         }
-#else
+    #else
         do {
             rc = posix_fallocate(fd, offset, len);
         } while (rc == EINTR);
@@ -206,7 +206,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
             errno = rc;
             goto cleanup_fd;
         }
-#endif
+    #endif
     }
 
     p = mmap(NULL, len, prot, map_flags, fd, offset);
@@ -214,10 +214,9 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
         goto cleanup_fd;
     }
 
+    m->fd = fd;
     m->ptr = p;
     m->len = len;
-
-    close(fd);
 
     return 0;
 
@@ -226,7 +225,7 @@ cleanup_fd:
     close(fd);
     errno = saved_errno;
 error:
-    strcpy(m->err, strerror(errno));
+    strncpy(m->err, strerror(errno), sizeof(m->err) - 1);
 
     return -1;
 }
@@ -235,9 +234,11 @@ int sc_mmap_term(struct sc_mmap *m)
 {
     int rc;
 
+    close(m->fd);
+
     rc = munmap(m->ptr, m->len);
     if (rc != 0) {
-        strcpy(m->err, strerror(errno));
+        strncpy(m->err, strerror(errno), sizeof(m->err) - 1);
     }
 
     return rc;
@@ -250,7 +251,7 @@ int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len)
 
     rc = msync(p, len, MS_SYNC);
     if (rc != 0) {
-        strcpy(m->err, strerror(errno));
+        strncpy(m->err, strerror(errno), sizeof(m->err) - 1);
     }
 
     return rc;
@@ -263,7 +264,7 @@ int sc_mmap_mlock(struct sc_mmap *m, size_t offset, size_t len)
 
     rc = mlock(p, len);
     if (rc != 0) {
-        strcpy(m->err, strerror(errno));
+        strncpy(m->err, strerror(errno), sizeof(m->err) - 1);
     }
 
     return rc;
@@ -276,10 +277,15 @@ int sc_mmap_munlock(struct sc_mmap *m, size_t offset, size_t len)
 
     rc = munlock(p, len);
     if (rc != 0) {
-        strcpy(m->err, strerror(errno));
+        strncpy(m->err, strerror(errno), sizeof(m->err) - 1);
     }
 
     return rc;
+}
+
+const char *sc_mmap_err(struct sc_mmap *m)
+{
+    return m->err;
 }
 
 #endif

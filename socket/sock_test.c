@@ -107,6 +107,7 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
 
     rc = pthread_attr_init(&hndl);
     if (rc != 0) {
+
         return -1;
     }
 

@@ -74,7 +74,7 @@
 #define sc_map_foreach(map, K, V)                                              \
     for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
         for ((V) = (map)->mem[__i].value, (K) = (map)->mem[__i].key, __b = 1;  \
-             __b && (V) != 0; __b = 0)
+             __b && (K) != 0; __b = 0)
 
 #define sc_map_foreach_key(map, K)                                             \
     for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
@@ -82,21 +82,22 @@
 
 #define sc_map_foreach_value(map, V)                                           \
     for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
-        for ((V) = (map)->mem[__i].value, __b = 1; __b && (V) != 0; __b = 0)
+        for ((V) = (map)->mem[__i].value, __b = 1;                             \
+             __b && (map)->mem[__i].key != 0; __b = 0)
 
 #define sc_map_calloc calloc
 #define sc_map_free   free
 
 // clang-format off
 
-//              name  key type  value type);
-sc_map_of_scalar(32,  uint32_t, uint32_t)
-sc_map_of_scalar(64,  uint64_t, uint64_t)
-sc_map_of_scalar(64v, uint64_t, void *)
-sc_map_of_scalar(64s, uint64_t, char *)
-sc_map_of_strkey(str, char *,   char *)
-sc_map_of_strkey(sv,  char *,   void*)
-sc_map_of_strkey(s64, char *,   uint64_t)
+//              name  key type      value type
+sc_map_of_scalar(32,  uint32_t,     uint32_t)
+sc_map_of_scalar(64,  uint64_t,     uint64_t)
+sc_map_of_scalar(64v, uint64_t,     void *)
+sc_map_of_scalar(64s, uint64_t,     const char *)
+sc_map_of_strkey(str, const char *, const char *)
+sc_map_of_strkey(sv,  const char *, void*)
+sc_map_of_strkey(s64, const char *, uint64_t)
 
 // clang-format on
 

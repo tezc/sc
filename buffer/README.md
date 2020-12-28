@@ -1,3 +1,21 @@
+# Buffer
+
+#### Overview
+
+- Buffer implementation for serializing data/protocol implementation.
+- Provides put/get for binary data, 8/16/32/64 bit integers, double and strings.  
+- Strings are kept length prefixed and null ended. So, no need to copy string  
+  when you are reading, you just get the pointer. This is useful to avoid memory  
+  allocation overhead.
+- Integer operations are compiled into bounds check + a single MOV instruction  
+  on x86. Buffer keeps data in Little Endian format, so on big endian systems,  
+  integer put/get is bswap(byte swap) + MOV.
+- Just copy <b>sc_buf.h</b> and <b>sc_buf.c</b> to your project.
+
+
+##### Usage
+
+```c
 #include "sc_buf.h"
 #include <stdio.h>
 
@@ -43,3 +61,4 @@ int main()
 
     return 0;
 }
+```

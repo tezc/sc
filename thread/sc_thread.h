@@ -44,14 +44,41 @@ struct sc_thread
 struct sc_thread
 {
     pthread_t id;
-    char err[64];
+    char err[128];
 };
 
 #endif
 
+/**
+ * @param thread thread
+ */
 void sc_thread_init(struct sc_thread* thread);
+
+/**
+ * @param thread thred
+ * @return       '0' on success,
+ *               '-1' on error, call 'sc_thread_err()' for error string.
+ */
 int sc_thread_term(struct sc_thread* thread);
+
+/**
+ * @param thread thred
+ * @return       '0' on success,
+ *               '-1' on error, call 'sc_thread_err()' for error string.
+ */
 int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg);
+
+/**
+ * @param thread thread
+ * @return       '0' on success,
+ *               '-1' on error, call 'sc_thread_err()' for error string.
+ */
 int sc_thread_stop(struct sc_thread* thread, void** ret);
+
+/**
+ * @param thread thread
+ * @return       last error message
+ */
+const char* sc_thread_err(struct sc_thread * thread);
 
 #endif

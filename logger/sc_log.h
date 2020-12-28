@@ -144,11 +144,11 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...);
  * in the log line.
  */
 #ifdef SC_LOG_PRINT_FILE_NAME
-    #define sc_log_ap(fmt, ...)                                                \
-        "(%s:%d) " fmt "\n", strrchr("/" __FILE__, '/') + 1, __LINE__,         \
+#define sc_log_ap(fmt, ...)                                                \
+        "(%s:%d) " fmt, strrchr("/" __FILE__, '/') + 1, __LINE__,         \
                 __VA_ARGS__
 #else
-    #define sc_log_ap(fmt, ...) fmt "\n", __VA_ARGS__
+#define sc_log_ap(fmt, ...) fmt, __VA_ARGS__
 #endif
 
 

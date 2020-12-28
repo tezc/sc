@@ -62,7 +62,7 @@ int sc_cond_term(struct sc_cond *cond)
     return 0;
 }
 
-void sc_cond_finish(struct sc_cond *cond, void *var)
+void sc_cond_signal(struct sc_cond *cond, void *var)
 {
     EnterCriticalSection(&cond->mtx);
 
@@ -73,7 +73,7 @@ void sc_cond_finish(struct sc_cond *cond, void *var)
     LeaveCriticalSection(&cond->mtx);
 }
 
-void* sc_cond_sync(struct sc_cond *cond)
+void* sc_cond_wait(struct sc_cond *cond)
 {
     BOOL rc;
     void* data;
@@ -137,7 +137,7 @@ cleanup_mutex:
 cleanup_attr:
     pthread_mutexattr_destroy(&attr);
 error:
-    strncpy(cond->err, strerror(rc), sizeof(cond->err));
+    strncpy(cond->err, strerror(rc), sizeof(cond->err) - 1);
     return -1;
 }
 
@@ -148,25 +148,25 @@ int sc_cond_term(struct sc_cond *cond)
     rv = pthread_mutex_destroy(&cond->mtx);
     if (rv != 0) {
         rc = -1;
-        strncpy(cond->err, strerror(rv), sizeof(cond->err));
+        strncpy(cond->err, strerror(rv), sizeof(cond->err) - 1);
     }
 
     rv = pthread_cond_destroy(&cond->cond);
     if (rv != 0) {
         rc = -1;
-        strncpy(cond->err, strerror(rv), sizeof(cond->err));
+        strncpy(cond->err, strerror(rv), sizeof(cond->err) - 1);
     }
 
     return rc;
 }
 
-void sc_cond_finish(struct sc_cond *cond, void *var)
+void sc_cond_signal(struct sc_cond *cond, void *data)
 {
     int rc;
 
     pthread_mutex_lock(&cond->mtx);
 
-    cond->data = var;
+    cond->data = data;
     cond->done = true;
 
     // This won't fail as long as we pass correct params.
@@ -176,7 +176,7 @@ void sc_cond_finish(struct sc_cond *cond, void *var)
     pthread_mutex_unlock(&cond->mtx);
 }
 
-void *sc_cond_sync(struct sc_cond *cond)
+void *sc_cond_wait(struct sc_cond *cond)
 {
     int rc;
     void *data;

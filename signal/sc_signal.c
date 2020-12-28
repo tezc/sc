@@ -80,7 +80,7 @@ int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
                     uint64_t u64 = get_uint(va, pos - orig);
 
                     do {
-                        digits[31 - (len++)] = '0' + (u64 % 10);
+                        digits[31 - (len++)] = (char)('0' + (u64 % 10));
                     } while (u64 /= 10UL);
 
                 } else if (*pos == 'd') {
@@ -88,7 +88,7 @@ int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
                     uint64_t u64 = i64 < 0 ? -i64 : i64;
 
                     do {
-                        digits[31 - (len++)] = '0' + (u64 % 10);
+                        digits[31 - (len++)] = (char)('0' + (char)(u64 % 10));
                     } while (u64 /= 10UL);
 
                     if (i64 < 0) {
@@ -155,25 +155,15 @@ int sc_signal_snprintf(char *buf, size_t size, const char *fmt, ...)
 
 #if defined(_WIN32)
 
-    #define WIN32_LEAN_AND_MEAN
-    #include <Ws2tcpip.h>
-    #include <io.h>
-    #include <signal.h>
-    #include <windows.h>
+#define WIN32_LEAN_AND_MEAN
 
-    #pragma warning(disable : 4996)
+#include <Ws2tcpip.h>
+#include <io.h>
+#include <signal.h>
+#include <windows.h>
 
-static void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
-{
-    int written;
-    va_list args;
-
-    va_start(args, fmt);
-    written = sc_signal_vsnprintf(buf, len, fmt, args);
-    va_end(args);
-
-    write(fd, buf, written);
-}
+#pragma warning(disable : 4996)
+#pragma comment(lib, "Ws2_32.lib")
 
 BOOL WINAPI sc_console_handler(DWORD type)
 {
@@ -298,28 +288,28 @@ static void *sc_instruction(ucontext_t *uc)
 {
     void* insp = NULL;
 
-    #if defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)
-        #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
+#if defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)
+    #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
             insp = (void *) uc->uc_mcontext->__ss.__rip;
         #elif defined(__i386__)
             insp = (void *) uc->uc_mcontext->__ss.__eip;
         #else
             insp = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
         #endif
-    #elif defined(__linux__)
-        #if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
-            insp = (void *) uc->uc_mcontext.gregs[REG_EIP];
-        #elif defined(__x86_64__)
-            insp = (void *) uc->uc_mcontext.gregs[REG_RIP];
-        #elif defined(__ia64__)
-            insp = (void *) uc->uc_mcontext.sc_ip;
+#elif defined(__linux__)
+#if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
+    insp = (void *) uc->uc_mcontext.gregs[REG_EIP];
+#elif defined(__x86_64__)
+    insp = (void *) uc->uc_mcontext.gregs[REG_RIP];
+#elif defined(__ia64__)
+    insp = (void *) uc->uc_mcontext.sc_ip;
         #elif defined(__arm__)
             insp = (void *) uc->uc_mcontext.arm_pc;
         #elif defined(__aarch64__)
             insp = (void *) uc->uc_mcontext.pc;
-        #endif
-    #elif defined(__FreeBSD__)
-        #if defined(__i386__)
+#endif
+#elif defined(__FreeBSD__)
+    #if defined(__i386__)
             insp = (void *) uc->uc_mcontext.mc_eip;
         #elif defined(__x86_64__)
             insp = (void *) uc->uc_mcontext.mc_rip;
@@ -338,7 +328,7 @@ static void *sc_instruction(ucontext_t *uc)
         #endif
     #elif defined(__DragonFly__)
             insp = (void *) uc->uc_mcontext.mc_rip;
-    #endif
+#endif
 
     return insp;
 }
@@ -346,18 +336,6 @@ static void *sc_instruction(ucontext_t *uc)
 #endif
 
 // clang-format on
-
-static void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
-{
-    int written;
-    va_list args;
-
-    va_start(args, fmt);
-    written = sc_signal_vsnprintf(buf, len, fmt, args);
-    va_end(args);
-
-    write(fd, buf, written);
-}
 
 static void sc_signal_on_shutdown(int sig)
 {
@@ -491,5 +469,17 @@ int sc_signal_init()
     return rc ? 0 : -1;
 }
 
-
 #endif
+
+void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
+{
+    int written;
+    va_list args;
+
+    va_start(args, fmt);
+    written = sc_signal_vsnprintf(buf, len, fmt, args);
+    va_end(args);
+
+    (void) write(fd, buf, written);
+}
+
