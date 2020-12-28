@@ -3,7 +3,6 @@
 #include <assert.h>
 #include <stddef.h>
 #include <string.h>
-#include <unistd.h>
 
 void test1()
 {
@@ -40,7 +39,7 @@ void test1()
     assert(sc_signal_snprintf(tmp, sizeof(tmp), "%llx", 3) == -1);
     assert(sc_signal_snprintf(tmp, sizeof(tmp), "%lx", 3) == -1);
 
-    sc_signal_log(STDOUT_FILENO, tmp, sizeof(tmp), "%s", "test");
+    sc_signal_log(1, tmp, sizeof(tmp), "%s", "test");
 }
 
 void test2()

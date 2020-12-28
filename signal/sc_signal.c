@@ -156,12 +156,14 @@ int sc_signal_snprintf(char *buf, size_t size, const char *fmt, ...)
 #if defined(_WIN32)
 
 #define WIN32_LEAN_AND_MEAN
-    #include <Ws2tcpip.h>
-    #include <io.h>
-    #include <signal.h>
-    #include <windows.h>
 
-    #pragma warning(disable : 4996)
+#include <Ws2tcpip.h>
+#include <io.h>
+#include <signal.h>
+#include <windows.h>
+
+#pragma warning(disable : 4996)
+#pragma comment(lib, "Ws2_32.lib")
 
 static void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
 {

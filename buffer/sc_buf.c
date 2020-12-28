@@ -297,12 +297,12 @@ uint32_t sc_buf_set_data(struct sc_buf *buf, uint32_t offset, const void *src,
 }
 void sc_buf_set_32(struct sc_buf *buf, uint32_t val)
 {
-    sc_buf_set_data(buf, buf->wpos, &val, 4);
+    sc_buf_set_32_at(buf, buf->wpos, val);
 }
 
 void sc_buf_set_64(struct sc_buf *buf, uint64_t val)
 {
-    sc_buf_set_data(buf, buf->wpos, &val, 8);
+    sc_buf_set_64_at(buf, buf->wpos, val);
 }
 
 void sc_buf_set_8_at(struct sc_buf *buf, uint32_t pos, uint8_t val)
