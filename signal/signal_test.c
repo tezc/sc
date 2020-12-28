@@ -25,14 +25,14 @@ void test1()
     assert(strcmp(tmp, "-3") == 0);
     sc_signal_snprintf(tmp, sizeof(tmp), "%u", 3);
     assert(strcmp(tmp, "3") == 0);
-    sc_signal_snprintf(tmp, sizeof(tmp), "%ld", -100000000000000l);
-    assert(strcmp(tmp, "-100000000000000") == 0);
-    sc_signal_snprintf(tmp, sizeof(tmp), "%lld", -1000000000000000000ll);
-    assert(strcmp(tmp, "-1000000000000000000") == 0);
-    sc_signal_snprintf(tmp, sizeof(tmp), "%lu", 100000000000000l);
-    assert(strcmp(tmp, "100000000000000") == 0);
-    sc_signal_snprintf(tmp, sizeof(tmp), "%llu", 1000000000000000000ll);
-    assert(strcmp(tmp, "1000000000000000000") == 0);
+    sc_signal_snprintf(tmp, sizeof(tmp), "%ld", -1000000000l);
+    assert(strcmp(tmp, "-1000000000") == 0);
+    sc_signal_snprintf(tmp, sizeof(tmp), "%lld", -100000000000ll);
+    assert(strcmp(tmp, "-100000000000") == 0);
+    sc_signal_snprintf(tmp, sizeof(tmp), "%lu", 1000000000l);
+    assert(strcmp(tmp, "1000000000") == 0);
+    sc_signal_snprintf(tmp, sizeof(tmp), "%llu", 100000000000ll);
+    assert(strcmp(tmp, "100000000000") == 0);
 
     char* x = (char*)0xabcdef;
     sc_signal_snprintf(tmp, sizeof(tmp), "%p", x);
