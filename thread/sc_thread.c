@@ -32,7 +32,7 @@ void sc_thread_init(struct sc_thread *thread)
 }
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <process.h>
+#include <process.h>
 
 static void sc_thread_err(struct sc_thread *thread)
 {
@@ -159,4 +159,9 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 int sc_thread_term(struct sc_thread *thread)
 {
     return sc_thread_stop(thread, NULL);
+}
+
+const char* sc_thread_err(struct sc_thread * thread)
+{
+    return thread->err;
 }

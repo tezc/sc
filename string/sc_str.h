@@ -180,7 +180,7 @@ void sc_str_token_end(char *str, char **save);
  * @return     'false' on out of memory, previous value will remain intact.
  *             'true' on success, '*str' may change.
  */
-bool sc_str_trim(char **str, char *list);
+bool sc_str_trim(char **str, const char *list);
 
 /**
  * @param str   Length prefixed string, must not be NULL.
@@ -192,6 +192,14 @@ bool sc_str_trim(char **str, char *list);
  */
 bool sc_str_substring(char **str, uint32_t start, uint32_t end);
 
+/**
+ *
+ * @param str  Length prefixed string, must not be NULL.
+ * @param rep  String to be replaced
+ * @param with String to replace with
+ * @return     'false' on out of memory, previous value will remain intact.
+ *             'true' on success, '*str' may change.
+ */
 bool sc_str_replace(char **str, const char *rep, const char *with);
 
 

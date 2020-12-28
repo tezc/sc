@@ -226,10 +226,8 @@ bool sc_queue_expand(void **q, size_t elem_size);
  *  }
  */
 #define sc_queue_foreach(q, elem)                                              \
-    if (!sc_queue_empty(q)) {                                                  \
-        (elem) = (q)[sc_queue_first(q)];                                       \
-    }                                                                          \
-    for (size_t _i = sc_queue_first(q); _i != sc_queue_last(q);                \
-         _i = sc_queue_next(q, _i), (elem) = (q)[_i])
+    for (int _k = 1, _i = sc_queue_first(q); _k && _i != sc_queue_last(q);     \
+         _k = !_k, _i = sc_queue_next(q, _i))                                  \
+        for ((elem) = (q)[_i]; _k; _k = !_k)
 
 #endif

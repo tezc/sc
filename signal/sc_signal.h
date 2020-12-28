@@ -28,18 +28,68 @@
 #include <signal.h>
 #include <stdarg.h>
 
+/**
+ * Set shutdown fd here. When shutdown signal is received e.g SIGINT, SIGTERM.
+ * Signal handler will write 1 byte to shutdown fd. So, your app can detect
+ * shutdown command received and shutdown properly. Before app shutdowns, if
+ * another shutdown signal is received, _Exit() is called without waiting.
+ * e.g CTRL+C to shutdown, twice CTRL+C means 'I don't want to wait anything'.
+ */
 #if defined(_WIN32)
-    #include <WinSock2.h>
+#include <WinSock2.h>
 volatile SOCKET sc_signal_shutdown_fd;
 #else
 volatile sig_atomic_t sc_signal_shutdown_fd;
 #endif
 
+/**
+ * Set log file fd here, logging will be redirected to this fd, otherwise
+ * STDERR_FILENO or STDOUT_FILENO will be used.
+ */
 volatile sig_atomic_t sc_signal_log_fd;
+
+/**
+ * Internal variable to handle twice shutdown signal.
+ */
 volatile sig_atomic_t sc_signal_will_shutdown;
 
+/**
+ * Init signal handler, hooks for shutdown signals and some fatal signals.
+ * @return '0' on success, '-1' on failure
+ */
 int sc_signal_init();
+
+/**
+ * Signal safe logging
+ *
+ * @param fd   fd to write log
+ * @param buf  buf
+ * @param size size
+ * @param fmt  fmt
+ * @param ...  args
+ */
+void sc_signal_log(int fd, char *buf, size_t size, char *fmt, ...);
+
+/**
+ * Signal safe vsnprintf
+ *
+ * @param buf  buf
+ * @param size size
+ * @param fmt  fmt
+ * @param va   va_list
+ * @return     number of characters written on success, '-1' on failure.
+ */
 int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va);
+
+/**
+ * Signal safe snprintf
+ *
+ * @param buf  buf
+ * @param size size
+ * @param fmt  fmt
+ * @param ...  args
+ * @return     number of characters written on success, '-1' on failure.
+ */
 int sc_signal_snprintf(char *buf, size_t size, const char *fmt, ...);
 
 #endif

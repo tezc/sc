@@ -3,7 +3,7 @@
 ### Portable getopt alternative 
 
 - Very simple alternative to getopt.
-- Just copy <b>sc_opt.h</b> and <b>sc_opt.c</b> to your project.
+- Just copy <b>sc_option.h</b> and <b>sc_option.c</b> to your project.
 
 ```c
 

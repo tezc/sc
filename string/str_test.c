@@ -353,6 +353,19 @@ void test5()
     assert(sc_str_replace(&s1, "longeR", ""));
     assert(strcmp(s1, "") == 0);
     sc_str_destroy(s1);
+
+    s1 = sc_str_create("*test * test*");
+    sc_str_trim(&s1, "*");
+    assert(strcmp(s1, "test * test") == 0);
+    sc_str_set(&s1, "t");
+    sc_str_trim(&s1, "*");
+    assert(strcmp(s1, "t") == 0);
+    sc_str_trim(&s1, "t");
+    assert(strcmp(s1, "") == 0);
+    sc_str_set(&s1, "testtx");
+    sc_str_trim(&s1, "a");
+
+    sc_str_destroy(s1);
 }
 
 
