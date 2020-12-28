@@ -1,12 +1,7 @@
 #include "sc_signal.h"
 
 #include <assert.h>
-#include <errno.h>
-#include <limits.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
-#include <stdio.h>
 #include <string.h>
 #include <unistd.h>
 
@@ -53,11 +48,8 @@ void test2()
     assert(sc_signal_init() == 0);
 }
 
-
 int main()
 {
-
-
     test1();
     test2();
 
