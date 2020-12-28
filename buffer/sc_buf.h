@@ -24,6 +24,7 @@
 #ifndef SC_BUF_H
 #define SC_BUF_H
 
+#include <assert.h>
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -494,11 +495,15 @@ static inline uint32_t sc_buf_double_len(double val){return 8;}
 
 static inline uint32_t sc_buf_blob_len(void *ptr, uint32_t len)
 {
+    assert(len <= INT32_MAX - 4);
+
     return len + sc_buf_32_len(len);
 }
 
 static inline uint32_t sc_buf_str_len(const char *str)
 {
+    assert(strlen(str) <= INT32_MAX - 5);
+
     return str == NULL ? sc_buf_32_len(-1) :
            sc_buf_32_len(-1) + strlen(str) + sc_buf_8_len('\0');
 }

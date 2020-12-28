@@ -262,7 +262,7 @@ uint32_t sc_buf_peek_32_at(struct sc_buf *buf, uint32_t pos)
 
     sc_buf_peek_data(buf, pos, &val, 4);
 
-    return val;
+    return sc_swap32(val);
 }
 
 uint32_t sc_buf_peek_32(struct sc_buf *buf)
@@ -276,7 +276,7 @@ uint64_t sc_buf_peek_64_at(struct sc_buf *buf, uint32_t pos)
 
     sc_buf_peek_data(buf, pos, &val, 8);
 
-    return val;
+    return sc_swap64(val);
 }
 
 uint64_t sc_buf_peek_64(struct sc_buf *buf)
@@ -312,12 +312,14 @@ void sc_buf_set_8_at(struct sc_buf *buf, uint32_t pos, uint8_t val)
 
 void sc_buf_set_32_at(struct sc_buf *buf, uint32_t pos, uint32_t val)
 {
-    sc_buf_set_data(buf, pos, &val, 4);
+    uint32_t sw = sc_swap32(val);
+    sc_buf_set_data(buf, pos, &sw, 4);
 }
 
 void sc_buf_set_64_at(struct sc_buf *buf, uint32_t pos, uint64_t val)
 {
-    sc_buf_set_data(buf, pos, &val, 8);
+    uint64_t sw = sc_swap64(val);
+    sc_buf_set_data(buf, pos, &sw, 8);
 }
 
 void sc_buf_get_raw(struct sc_buf *buf, void *dest, uint32_t len)
@@ -548,11 +550,18 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
 
 void *sc_buf_get_blob(struct sc_buf *buf, uint32_t len)
 {
+    void *blob;
+
     if (len == 0) {
         return NULL;
     }
 
-    void *blob = buf->mem + buf->rpos;
+    if (buf->rpos + len > buf->wpos) {
+        buf->error |= SC_BUF_CORRUPT;
+        return NULL;
+    }
+
+    blob = buf->mem + buf->rpos;
     buf->rpos += len;
 
     return blob;

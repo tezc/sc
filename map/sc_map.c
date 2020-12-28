@@ -339,7 +339,7 @@ uint32_t murmurhash(const char *key)
     h *= m;
     h ^= h >> 47u;
 
-    return h;
+    return (uint32_t) h;
 }
 
 // clang-format off

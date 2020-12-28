@@ -62,7 +62,7 @@ int sc_cond_term(struct sc_cond *cond)
     return 0;
 }
 
-void sc_cond_finish(struct sc_cond *cond, void *var)
+void sc_cond_signal(struct sc_cond *cond, void *var)
 {
     EnterCriticalSection(&cond->mtx);
 
@@ -73,7 +73,7 @@ void sc_cond_finish(struct sc_cond *cond, void *var)
     LeaveCriticalSection(&cond->mtx);
 }
 
-void* sc_cond_sync(struct sc_cond *cond)
+void* sc_cond_wait(struct sc_cond *cond)
 {
     BOOL rc;
     void* data;

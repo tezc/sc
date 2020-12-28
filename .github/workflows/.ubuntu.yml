@@ -20,6 +20,7 @@ jobs:
         env:
           CC: ${{ matrix.compiler }}
         run: |
+          sudo apt update
           sudo apt-get install valgrind cmake
           mkdir build-debug && cd build-debug
           cmake .. -DSANITIZER=address

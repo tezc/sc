@@ -13,7 +13,7 @@
 
     #pragma warning(disable : 4996)
 
-static void sc_mmap_err(struct sc_mmap *m)
+static void sc_mmap_errstr(struct sc_mmap *m)
 {
     int rc;
     DWORD err = GetLastError();
@@ -89,7 +89,7 @@ cleanup_fd:
     _close(fd);
     SetLastError(saved_err);
 error:
-    sc_mmap_err(m);
+    sc_mmap_errstr(m);
 
     return -1;
 }
@@ -101,7 +101,7 @@ int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len)
 
     b = FlushViewOfFile(p, len);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
@@ -115,7 +115,7 @@ int sc_mmap_mlock(struct sc_mmap *m, size_t offset, size_t len)
 
     b = VirtualLock((LPVOID) p, len);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
@@ -129,7 +129,7 @@ int sc_mmap_munlock(struct sc_mmap *m, size_t offset, size_t len)
 
     b = VirtualUnlock((LPVOID) p, len);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
@@ -140,11 +140,11 @@ int sc_mmap_term(struct sc_mmap *m)
 {
     BOOL b;
 
-    _close(fd);
+    _close(m->fd);
 
     b = UnmapViewOfFile(m->ptr);
     if (b == 0) {
-        sc_mmap_err(m);
+        sc_mmap_errstr(m);
         return -1;
     }
 
