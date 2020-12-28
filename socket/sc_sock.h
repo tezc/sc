@@ -92,12 +92,17 @@ int sc_sock_connect(struct sc_sock* sock, const char* dest_addr,
                     const char* dest_port, const char* source_addr,
                     const char* source_port);
 
+int sc_sock_set_blocking(struct sc_sock *sock, bool blocking);
+int sc_sock_set_rcvtimeo(struct sc_sock* sock, int ms);
+int sc_sock_set_sndtimeo(struct sc_sock* sock, int ms);
 int sc_sock_finish_connect(struct sc_sock* sock);
 
-int sc_sock_send(struct sc_sock* sock, char* buf, int len);
-int sc_sock_recv(struct sc_sock* sock, char* buf, int len);
+int sc_sock_send(struct sc_sock* sock, char* buf, int len, int flags);
+int sc_sock_recv(struct sc_sock* sock, char* buf, int len, int flags);
 
 const char* sc_sock_error(struct sc_sock* sock);
+const char *sc_sock_local_str(struct sc_sock *sock, char *buf, int len);
+const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, int len);
 void sc_sock_print(struct sc_sock* sock, char* buf, int len);
 
 

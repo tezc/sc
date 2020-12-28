@@ -65,7 +65,7 @@ static void sc_sock_errstr(struct sc_sock *sock, int gai_err)
     }
 }
 
-static int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
+int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
 {
     int mode = blocking ? 0 : 1;
     int rc = ioctlsocket(sock->fdt.fd, FIONBIO, &mode);
@@ -102,7 +102,7 @@ static void sc_sock_errstr(struct sc_sock *sock, int gai_err)
     strncpy(sock->err, str, sizeof(sock->err) - 1);
 }
 
-static int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
+int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
 {
     int flags = fcntl(sock->fdt.fd, F_GETFL, 0);
     if (flags == -1) {
@@ -150,6 +150,40 @@ int sc_sock_term(struct sc_sock *sock)
     }
 
     return rc;
+}
+
+int sc_sock_set_rcvtimeo(struct sc_sock *sock, int ms)
+{
+    int rc;
+
+    struct timeval tv = {
+            .tv_usec = ms % 1000,
+            .tv_sec = ms / 1000,
+    };
+
+    rc = setsockopt(sock->fdt.fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    if (rc != 0) {
+        sc_sock_errstr(sock, 0);
+    }
+
+    return rc == 0 ? SC_SOCK_OK : SC_SOCK_ERROR;
+}
+
+int sc_sock_set_sndtimeo(struct sc_sock *sock, int ms)
+{
+    int rc;
+
+    struct timeval tv = {
+            .tv_usec = ms % 1000,
+            .tv_sec = ms / 1000,
+    };
+
+    rc = setsockopt(sock->fdt.fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+    if (rc != 0) {
+        sc_sock_errstr(sock, 0);
+    }
+
+    return rc == 0 ? SC_SOCK_OK : SC_SOCK_ERROR;
 }
 
 static int sc_sock_bind_unix(struct sc_sock *sock, const char *host)
@@ -282,11 +316,10 @@ int sc_sock_finish_connect(struct sc_sock *sock)
     rc = getsockopt(sock->fdt.fd, SOL_SOCKET, SO_ERROR, (void *) &result, &len);
     if (rc != 0 || result != 0) {
         sc_sock_errstr(sock, 0);
-        sc_sock_close(sock);
-        rc = -1;
+        return SC_SOCK_ERROR;
     }
 
-    return rc;
+    return SC_SOCK_OK;
 }
 
 static int sc_sock_connect_unix(struct sc_sock *sock, const char *addr)
@@ -320,7 +353,7 @@ int sc_sock_connect(struct sc_sock *sock, const char *dest_addr,
     const int bf = SC_SOCK_BUF_SIZE;
     const int sz = sizeof(bf);
 
-    int rc = 0, rv = 0;
+    int rc = 0, rv = SC_SOCK_OK;
     struct addrinfo inf = {.ai_family = AF_UNSPEC, .ai_socktype = SOCK_STREAM};
     struct addrinfo *servinfo = NULL, *bindinfo = NULL, *p, *s;
 
@@ -421,7 +454,7 @@ error_unix:
         if (rc != 0) {
             if (!sock->blocking && (sc_sock_err() == SC_EINPROGRESS ||
                                     sc_sock_err() == SC_EAGAIN)) {
-                rv = 0;
+                rv = SC_SOCK_WANT_WRITE;
                 goto end;
             }
 
@@ -447,7 +480,7 @@ end:
     return rv;
 }
 
-int sc_sock_send(struct sc_sock *sock, char *buf, int len)
+int sc_sock_send(struct sc_sock *sock, char *buf, int len, int flags)
 {
     int n;
 
@@ -458,24 +491,25 @@ int sc_sock_send(struct sc_sock *sock, char *buf, int len)
     }
 
 retry:
-    n = send(sock->fdt.fd, buf, len, 0);
+    n = send(sock->fdt.fd, buf, len, flags);
     if (n == SC_ERR) {
         int err = sc_sock_err();
         if (err == SC_EINTR) {
             goto retry;
         }
 
-        if (!sock->blocking && err == SC_EAGAIN) {
+        if (err == SC_EAGAIN) {
             return SC_SOCK_WANT_WRITE;
         }
 
         sc_sock_errstr(sock, 0);
+        n = SC_SOCK_ERROR;
     }
 
     return n;
 }
 
-int sc_sock_recv(struct sc_sock *sock, char *buf, int len)
+int sc_sock_recv(struct sc_sock *sock, char *buf, int len, int flags)
 {
     int n;
 
@@ -486,20 +520,21 @@ int sc_sock_recv(struct sc_sock *sock, char *buf, int len)
     }
 
 retry:
-    n = recv(sock->fdt.fd, buf, len, 0);
+    n = recv(sock->fdt.fd, buf, len, flags);
     if (n == 0) {
-        return -1;
+        return SC_SOCK_ERROR;
     } else if (n == SC_ERR) {
         int err = sc_sock_err();
         if (err == SC_EINTR) {
             goto retry;
         }
 
-        if (!sock->blocking && err == SC_EAGAIN) {
-            return 0;
+        if (err == SC_EAGAIN) {
+            return SC_SOCK_WANT_READ;
         }
 
         sc_sock_errstr(sock, 0);
+        n = SC_SOCK_ERROR;
     }
 
     return n;
@@ -516,7 +551,7 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
     fd = accept(sock->fdt.fd, NULL, NULL);
     if (fd == SC_INVALID) {
         sc_sock_errstr(sock, 0);
-        return -1;
+        return SC_SOCK_ERROR;
     }
 
     in->fdt.fd = fd;
@@ -545,7 +580,7 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
         goto error;
     }
 
-    return 0;
+    return SC_SOCK_OK;
 
 error:
     sc_sock_errstr(sock, 0);
@@ -629,7 +664,7 @@ static const char *sc_sock_print_storage(struct sc_sock *sock,
     return buf;
 }
 
-static const char *sc_sock_local_str(struct sc_sock *sock, char *buf, int len)
+const char *sc_sock_local_str(struct sc_sock *sock, char *buf, int len)
 {
     int rc;
     struct sockaddr_storage st;
@@ -645,7 +680,7 @@ static const char *sc_sock_local_str(struct sc_sock *sock, char *buf, int len)
     return sc_sock_print_storage(sock, &st, buf, len);
 }
 
-static const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, int len)
+const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, int len)
 {
     int rc;
     struct sockaddr_storage st;
@@ -861,12 +896,6 @@ retry:
         goto retry;
     }
 
-    if (n > 0 && n != len) {
-        len -= n;
-        b += n;
-        goto retry;
-    }
-
     return n;
 }
 
@@ -944,7 +973,7 @@ int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
 {
     int rc;
     int op = EPOLL_CTL_MOD;
-    int mask = fdt->op | events;
+    enum sc_sock_ev mask = fdt->op | events;
 
     struct epoll_event ep_ev = {.data.ptr = data,
                                 .events = EPOLLERR | EPOLLHUP | EPOLLRDHUP};
@@ -1050,10 +1079,6 @@ int sc_sock_poll_wait(struct sc_sock_poll *poll, int timeout)
     do {
         n = epoll_wait(poll->fds, &poll->events[0], poll->cap, timeout);
     } while (n < 0 && errno == EINTR);
-
-    if (n > 2) {
-        printf("epollwait : %d\n", n);
-    }
 
     if (n == -1) {
         sc_sock_on_error("epoll_wait : %s ", strerror(errno));

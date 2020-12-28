@@ -160,7 +160,7 @@ void* server_ip4(void* arg)
     assert(strcmp(tmp, "Local(127.0.0.1:8004), Remote() ") == 0);
 
     assert(sc_sock_accept(&sock, &accepted) == 0);
-    assert(sc_sock_recv(&accepted, buf, 5) == 5);
+    assert(sc_sock_recv(&accepted, buf, 5, 0) == 5);
     assert(strcmp("test", buf) == 0);
 
     assert(sc_sock_term(&sock) == 0);
@@ -188,7 +188,7 @@ void* client_ip4(void* arg)
 
     assert(rc == 0);
     sc_sock_print(&sock, tmp, sizeof(tmp));
-    assert(sc_sock_send(&sock, "test", 5) == 5);
+    assert(sc_sock_send(&sock, "test", 5, 0) == 5);
     assert(sc_sock_term(&sock) == 0);
 
     return NULL;
@@ -220,7 +220,7 @@ void* server_ip6(void* arg)
     sc_sock_print(&sock, tmp, sizeof(tmp));
     assert(strcmp(tmp, "Local(::1:8006), Remote() ") == 0);
     assert(sc_sock_accept(&sock, &accepted) == 0);
-    assert(sc_sock_recv(&accepted, buf, 5) == 5);
+    assert(sc_sock_recv(&accepted, buf, 5, 0) == 5);
     assert(strcmp("test", buf) == 0);
 
     assert(sc_sock_term(&sock) == 0);
@@ -245,7 +245,7 @@ void* client_ip6(void* arg)
         sleep(1);
     }
     assert(rc == 0);
-    assert(sc_sock_send(&sock, "test", 5) == 5);
+    assert(sc_sock_send(&sock, "test", 5, 0) == 5);
 
     assert(sc_sock_term(&sock) == 0);
 
@@ -283,7 +283,7 @@ void* server_unix(void* arg)
     }
 
     assert(rc == 0);
-    assert(sc_sock_recv(&accepted, buf, 5) == 5);
+    assert(sc_sock_recv(&accepted, buf, 5, 0) == 5);
     assert(strcmp("test", buf) == 0);
 
     assert(sc_sock_term(&sock) == 0);
@@ -312,7 +312,7 @@ void* client_unix(void* arg)
     }
 
     assert(rc == 0);
-    assert(sc_sock_send(&sock, "test", 5) == 5);
+    assert(sc_sock_send(&sock, "test", 5, 0) == 5);
     assert(sc_sock_term(&sock) == 0);
 
     return NULL;
@@ -346,8 +346,8 @@ void test1()
     assert(sc_sock_connect(&sock, "3127.0.0.1", "2131", "127.90.1.1", "50") !=
            0);
     assert(sc_sock_finish_connect(&sock) != 0);
-    assert(sc_sock_send(&sock, "test", 5) == -1);
-    assert(sc_sock_recv(&sock, tmp, sizeof(tmp)) == -1);
+    assert(sc_sock_send(&sock, "test", 5, 0) == -1);
+    assert(sc_sock_recv(&sock, tmp, sizeof(tmp), 0) == -1);
     assert(sc_sock_connect(&sock, "131s::1", "2131", "::1", "50") != 0);
     assert(sc_sock_finish_connect(&sock) != 0);
     assert(sc_sock_connect(&sock, "d::1", "2131", "dsad", "50") != 0);
@@ -467,7 +467,7 @@ void* server(void* arg)
             else {
                 if (ev & SC_SOCK_READ) {
                     char buf[8];
-                    rc = sc_sock_recv(&accepted, buf, sizeof(buf));
+                    rc = sc_sock_recv(&accepted, buf, sizeof(buf), 0);
                     if (rc == 8) {
                         assert(strcmp(buf, "dataxxx") == 0);
                         received++;
@@ -526,7 +526,7 @@ void* client(void* arg)
         }
 
         for (int j = 0; j < 10000; j++) {
-            rc = sc_sock_send(&sock, "dataxxx", 8);
+            rc = sc_sock_send(&sock, "dataxxx", 8, 0);
             assert(rc == 8);
         }
 

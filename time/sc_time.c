@@ -24,13 +24,13 @@
 #include "sc_time.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <assert.h>
+#include <assert.h>
     #include <windows.h>
 #else
-    #include <assert.h>
-    #include <errno.h>
-    #include <sys/time.h>
-    #include <time.h>
+#include <assert.h>
+#include <errno.h>
+#include <sys/time.h>
+#include <time.h>
 #endif
 
 uint64_t sc_time_ms()
@@ -48,7 +48,7 @@ uint64_t sc_time_ms()
     int rc;
     struct timespec ts;
 
-    rc = clock_gettime(CLOCK_REALTIME, &ts);
+    rc = clock_gettime(CLOCK_REALTIME_COARSE, &ts);
     assert(rc == 0);
 
     return ts.tv_sec * 1000 + (uint64_t)(ts.tv_nsec / 10e6);
