@@ -48,7 +48,7 @@ uint64_t sc_time_ms()
     int rc;
     struct timespec ts;
 
-    rc = clock_gettime(CLOCK_REALTIME_COARSE, &ts);
+    rc = clock_gettime(CLOCK_REALTIME, &ts);
     assert(rc == 0);
 
     return ts.tv_sec * 1000 + (uint64_t)(ts.tv_nsec / 10e6);
