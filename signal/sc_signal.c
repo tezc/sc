@@ -337,18 +337,6 @@ static void *sc_instruction(ucontext_t *uc)
 
 // clang-format on
 
-void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
-{
-    int written;
-    va_list args;
-
-    va_start(args, fmt);
-    written = sc_signal_vsnprintf(buf, len, fmt, args);
-    va_end(args);
-
-    (void) write(fd, buf, written);
-}
-
 static void sc_signal_on_shutdown(int sig)
 {
     int rc;
@@ -481,5 +469,17 @@ int sc_signal_init()
     return rc ? 0 : -1;
 }
 
-
 #endif
+
+void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
+{
+    int written;
+    va_list args;
+
+    va_start(args, fmt);
+    written = sc_signal_vsnprintf(buf, len, fmt, args);
+    va_end(args);
+
+    (void) write(fd, buf, written);
+}
+
