@@ -165,18 +165,6 @@ int sc_signal_snprintf(char *buf, size_t size, const char *fmt, ...)
 #pragma warning(disable : 4996)
 #pragma comment(lib, "Ws2_32.lib")
 
-static void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
-{
-    int written;
-    va_list args;
-
-    va_start(args, fmt);
-    written = sc_signal_vsnprintf(buf, len, fmt, args);
-    va_end(args);
-
-    write(fd, buf, written);
-}
-
 BOOL WINAPI sc_console_handler(DWORD type)
 {
     int rc;
