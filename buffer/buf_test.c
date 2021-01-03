@@ -221,6 +221,9 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 
 void fail_test()
 {
+    int tmp;
+    uint32_t len;
+    unsigned char* p;
     struct sc_buf buf;
 
     fail_malloc = true;
@@ -279,6 +282,98 @@ void fail_test()
     sc_buf_put_text(&buf, "test");
     assert(sc_buf_valid(&buf) == false);
     sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 0);
+    sc_buf_peek_8(&buf);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_peek_16(&buf);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_peek_32(&buf);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_peek_64(&buf);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_set_8(&buf, 10);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_set_16(&buf, 10);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_set_32(&buf, 10);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_set_64(&buf, 10);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+
+    sc_buf_get_data(&buf, &tmp, sizeof(tmp));
+    assert(sc_buf_valid(&buf) == false);
+
+    fail_realloc = false;
+    sc_buf_clear(&buf);
+    sc_buf_put_32(&buf, 10);
+    sc_buf_get_data(&buf, &tmp, sizeof(tmp));
+    assert(sc_buf_valid(&buf) == true);
+
+    sc_buf_term(&buf);
+    sc_buf_init(&buf, 0);
+    fail_realloc = true;
+    sc_buf_put_64(&buf, 0);
+    assert(sc_buf_valid(&buf) == false);
+    fail_realloc = false;
+    sc_buf_clear(&buf);
+
+    sc_buf_put_str_len(&buf, "tesstt", 6);
+    assert(strcmp(sc_buf_get_str(&buf), "tesstt") == 0);
+    sc_buf_term(&buf);
+    sc_buf_init(&buf, 0);
+    fail_realloc = true;
+    sc_buf_put_str_len(&buf, "tesstt", 6);
+    assert(sc_buf_valid(&buf) == false);
+    fail_realloc = false;
+
+    sc_buf_term(&buf);
+    sc_buf_init(&buf, 0);
+    sc_buf_put_str_len(&buf, NULL, 100);
+    assert(sc_buf_get_str(&buf) == NULL);
+    assert(sc_buf_valid(&buf) == true);
+
+    sc_buf_term(&buf);
+    sc_buf_init(&buf, 0);
+    fail_realloc = true;
+    sc_buf_put_16(&buf, 10);
+    assert(sc_buf_valid(&buf) == false);
+
+    sc_buf_term(&buf);
+    sc_buf_init(&buf, 0);
+    sc_buf_get_blob(&buf, 100);
+    assert(sc_buf_valid(&buf) == false);
+
+    sc_buf_term(&buf);
+    sc_buf_init(&buf, 0);
+    sc_buf_peek_data(&buf, 100, (unsigned char*) &p, 8);
+    assert(sc_buf_valid(&buf) == false);
+
+    sc_buf_term(&buf);
+
+    fail_realloc = false;
+    sc_buf_init(&buf, 0);
+    sc_buf_reserve(&buf, 100);
+    assert(sc_buf_quota(&buf) > 100);
+    sc_buf_term(&buf);
+
+    buf = sc_buf_wrap(&p, 8, true);
+    assert(sc_buf_reserve(&buf, 100) == false);
 
     fail_vsnprintf_at = -1;
     fail_realloc = false;
