@@ -44,19 +44,19 @@ bool sc_buf_init(struct sc_buf *buf, uint32_t cap)
         }
     }
 
-    *buf = sc_buf_wrap(mem, cap, false);
+    *buf = sc_buf_wrap(mem, cap, 0);
 
     return true;
 }
 
-struct sc_buf sc_buf_wrap(void *data, uint32_t len, bool ref)
+struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags)
 {
     struct sc_buf buf = {.mem = data,
             .cap = len,
-            .limit = ref ? len : UINT32_MAX,
-            .wpos = 0,
+            .limit = flags & SC_BUF_REF ? len : UINT32_MAX,
+            .wpos = flags & SC_BUF_DATA ? len : 0,
             .rpos = 0,
-            .ref = ref,
+            .ref = flags & SC_BUF_REF,
             .error = 0};
 
     return buf;
@@ -752,5 +752,3 @@ void sc_buf_put_blob(struct sc_buf *buf, const void *ptr, uint32_t len)
     sc_buf_put_32(buf, len);
     sc_buf_put_raw(buf, ptr, len);
 }
-
-
