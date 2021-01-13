@@ -991,11 +991,11 @@ int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
         op = EPOLL_CTL_ADD;
     }
 
-    if (events & SC_SOCK_READ) {
+    if (mask & SC_SOCK_READ) {
         ep_ev.events |= EPOLLIN;
     }
 
-    if (events & SC_SOCK_WRITE) {
+    if (mask & SC_SOCK_WRITE) {
         ep_ev.events |= EPOLLOUT;
     }
 
@@ -1171,11 +1171,11 @@ int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
         }
     }
 
-    if (events & SC_SOCK_WRITE) {
+    if (mask & SC_SOCK_WRITE) {
         EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
     }
 
-    if (events & SC_SOCK_READ) {
+    if (mask & SC_SOCK_READ) {
         EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
     }
 
