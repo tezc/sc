@@ -31,7 +31,8 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
         target_link_options(${PROJECT_NAME}_test PRIVATE
                 -Wl,--wrap=fprintf,--wrap=vfprintf,--wrap=fopen,--wrap=localtime
-                -Wl,--wrap=pthread_mutexattr_init,--wrap=pthread_mutex_init)
+                -Wl,--wrap=pthread_mutexattr_init,--wrap=pthread_mutex_init
+                -Wl,--wrap=fclose)
     endif ()
 endif ()
 

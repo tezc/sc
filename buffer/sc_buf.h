@@ -34,6 +34,10 @@
 #define SC_BUF_CORRUPT 1u
 #define SC_BUF_OOM     3u
 
+#define SC_BUF_REF 8
+#define SC_BUF_DATA 16
+#define SC_BUF_READ (SC_BUF_REF | SC_BUF_DATA)
+
 struct sc_buf
 {
     unsigned char *mem;
@@ -71,11 +75,13 @@ void sc_buf_term(struct sc_buf *buf);
  *
  * @param data data pointer
  * @param len  len
- * @param ref  if set 'true', buffer will not try to expand itself and
+ * @param flags if set 'SC_BUF_REF', buffer will not try to expand itself and
  *             'sc_buf_term' will not try to 'free()' buffer.
+ *             if set 'SC_BUF_DATA', buffer wpos will be 'len'.
+ *             flags can be combined : SC_BUF_REF | SC_BUF_REF
  * @return
  */
-struct sc_buf sc_buf_wrap(void *data, uint32_t len, bool ref);
+struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags);
 
 /**
  * Set limit of the buffer, when buffer reaches limit, it will set buffer's

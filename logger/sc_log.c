@@ -108,12 +108,9 @@ int sc_log_mutex_init(struct sc_log_mutex *mtx)
     return rc == 0 ? 0 : -1;
 }
 
-int sc_log_mutex_term(struct sc_log_mutex *mtx)
+void sc_log_mutex_term(struct sc_log_mutex *mtx)
 {
-    int rc;
-
-    rc = pthread_mutex_destroy(&mtx->mtx);
-    return rc == 0 ? 0 : -1;
+    pthread_mutex_destroy(&mtx->mtx);
 }
 
 void sc_log_mutex_lock(struct sc_log_mutex *mtx)
@@ -165,21 +162,17 @@ int sc_log_init(void)
 
 int sc_log_term(void)
 {
-    int rc = 0, rv;
+    int rc = 0;
 
     if (sc_log.fp) {
-        rv = fclose(sc_log.fp);
-        if (rv != 0) {
+        rc = fclose(sc_log.fp);
+        if (rc != 0) {
             rc = -1;
             strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
         }
     }
 
-    rv = sc_log_mutex_term(&sc_log.mtx);
-    if (rv == -1) {
-        strncpy(sc_log.err, "Mutex term failed.", sizeof(sc_log.err) - 1);
-        rc = -1;
-    }
+    sc_log_mutex_term(&sc_log.mtx);
 
     return rc;
 }

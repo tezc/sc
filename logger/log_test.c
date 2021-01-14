@@ -142,6 +142,17 @@ FILE *__wrap_fopen(const char *filename, const char *mode)
     return NULL;
 }
 
+bool mock_fclose = false;
+extern int __real_fclose (FILE *__stream);
+int __wrap_fclose (FILE *__stream)
+{
+    if (!mock_fclose) {
+        return __real_fclose(__stream);
+    }
+
+    return 0;
+}
+
 bool mock_localtime = false;
 extern struct tm *__real_localtime(const time_t *timer);
 struct tm *__wrap_localtime(const time_t *timer)
@@ -261,6 +272,7 @@ void fail_test(void)
     mock_fopen = false;
 
     sc_log_term();
+    mock_fclose = false;
     mock_fprintf = false;
     mock_vfprintf = false;
     mock_localtime = false;

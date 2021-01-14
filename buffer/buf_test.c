@@ -126,7 +126,7 @@ void test1()
     sc_buf_term(&buf2);
 
     char text[128];
-    buf = sc_buf_wrap(text, sizeof(text), true);
+    buf = sc_buf_wrap(text, sizeof(text), SC_BUF_REF);
     sc_buf_put_text(&buf, "test %d test %s", 1, "test");
     assert(strcmp(sc_buf_rbuf(&buf), "test 1 test test") == 0);
 }
@@ -372,7 +372,7 @@ void fail_test()
     assert(sc_buf_quota(&buf) > 100);
     sc_buf_term(&buf);
 
-    buf = sc_buf_wrap(&p, 8, true);
+    buf = sc_buf_wrap(&p, 8, SC_BUF_REF);
     assert(sc_buf_reserve(&buf, 100) == false);
 
     fail_vsnprintf_at = -1;
