@@ -153,4 +153,6 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem)
 
     elem->prev->next = elem->next;
     elem->next->prev = elem->prev;
+    elem->next = elem;
+    elem->prev = elem;
 }
