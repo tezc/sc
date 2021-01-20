@@ -37,21 +37,21 @@
  */
 #if defined(_WIN32)
 #include <WinSock2.h>
-volatile SOCKET sc_signal_shutdown_fd;
+extern volatile SOCKET sc_signal_shutdown_fd;
 #else
-volatile sig_atomic_t sc_signal_shutdown_fd;
+extern volatile sig_atomic_t sc_signal_shutdown_fd;
 #endif
 
 /**
  * Set log file fd here, logging will be redirected to this fd, otherwise
  * STDERR_FILENO or STDOUT_FILENO will be used.
  */
-volatile sig_atomic_t sc_signal_log_fd;
+extern volatile sig_atomic_t sc_signal_log_fd;
 
 /**
  * Internal variable to handle twice shutdown signal.
  */
-volatile sig_atomic_t sc_signal_will_shutdown;
+extern volatile sig_atomic_t sc_signal_will_shutdown;
 
 /**
  * Init signal handler, hooks for shutdown signals and some fatal signals.
