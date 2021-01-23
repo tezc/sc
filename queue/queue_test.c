@@ -150,6 +150,7 @@ void test1(void)
     assert(sc_queue_empty(p) == true);
 
     sc_queue_destroy(p);
+    sc_queue_destroy(p);
 }
 
 int main(int argc, char *argv[])
