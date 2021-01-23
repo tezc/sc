@@ -30,6 +30,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef SC_HAVE_CONFIG_H
+#include "sc_config.h"
+#else
+#define sc_heap_malloc  malloc
+#define sc_heap_realloc realloc
+#define sc_heap_free    free
+#endif
+
 
 struct sc_heap_data
 {
@@ -43,13 +51,6 @@ struct sc_heap
     size_t size;
     struct sc_heap_data *elems;
 };
-
-/**
- *  Plug your memory allocator.
- */
-#define sc_heap_malloc  malloc
-#define sc_heap_realloc realloc
-#define sc_heap_free    free
 
 /**
  * @param heap Heap

@@ -1018,6 +1018,14 @@ int sc_sock_poll_del(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
     struct epoll_event ep_ev = {.data.ptr = data,
                                 .events = EPOLLERR | EPOLLHUP | EPOLLRDHUP};
 
+    if (fdt->op == SC_SOCK_NONE) {
+      return 0;
+    }
+
+    if ((fdt->op & events) == 0) {
+
+    }
+
     if (fdt->op == SC_SOCK_NONE || (fdt->op & events) == 0) {
         return 0;
     }

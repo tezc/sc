@@ -32,6 +32,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef SC_HAVE_CONFIG_H
+#include "sc_config.h"
+#else
+#define sc_array_realloc realloc
+#define sc_array_free    free
+#endif
+
 /**
  * Internals, do not use
  */
@@ -52,15 +59,6 @@ bool sc_array_expand(void **arr, size_t elem_size);
 /**
  * Internal End.
  */
-
-
-/**
- * Configure memory allocators here. You can plug your allocator if you want,
- * replace 'realloc' and 'free' with your allocator, make sure you include
- * new allocator header.
- */
-#define sc_array_realloc realloc
-#define sc_array_free    free
 
 /**
  *   @param arr Array pointer

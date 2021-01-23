@@ -27,14 +27,6 @@
 #include <stdint.h>
 
 /**
-* If you want to log or abort on errors, put your error function here.
- * It will be called with printf like error msg.
-*
-* my_on_error(const char* fmt, ...);
-*/
-#define sc_time_on_error(...)
-
-/**
  * This is not a monotonic timer.
  * @return Current timestamp in milliseconds.
  */

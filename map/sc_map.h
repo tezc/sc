@@ -31,6 +31,13 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef SC_HAVE_CONFIG_H
+#include "sc_config.h"
+#else
+#define sc_map_calloc calloc
+#define sc_map_free   free
+#endif
+
 #define sc_map_of_strkey(name, K, V)                                           \
     struct sc_map_item_##name                                                  \
     {                                                                          \
@@ -84,9 +91,6 @@
     for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
         for ((V) = (map)->mem[__i].value, __b = 1;                             \
              __b && (map)->mem[__i].key != 0; __b = 0)
-
-#define sc_map_calloc calloc
-#define sc_map_free   free
 
 // clang-format off
 
