@@ -30,6 +30,14 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#ifdef SC_HAVE_CONFIG_H
+#include "sc_config.h"
+#else
+#define sc_str_malloc  malloc
+#define sc_str_realloc realloc
+#define sc_str_free    free
+#endif
+
 /**
  * Length prefixed C strings, length is at the start of the allocated memory
  *  e.g :
@@ -42,12 +50,6 @@
  *  additional functionality when it's used with these functions here.
  */
 
-/**
- * Plug your allocators.
- */
-#define sc_str_malloc  malloc
-#define sc_str_realloc realloc
-#define sc_str_free    free
 
 /**
  * @param str '\0' terminated C string, must not be NULL.

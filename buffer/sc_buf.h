@@ -31,6 +31,15 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef SC_HAVE_CONFIG_H
+#include "sc_config.h"
+#else
+#define sc_buf_malloc  malloc
+#define sc_buf_realloc realloc
+#define sc_buf_free    free
+#endif
+
+
 #define SC_BUF_CORRUPT 1u
 #define SC_BUF_OOM     3u
 
@@ -49,10 +58,6 @@ struct sc_buf
     unsigned int error;
     bool ref;
 };
-
-#define sc_buf_malloc  malloc
-#define sc_buf_realloc realloc
-#define sc_buf_free    free
 
 /**
  * Create buffer

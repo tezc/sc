@@ -212,4 +212,3 @@ uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
 
     return min(TICK - time, TICK);
 }
-

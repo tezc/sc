@@ -24,6 +24,13 @@
 #ifndef SC_URL_H
 #define SC_URL_H
 
+#ifdef SC_HAVE_CONFIG_H
+#include "sc_config.h"
+#else
+#define sc_url_malloc malloc
+#define sc_url_free   free
+#endif
+
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -59,9 +66,6 @@ struct sc_url
 
     char buf[];
 };
-
-#define sc_url_malloc malloc
-#define sc_url_free   free
 
 struct sc_url *sc_url_create(const char *str);
 void sc_url_destroy(struct sc_url *url);

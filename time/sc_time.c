@@ -144,10 +144,6 @@ int sc_time_sleep(uint64_t milliseconds)
         rc = nanosleep(&t, &rem);
     } while (rc != 0 && errno != EINTR);
 
-    if (rc != 0) {
-        sc_time_on_error("nanosleep() : %s ", strerror(errno));
-    }
-
     return rc;
 #endif
 }

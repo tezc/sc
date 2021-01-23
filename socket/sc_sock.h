@@ -41,7 +41,7 @@ typedef SOCKET sc_sock_int;
 typedef int sc_sock_int;
 #endif
 
-#define SC_SOCK_BUF_SIZE 8192
+#define SC_SOCK_BUF_SIZE 32768
 
 
 enum sc_sock_rc

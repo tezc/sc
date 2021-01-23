@@ -51,14 +51,16 @@ struct sc_str
 
 #define sc_str_bytes(n) ((n) + sizeof(struct sc_str) + 1)
 #ifndef SC_SIZE_MAX
-    #define SC_SIZE_MAX (UINT32_MAX - sizeof(struct sc_str) - 1)
+#define SC_SIZE_MAX (UINT32_MAX - sizeof(struct sc_str) - 1)
 #endif
 
 char *sc_str_create(const char *str)
 {
+    size_t size;
+
     assert(str != NULL);
 
-    size_t size = strlen(str);
+    size = strlen(str);
     if (size > SC_SIZE_MAX) {
         return NULL;
     }
@@ -68,9 +70,9 @@ char *sc_str_create(const char *str)
 
 char *sc_str_create_len(const char *str, uint32_t len)
 {
-    assert(str != NULL);
-
     struct sc_str *copy;
+
+    assert(str != NULL);
 
     copy = sc_str_malloc(sc_str_bytes(len));
     if (copy == NULL) {

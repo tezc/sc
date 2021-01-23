@@ -32,6 +32,13 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef SC_HAVE_CONFIG_H
+#include "sc_config.h"
+#else
+#define sc_queue_realloc realloc
+#define sc_queue_free    free
+#endif
+
 /**
  * Internals, do not use
  */
@@ -83,12 +90,6 @@ static inline size_t sc_queue_dec_last(void *q)
 bool sc_queue_init(void **q, size_t elem_size, size_t cap);
 void sc_queue_term(void **q);
 bool sc_queue_expand(void **q, size_t elem_size);
-
-/**
- * Plug your allocator if you want.
- */
-#define sc_queue_realloc realloc
-#define sc_queue_free    free
 
 /**
  *   @param q     Queue pointer
