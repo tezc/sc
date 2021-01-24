@@ -204,6 +204,11 @@ void fail_test()
     sc_array_remove_unordered(arr, 0);
     assert(arr[0] == 4);
     assert(sc_array_size(arr) == 4);
+    sc_array_clear(arr);
+    assert(sc_array_size(arr) == 0);
+    sc_array_add(arr, 10);
+    assert(sc_array_size(arr) == 1);
+    assert(arr[0] == 10);
 
     sc_array_destroy(arr);
 }

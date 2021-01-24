@@ -154,14 +154,14 @@ bool sc_queue_expand(void **q, size_t elem_size);
 #define sc_queue_next(q, i) (((i) + 1) & (sc_queue_meta(q)->cap - 1))
 
 /**
- * Returns element at 'i'th position, so regular loops are possible :
+ * Returns element at index 'i', so regular loops are possible :
  *
  *      for (size_t i = 0; i < sc_queue_size(q); i++) {
  *           printf("%d" \n, sc_queue_at(q, i));
  *      }
  *
  *   @param q Queue pointer
- *   @return element at 'i'th position
+ *   @return element at index i
  */
 #define sc_queue_at(q, i)                                                      \
     (q)[((sc_queue_meta(q)->first) + (i)) & (sc_queue_cap(q) - 1)]

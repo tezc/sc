@@ -26,7 +26,6 @@
 
 #include <errno.h>
 #include <stdarg.h>
-#include <string.h>
 #include <time.h>
 
 #ifndef thread_local
@@ -210,17 +209,14 @@ int sc_log_set_stdout(bool enable)
 
 int sc_log_set_file(const char *prev_file, const char *current_file)
 {
-    int rc = 0, rv;
+    int rc = 0;
     long size;
     FILE *fp = NULL;
 
     sc_log_mutex_lock(&sc_log.mtx);
 
     if (sc_log.fp != NULL) {
-        rv = fclose(sc_log.fp);
-        if (rv != 0) {
-            strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
-        }
+        fclose(sc_log.fp);
         sc_log.fp = NULL;
     }
 
@@ -236,7 +232,7 @@ int sc_log_set_file(const char *prev_file, const char *current_file)
         goto error;
     }
 
-    sc_log.file_size = size;
+    sc_log.file_size = (size_t) size;
     sc_log.fp = fp;
 
     goto out;

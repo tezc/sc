@@ -79,7 +79,7 @@ static char *trim_bom(char *str)
 }
 
 int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
-                 char *(*next_line)(void *arg, char *buf, size_t size))
+                 char *(*next_line)(void *, char *, size_t))
 {
     int rc = 0, line = 0;
     char buf[SC_INI_MAX_LINE_LEN];
@@ -129,7 +129,7 @@ int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
 
 static char *file_next_line(void *p, char *buf, size_t size)
 {
-    return fgets(buf, size, (FILE *) p);
+    return fgets(buf, (int) size, (FILE *) p);
 }
 
 static char *string_next_line(void *p, char *buf, size_t size)

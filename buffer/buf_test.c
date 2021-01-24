@@ -129,6 +129,18 @@ void test1()
     buf = sc_buf_wrap(text, sizeof(text), SC_BUF_REF);
     sc_buf_put_text(&buf, "test %d test %s", 1, "test");
     assert(strcmp(sc_buf_rbuf(&buf), "test 1 test test") == 0);
+    sc_buf_term(&buf);
+
+    buf = sc_buf_wrap(text, sizeof(text), SC_BUF_REF);
+    sc_buf_put_str(&buf, "1test");
+    sc_buf_put_str(&buf, "2test");
+
+    buf2 = sc_buf_wrap(sc_buf_rbuf(&buf), sc_buf_size(&buf), SC_BUF_READ);
+    assert(sc_buf_size(&buf2) == sc_buf_size(&buf));
+    assert(strcmp(sc_buf_get_str(&buf2), "1test") == 0);
+    assert(strcmp(sc_buf_get_str(&buf2), "2test") == 0);
+    sc_buf_term(&buf);
+    sc_buf_term(&buf2);
 }
 
 void test2()
@@ -205,6 +217,17 @@ void *__wrap_realloc(void *p, size_t n)
     return __real_realloc(p, n);
 }
 
+bool mock_strlen = false;
+extern size_t __real_strlen(const char *s);
+size_t __wrap_strlen(const char *s)
+{
+    if (mock_strlen) {
+        return SIZE_MAX;
+    }
+
+    return __real_strlen(s);
+}
+
 bool fail_vsnprintf;
 int fail_vsnprintf_at = -1;
 extern int __real_vsnprintf(char *str, size_t size, const char *format,
@@ -262,6 +285,12 @@ void fail_test()
     assert(sc_buf_valid(&buf) == false);
     sc_buf_term(&buf);
 
+    sc_buf_init(&buf, 100);
+    mock_strlen = true;
+    sc_buf_put_str(&buf, "t");
+    mock_strlen = false;
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_term(&buf);
 
     sc_buf_init(&buf, 10);
     fail_vsnprintf = true;

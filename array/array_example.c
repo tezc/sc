@@ -5,6 +5,7 @@
 int main(int argc, char *argv[])
 {
     int *p;
+    int val;
 
     sc_array_create(p, 0);
 
@@ -22,6 +23,10 @@ int main(int argc, char *argv[])
     // Simple loop
     for (int i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);
+    }
+
+    sc_array_foreach(p, val) {
+        printf("Elem = %d \n", val);
     }
 
     sc_array_destroy(p);

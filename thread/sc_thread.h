@@ -55,14 +55,14 @@ struct sc_thread
 void sc_thread_init(struct sc_thread* thread);
 
 /**
- * @param thread thred
+ * @param thread thread
  * @return       '0' on success,
  *               '-1' on error, call 'sc_thread_err()' for error string.
  */
 int sc_thread_term(struct sc_thread* thread);
 
 /**
- * @param thread thred
+ * @param thread thread
  * @return       '0' on success,
  *               '-1' on error, call 'sc_thread_err()' for error string.
  */

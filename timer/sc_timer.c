@@ -119,7 +119,8 @@ static bool expand(struct sc_timer *timer)
 uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
                       void *data)
 {
-    const size_t pos = (timeout / TICK + timer->head) & (WHEEL_COUNT - 1);
+    const uint32_t offset = (uint32_t)(timeout / TICK + timer->head);
+    const uint32_t pos = offset & (WHEEL_COUNT - 1);
     uint64_t id;
     uint32_t seq, index, wheel_pos;
 
@@ -177,7 +178,7 @@ uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
     const uint64_t time = timestamp - timer->timestamp;
     uint32_t wheel, base;
     uint32_t head = timer->head;
-    uint32_t wheels = min(time / TICK, WHEEL_COUNT);
+    uint32_t wheels = (uint32_t) (min(time / TICK, WHEEL_COUNT));
 
     if (wheels == 0) {
         return min(TICK - time, TICK);

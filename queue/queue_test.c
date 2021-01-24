@@ -151,6 +151,16 @@ void test1(void)
 
     sc_queue_destroy(p);
     sc_queue_destroy(p);
+
+    assert(sc_queue_create(p, 0) == true);
+    sc_queue_add_first(p, 100);
+    sc_queue_add_first(p, 200);
+    sc_queue_add_first(p, 300);
+    sc_queue_add_first(p, 400);
+    sc_queue_add_first(p, 500);
+    assert(sc_queue_at(p, 0) == 500);
+    assert(sc_queue_at(p, 4) == 100);
+    sc_queue_destroy(p);
 }
 
 int main(int argc, char *argv[])

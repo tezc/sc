@@ -42,7 +42,7 @@ enum sc_log_level
 // clang-format off
 const static struct sc_log_level_pair
 {
-    const int id;
+    const enum sc_log_level id;
     const char *str;
 } sc_log_levels[] = {
         {SC_LOG_DEBUG, "DEBUG"},
@@ -135,7 +135,7 @@ int sc_log_set_callback(sc_log_callback cb, void *arg);
 int sc_log_log(enum sc_log_level level, const char *fmt, ...);
 
 /**
- * Max file size to rotate.
+ * Max file size to rotate, should not be more than 4 GB.
  */
 #define SC_LOG_FILE_SIZE (2 * 1024 * 1024)
 
@@ -144,13 +144,13 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...);
  * in the log line.
  */
 #ifdef SC_LOG_PRINT_FILE_NAME
+
 #define sc_log_ap(fmt, ...)                                                \
         "(%s:%d) " fmt, strrchr("/" __FILE__, '/') + 1, __LINE__,         \
                 __VA_ARGS__
 #else
 #define sc_log_ap(fmt, ...) fmt, __VA_ARGS__
 #endif
-
 
 /**
  * Printf-style format

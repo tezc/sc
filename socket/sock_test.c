@@ -3,7 +3,6 @@
 
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <synchapi.h>
@@ -371,7 +370,6 @@ void test_pipe(void)
 }
 
 #ifdef SC_HAVE_WRAP
-#include <unistd.h>
 
 bool fail_close = false;
 int __real_close(int fd);

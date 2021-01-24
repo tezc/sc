@@ -25,7 +25,6 @@
 #include "sc_rc4.h"
 
 #include <memory.h>
-#include <stdint.h>
 
 void sc_rc4_init(struct sc_rc4 *rc4, const unsigned char rand[256])
 {
