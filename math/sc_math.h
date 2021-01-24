@@ -28,8 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#define sc_math_max(a, b) ((a) > (b) ? (a) : (b))
-#define sc_math_min(a, b) ((a) > (b) ? (b) : (a))
+#define sc_math_max(a, b) (((a) > (b)) ? (a) : (b))
+#define sc_math_min(a, b) (((a) > (b)) ? (b) : (a))
 
 /**
  * @param num num

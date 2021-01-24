@@ -45,6 +45,8 @@
     #define SC_EINPROGRESS WSAEINPROGRESS
     #define SC_EINTR       WSAEINTR
 
+typedef int socklen_t;
+
 static int sc_sock_err()
 {
     return WSAGetLastError();
@@ -77,7 +79,6 @@ int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
 #else
     #include <arpa/inet.h>
     #include <netdb.h>
-    #include <netinet/in.h>
     #include <netinet/tcp.h>
     #include <sys/un.h>
     #include <unistd.h>
@@ -202,9 +203,9 @@ static int sc_sock_bind_unix(struct sc_sock *sock, const char *host)
 static int sc_sock_bind(struct sc_sock *sock, const char *host, const char *prt)
 {
     const int bf = SC_SOCK_BUF_SIZE;
-    const int sz = sizeof(bf);
+    const socklen_t sz = sizeof(bf);
 
-    int rc = 0, rv = 0;
+    int rc, rv = 0;
     struct addrinfo *servinfo = NULL;
     struct addrinfo hints = {.ai_family = sock->family,
                              .ai_socktype = SOCK_STREAM};
@@ -351,9 +352,9 @@ int sc_sock_connect(struct sc_sock *sock, const char *dest_addr,
                     const char *source_port)
 {
     const int bf = SC_SOCK_BUF_SIZE;
-    const int sz = sizeof(bf);
+    const socklen_t sz = sizeof(bf);
 
-    int rc = 0, rv = SC_SOCK_OK;
+    int rc, rv = SC_SOCK_OK;
     struct addrinfo inf = {.ai_family = AF_UNSPEC, .ai_socktype = SOCK_STREAM};
     struct addrinfo *servinfo = NULL, *bindinfo = NULL, *p, *s;
 
@@ -491,7 +492,7 @@ int sc_sock_send(struct sc_sock *sock, char *buf, int len, int flags)
     }
 
 retry:
-    n = send(sock->fdt.fd, buf, len, flags);
+    n = send(sock->fdt.fd, buf, (size_t) len, flags);
     if (n == SC_ERR) {
         int err = sc_sock_err();
         if (err == SC_EINTR) {
@@ -520,7 +521,7 @@ int sc_sock_recv(struct sc_sock *sock, char *buf, int len, int flags)
     }
 
 retry:
-    n = recv(sock->fdt.fd, buf, len, flags);
+    n = recv(sock->fdt.fd, buf, (size_t) len, flags);
     if (n == 0) {
         return SC_SOCK_ERROR;
     } else if (n == SC_ERR) {
@@ -543,7 +544,7 @@ retry:
 int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
 {
     const int bf = SC_SOCK_BUF_SIZE;
-    const int sz = sizeof(bf);
+    const socklen_t sz = sizeof(bf);
 
     int rc;
     sc_sock_int fd;
@@ -613,7 +614,7 @@ const char *sc_sock_error(struct sc_sock *sock)
 }
 
 static const char *sc_sock_addr(struct sc_sock *sock, int af, void *cp,
-                                char *buf, int len)
+                                char *buf, socklen_t len)
 {
     const char *dest;
 
@@ -628,7 +629,7 @@ static const char *sc_sock_addr(struct sc_sock *sock, int af, void *cp,
 
 static const char *sc_sock_print_storage(struct sc_sock *sock,
                                          struct sockaddr_storage *storage,
-                                         char *buf, int len)
+                                         char *buf, size_t len)
 {
     const char *dst;
     struct sockaddr_in *addr;
@@ -664,7 +665,7 @@ static const char *sc_sock_print_storage(struct sc_sock *sock,
     return buf;
 }
 
-const char *sc_sock_local_str(struct sc_sock *sock, char *buf, int len)
+const char *sc_sock_local_str(struct sc_sock *sock, char *buf, size_t len)
 {
     int rc;
     struct sockaddr_storage st;
@@ -680,7 +681,7 @@ const char *sc_sock_local_str(struct sc_sock *sock, char *buf, int len)
     return sc_sock_print_storage(sock, &st, buf, len);
 }
 
-const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, int len)
+const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, size_t len)
 {
     int rc;
     struct sockaddr_storage st;
@@ -696,7 +697,7 @@ const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, int len)
     return sc_sock_print_storage(sock, &st, buf, len);
 }
 
-void sc_sock_print(struct sc_sock *sock, char *buf, int len)
+void sc_sock_print(struct sc_sock *sock, char *buf, size_t len)
 {
     char l[128];
     char r[128];
@@ -840,7 +841,7 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
     }
 
     p->fdt.type = type;
-    p->fdt.op = 0;
+    p->fdt.op = SC_SOCK_NONE;
     p->fdt.fd = p->fds[0];
 
     return 0;
@@ -865,7 +866,7 @@ int sc_sock_pipe_term(struct sc_sock_pipe *p)
     return rc;
 }
 
-int sc_sock_pipe_write(struct sc_sock_pipe *p, void *data, int len)
+int sc_sock_pipe_write(struct sc_sock_pipe *p, void *data, unsigned int len)
 {
     ssize_t n;
     char *b = data;
@@ -885,7 +886,7 @@ retry:
     return n;
 }
 
-int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, int len)
+int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, unsigned int len)
 {
     ssize_t n;
     char *b = data;

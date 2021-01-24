@@ -109,24 +109,24 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 {
     int rc;
-    pthread_attr_t hndl;
+    pthread_attr_t attr;
 
-    rc = pthread_attr_init(&hndl);
+    rc = pthread_attr_init(&attr);
     if (rc != 0) {
         strncpy(thread->err, strerror(rc), sizeof(thread->err));
         return -1;
     }
 
     // This may only fail with EINVAL.
-    pthread_attr_setdetachstate(&hndl, PTHREAD_CREATE_JOINABLE);
+    pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE);
 
-    rc = pthread_create(&thread->id, &hndl, fn, arg);
+    rc = pthread_create(&thread->id, &attr, fn, arg);
     if (rc != 0) {
         strncpy(thread->err, strerror(rc), sizeof(thread->err));
     }
 
     // This may only fail with EINVAL.
-    pthread_attr_destroy(&hndl);
+    pthread_attr_destroy(&attr);
 
     return rc;
 }

@@ -26,7 +26,6 @@
 
 #include <errno.h>
 #include <stdarg.h>
-#include <string.h>
 #include <time.h>
 
 #ifndef thread_local
@@ -236,7 +235,7 @@ int sc_log_set_file(const char *prev_file, const char *current_file)
         goto error;
     }
 
-    sc_log.file_size = size;
+    sc_log.file_size = (size_t) size;
     sc_log.fp = fp;
 
     goto out;

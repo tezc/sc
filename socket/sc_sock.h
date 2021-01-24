@@ -101,9 +101,9 @@ int sc_sock_send(struct sc_sock* sock, char* buf, int len, int flags);
 int sc_sock_recv(struct sc_sock* sock, char* buf, int len, int flags);
 
 const char* sc_sock_error(struct sc_sock* sock);
-const char *sc_sock_local_str(struct sc_sock *sock, char *buf, int len);
-const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, int len);
-void sc_sock_print(struct sc_sock* sock, char* buf, int len);
+const char *sc_sock_local_str(struct sc_sock *sock, char *buf, size_t len);
+const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, size_t len);
+void sc_sock_print(struct sc_sock* sock, char* buf, size_t len);
 
 
 struct sc_sock_pipe
@@ -114,8 +114,8 @@ struct sc_sock_pipe
 
 int sc_sock_pipe_init(struct sc_sock_pipe* pipe, int type);
 int sc_sock_pipe_term(struct sc_sock_pipe* pipe);
-int sc_sock_pipe_write(struct sc_sock_pipe* pipe, void* data, int len);
-int sc_sock_pipe_read(struct sc_sock_pipe* pipe, void* data, int len);
+int sc_sock_pipe_write(struct sc_sock_pipe* pipe, void* data, unsigned int len);
+int sc_sock_pipe_read(struct sc_sock_pipe* pipe, void* data, unsigned int len);
 
 #define sc_sock_on_error(...)
 

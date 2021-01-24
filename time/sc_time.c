@@ -98,8 +98,8 @@ uint64_t sc_time_mono_ms()
     rc = clock_gettime(CLOCK_MONOTONIC, &ts);
     assert(rc == 0);
 
-    return (int64_t)((int64_t) ts.tv_sec * 1000 +
-                     (int64_t) ts.tv_nsec / 1000000);
+    return (uint64_t)((uint64_t) ts.tv_sec * 1000 +
+                     (uint64_t) ts.tv_nsec / 1000000);
 #endif
 }
 

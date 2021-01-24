@@ -24,10 +24,8 @@
 
 #include "sc_queue.h"
 
-#include <stdbool.h>
-
 #ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX SIZE_MAX
+    #define SC_SIZE_MAX SIZE_MAX
 #endif
 
 #define SC_MAX_CAP ((SC_SIZE_MAX - sizeof(struct sc_queue)) / 2ul)
@@ -123,9 +121,9 @@ bool sc_queue_expand(void **q, size_t elem_size)
          *                |       |
          * Step 0 : | 2 | 3 | - | 1 |                  // tmp->cap : 4
          * Step 1 : | 2 | 3 | - | 1 | - | - | - | - |  // realloc
-         * Step 2 : | 2 | 3 | - | 1 | 1 | - | - | - |  // mempcy
+         * Step 2 : | 2 | 3 | - | 1 | 1 | - | - | - |  // memcpy
          * Step 3 : | 2 | 2 | 3 | 1 | 1 | - | - | - |  // memmove
-         * Step 4 : | 1 | 2 | 3 | 1 | 1 | - | - | - |  // mempcy
+         * Step 4 : | 1 | 2 | 3 | 1 | 1 | - | - | - |  // memcpy
          * Step 5 : | 1 | 2 | 3 | - | - | - | - | - |  // tmp->last = cap - 1;
          *           |       |
          *         first   last

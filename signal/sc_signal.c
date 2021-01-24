@@ -24,17 +24,14 @@
 
 #include "sc_signal.h"
 
-#include <signal.h>
-#include <stdarg.h>
 #include <stdbool.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #if defined(_WIN32)
-#include <WinSock2.h>
+    #include <WinSock2.h>
 volatile SOCKET sc_signal_shutdown_fd;
 #else
 volatile sig_atomic_t sc_signal_shutdown_fd;
@@ -62,6 +59,8 @@ volatile sig_atomic_t sc_signal_will_shutdown;
     (size) == 2 ? va_arg(va, long) :                                           \
     (size) == 1 ? va_arg(va, int) :                                            \
                   0
+
+#define PSIZE sizeof(void*) == sizeof(unsigned long long) ? 3 : 2
 
 int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
 {
@@ -98,15 +97,15 @@ int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
                     uint64_t u64 = get_uint(va, pos - orig);
 
                     do {
-                        digits[31 - (len++)] = (char)('0' + (u64 % 10));
+                        digits[31 - (len++)] = (char) ('0' + (u64 % 10));
                     } while (u64 /= 10UL);
 
                 } else if (*pos == 'd') {
                     int64_t i64 = get_int(va, pos - orig);
-                    uint64_t u64 = i64 < 0 ? -i64 : i64;
+                    uint64_t u64 = (uint64_t) (i64 < 0 ? -i64 : i64);
 
                     do {
-                        digits[31 - (len++)] = (char)('0' + (char)(u64 % 10));
+                        digits[31 - (len++)] = (char) ('0' + (char) (u64 % 10));
                     } while (u64 /= 10UL);
 
                     if (i64 < 0) {
@@ -119,10 +118,9 @@ int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
                 str = &digits[32 - len];
                 break;
             case 'p': {
-                char *arr = "0123456789abcdef";
+                const char *arr = "0123456789abcdef";
                 len = 0;
-                int s = (sizeof(void *) == sizeof(unsigned long long)) ? 3 : 2;
-                uint64_t u64 = get_uint(va, s);
+                uint64_t u64 = get_uint(va, PSIZE);
 
                 do {
                     digits[31 - (len++)] = arr[u64 % 16];
@@ -173,15 +171,15 @@ int sc_signal_snprintf(char *buf, size_t size, const char *fmt, ...)
 
 #if defined(_WIN32)
 
-#define WIN32_LEAN_AND_MEAN
+    #define WIN32_LEAN_AND_MEAN
 
-#include <Ws2tcpip.h>
-#include <io.h>
-#include <signal.h>
-#include <windows.h>
+    #include <Ws2tcpip.h>
+    #include <io.h>
+    #include <signal.h>
+    #include <windows.h>
 
-#pragma warning(disable : 4996)
-#pragma comment(lib, "Ws2_32.lib")
+    #pragma warning(disable : 4996)
+    #pragma comment(lib, "Ws2_32.lib")
 
 BOOL WINAPI sc_console_handler(DWORD type)
 {
@@ -296,7 +294,7 @@ int sc_signal_init()
 
 #else
 
-// clang-format off
+    // clang-format off
 #include <unistd.h>
 
 #ifdef HAVE_BACKTRACE
@@ -304,51 +302,51 @@ int sc_signal_init()
 
 static void *sc_instruction(ucontext_t *uc)
 {
-    void* insp = NULL;
+    void* p = NULL;
 
 #if defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)
     #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
-            insp = (void *) uc->uc_mcontext->__ss.__rip;
+            p = (void *) uc->uc_mcontext->__ss.__rip;
         #elif defined(__i386__)
-            insp = (void *) uc->uc_mcontext->__ss.__eip;
+            p = (void *) uc->uc_mcontext->__ss.__eip;
         #else
-            insp = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
+            p = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
         #endif
 #elif defined(__linux__)
 #if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
-    insp = (void *) uc->uc_mcontext.gregs[REG_EIP];
+    p = (void *) uc->uc_mcontext.gregs[REG_EIP];
 #elif defined(__x86_64__)
-    insp = (void *) uc->uc_mcontext.gregs[REG_RIP];
+    p = (void *) uc->uc_mcontext.gregs[REG_RIP];
 #elif defined(__ia64__)
-    insp = (void *) uc->uc_mcontext.sc_ip;
+    p = (void *) uc->uc_mcontext.sc_ip;
         #elif defined(__arm__)
-            insp = (void *) uc->uc_mcontext.arm_pc;
+            p = (void *) uc->uc_mcontext.arm_pc;
         #elif defined(__aarch64__)
-            insp = (void *) uc->uc_mcontext.pc;
+            p = (void *) uc->uc_mcontext.pc;
 #endif
 #elif defined(__FreeBSD__)
     #if defined(__i386__)
-            insp = (void *) uc->uc_mcontext.mc_eip;
+            p = (void *) uc->uc_mcontext.mc_eip;
         #elif defined(__x86_64__)
-            insp = (void *) uc->uc_mcontext.mc_rip;
+            p = (void *) uc->uc_mcontext.mc_rip;
         #endif
     #elif defined(__OpenBSD__)
         #if defined(__i386__)
-            insp = (void *) uc->sc_eip;
+            p = (void *) uc->sc_eip;
         #elif defined(__x86_64__)
-            insp = (void *) uc->sc_rip;
+            p = (void *) uc->sc_rip;
         #endif
     #elif defined(__NetBSD__)
         #if defined(__i386__)
-            insp = (void *) uc->uc_mcontext.__gregs[_REG_EIP];
+            p = (void *) uc->uc_mcontext.__gregs[_REG_EIP];
         #elif defined(__x86_64__)
-            insp = (void *) uc->uc_mcontext.__gregs[_REG_RIP];
+            p = (void *) uc->uc_mcontext.__gregs[_REG_RIP];
         #endif
     #elif defined(__DragonFly__)
-            insp = (void *) uc->uc_mcontext.mc_rip;
+            p = (void *) uc->uc_mcontext.mc_rip;
 #endif
 
-    return insp;
+    return p;
 }
 
 #endif
@@ -384,7 +382,7 @@ static void sc_signal_on_shutdown(int sig)
 
     if (sc_signal_shutdown_fd != -1) {
         sc_signal_log(fd, buf, sizeof(buf), "Sending shutdown command. \n");
-        rc = write(sc_signal_shutdown_fd, (void *) &(int){1}, 1);
+        rc = (int) write(sc_signal_shutdown_fd, (void *) &(int){1}, 1);
         if (rc != 1) {
             sc_signal_log(fd, buf, sizeof(buf),
                           "Failed to send shutdown command, "
@@ -400,6 +398,8 @@ static void sc_signal_on_shutdown(int sig)
 
 static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
 {
+    (void) info;
+
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDERR_FILENO;
 
     char buf[4096], *sig_str;
@@ -432,7 +432,7 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     sc_signal_log(fd, buf, sizeof(buf),
                   "\n----------------- CRASH REPORT ---------------- \n");
 
-#ifdef HAVE_BACKTRACE
+    #ifdef HAVE_BACKTRACE
     void *caller = sc_instruction((ucontext_t *) context);
     int trace_size;
     void *trace[100];
@@ -441,7 +441,7 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
 
     trace_size = backtrace(trace, 100);
     backtrace_symbols_fd(trace, trace_size, fd);
-#endif
+    #endif
     sc_signal_log(fd, buf, sizeof(buf),
                   "\n--------------- CRASH REPORT END -------------- \n");
 
@@ -498,5 +498,5 @@ void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
     written = sc_signal_vsnprintf(buf, len, fmt, args);
     va_end(args);
 
-    (void) write(fd, buf, written);
+    (void) write(fd, buf, (size_t) written);
 }

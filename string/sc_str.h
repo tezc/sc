@@ -28,14 +28,13 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdlib.h>
 
 #ifdef SC_HAVE_CONFIG_H
-#include "sc_config.h"
+    #include "sc_config.h"
 #else
-#define sc_str_malloc  malloc
-#define sc_str_realloc realloc
-#define sc_str_free    free
+    #define sc_str_malloc  malloc
+    #define sc_str_realloc realloc
+    #define sc_str_free    free
 #endif
 
 /**

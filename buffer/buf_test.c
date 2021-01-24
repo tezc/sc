@@ -129,6 +129,18 @@ void test1()
     buf = sc_buf_wrap(text, sizeof(text), SC_BUF_REF);
     sc_buf_put_text(&buf, "test %d test %s", 1, "test");
     assert(strcmp(sc_buf_rbuf(&buf), "test 1 test test") == 0);
+    sc_buf_term(&buf);
+
+    buf = sc_buf_wrap(text, sizeof(text), SC_BUF_REF);
+    sc_buf_put_str(&buf, "1test");
+    sc_buf_put_str(&buf, "2test");
+
+    buf2 = sc_buf_wrap(sc_buf_rbuf(&buf), sc_buf_size(&buf), SC_BUF_READ);
+    assert(sc_buf_size(&buf2) == sc_buf_size(&buf));
+    assert(strcmp(sc_buf_get_str(&buf2), "1test") == 0);
+    assert(strcmp(sc_buf_get_str(&buf2), "2test") == 0);
+    sc_buf_term(&buf);
+    sc_buf_term(&buf2);
 }
 
 void test2()

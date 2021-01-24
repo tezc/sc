@@ -34,9 +34,9 @@
    1.2         2020  Added gcc intrinsics, fixed alignment issues.
  */
 
-#include <memory.h>
+#include "sc_crc32.h"
+
 #include <stddef.h>
-#include <stdint.h>
 
 /* CRC-32C (iSCSI) polynomial in reversed bit order. */
 #define CRC32_POLY 0x82f63b78

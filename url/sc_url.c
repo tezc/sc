@@ -38,14 +38,14 @@ struct sc_url *sc_url_create(const char *str)
     int diff;
     unsigned long val;
     size_t len, full_len, parts_len;
-    size_t scheme_len = 0, authority_len = 0, userinfo_len = 0;
-    size_t host_len = 0, port_len = 0, path_len = 0;
+    size_t scheme_len, authority_len = 0, userinfo_len = 0;
+    size_t host_len = 0, port_len = 0, path_len;
     size_t query_len = 0, fragment_len = 0;
 
-    char *scheme = "", *userinfo = "", *host = "", *port = "";
-    char *path = "", *query = "", *fragment = "";
+    char *scheme, *userinfo = "", *host = "", *port = "";
+    char *path, *query = "", *fragment = "";
     char *ptr, *dest, *parse_end;
-    char* pos = (char*) str;
+    char *pos = (char *) str;
     struct sc_url *url;
 
     if (str == NULL || (ptr = strstr(pos, ":")) == NULL) {
@@ -126,10 +126,10 @@ struct sc_url *sc_url_create(const char *str)
         return NULL;
     }
 
-    len = snprintf(url->buf, full_len, s1, scheme_len, scheme, authority_len,
-                   authority, userinfo_len, userinfo, host_len, host, port_len,
-                   port, path_len, path, query_len, query, fragment_len,
-                   fragment);
+    len = (size_t) snprintf(url->buf, full_len, s1, scheme_len, scheme,
+                            authority_len, authority, userinfo_len, userinfo,
+                            host_len, host, port_len, port, path_len, path,
+                            query_len, query, fragment_len, fragment);
     assert(len == full_len - 1);
 
     dest = url->buf + strlen(url->buf) + 1;
@@ -137,18 +137,19 @@ struct sc_url *sc_url_create(const char *str)
     scheme_len -= (scheme_len != 0);     // Skip ":"
     userinfo_len -= (userinfo_len != 0); // Skip "@"
     diff = port_len != 0;
-    port_len -= diff;                    // Skip ":"
-    port += diff;                        // Skip ":"
+    port_len -= diff; // Skip ":"
+    port += diff;     // Skip ":"
     diff = (query_len != 0);
-    query_len -= diff;                   // Skip "?"
-    query += diff;                       // Skip "?"
+    query_len -= diff; // Skip "?"
+    query += diff;     // Skip "?"
     diff = (fragment_len != 0);
-    fragment_len -= diff;                // Skip "#"
-    fragment += diff;                    // Skip "#"
+    fragment_len -= diff; // Skip "#"
+    fragment += diff;     // Skip "#"
 
-    len = sprintf(dest, s2, scheme_len, scheme, 0, userinfo_len, userinfo, 0,
-                  host_len, host, 0, port_len, port, 0, path_len, path, 0,
-                  query_len, query, 0, fragment_len, fragment, 0);
+    len = (size_t) sprintf(dest, s2, scheme_len, scheme, 0, userinfo_len,
+                           userinfo, 0, host_len, host, 0, port_len, port, 0,
+                           path_len, path, 0, query_len, query, 0, fragment_len,
+                           fragment, 0);
     assert(len == parts_len - 1);
 
     url->str = url->buf;

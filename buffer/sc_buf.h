@@ -361,16 +361,17 @@ void sc_buf_put_raw(struct sc_buf *buf, const void *ptr, uint32_t len);
  */
 
 // clang-format off
-static inline uint32_t sc_buf_bool_len(bool val) { return 1;}
-static inline uint32_t sc_buf_8_len(uint8_t val) {return 1;}
-static inline uint32_t sc_buf_16_len(uint16_t val){return 2;}
-static inline uint32_t sc_buf_32_len(uint32_t val){return 4;}
-static inline uint32_t sc_buf_64_len(uint64_t val){return 8;}
-static inline uint32_t sc_buf_double_len(double val){return 8;}
+static inline uint32_t sc_buf_bool_len(bool val) {(void) val; return 1;}
+static inline uint32_t sc_buf_8_len(uint8_t val) {(void) val; return 1;}
+static inline uint32_t sc_buf_16_len(uint16_t val){(void) val; return 2;}
+static inline uint32_t sc_buf_32_len(uint32_t val){(void) val; return 4;}
+static inline uint32_t sc_buf_64_len(uint64_t val){(void) val; return 8;}
+static inline uint32_t sc_buf_double_len(double val){(void) val; return 8;}
 // clang-format on
 
 static inline uint32_t sc_buf_blob_len(void *ptr, uint32_t len)
 {
+    (void) ptr;
     assert(len <= INT32_MAX - 4);
 
     return len + sc_buf_32_len(len);
@@ -378,13 +379,15 @@ static inline uint32_t sc_buf_blob_len(void *ptr, uint32_t len)
 
 static inline uint32_t sc_buf_str_len(const char *str)
 {
+    const uint32_t bytes = sc_buf_32_len(UINT32_MAX) + sc_buf_8_len('\0');
+
     if (str == NULL) {
-        return sc_buf_32_len(-1);
+        return sc_buf_32_len(UINT32_MAX);
     }
 
     assert(strlen(str) <= INT32_MAX - 5);
 
-    return sc_buf_32_len(-1) + strlen(str) + sc_buf_8_len('\0');
+    return bytes + (uint32_t) strlen(str);
 }
 
 #endif

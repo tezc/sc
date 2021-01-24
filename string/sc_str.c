@@ -25,10 +25,10 @@
 #include "sc_str.h"
 
 #include <assert.h>
-#include <stdarg.h>
-#include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <stddef.h>
 
 /**
  * String with 'length' at the start of the allocated memory
@@ -65,7 +65,7 @@ char *sc_str_create(const char *str)
         return NULL;
     }
 
-    return sc_str_create_len(str, size);
+    return sc_str_create_len(str, (uint32_t) size);
 }
 
 char *sc_str_create_len(const char *str, uint32_t len)
@@ -105,7 +105,7 @@ char *sc_str_create_va(const char *fmt, va_list va)
         return NULL;
     }
 
-    str->len = rc;
+    str->len = (uint32_t) rc;
 
     if (rc < sizeof(tmp)) {
         memcpy(str->buf, tmp, str->len + 1);
@@ -276,7 +276,7 @@ bool sc_str_trim(char **str, const char *list)
     }
 
     if (start != *str || end != (*str) + len) {
-        start = sc_str_create_len(start, end - start);
+        start = sc_str_create_len(start, (uint32_t) (end - start));
         if (start == NULL) {
             return false;
         }
@@ -362,7 +362,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
         return false;
     }
 
-    dest->len = size;
+    dest->len = (uint32_t) size;
     tmp = dest->buf;
 
     while (count--) {

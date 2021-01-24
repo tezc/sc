@@ -29,7 +29,7 @@
 char sc_option_at(struct sc_option *opt, int index, char **value)
 {
     char id = '?';
-    int len;
+    size_t len;
     char *pos;
     const char *curr, *name;
 
@@ -59,7 +59,7 @@ char sc_option_at(struct sc_option *opt, int index, char **value)
         for (int i = 0; i < opt->count; i++) {
             curr = opt->argv[index] + 2; // Skip '--'
             name = opt->options[i].name;
-            len = (int) (pos - curr);
+            len = (pos - curr);
 
             if (name == NULL) {
                 continue;

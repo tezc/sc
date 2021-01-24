@@ -14,6 +14,8 @@ void test1()
     char *t;
     char buf[32];
 
+    assert(sc_math_min(199, 299) == 199);
+    assert(sc_math_max(199, 299) == 299);
     assert(sc_math_is_pow2(0) == false);
 
     x = sc_math_to_pow2(0);

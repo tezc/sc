@@ -1,7 +1,6 @@
 #include "sc_signal.h"
 
 #include <assert.h>
-#include <stddef.h>
 #include <string.h>
 
 void test1()
