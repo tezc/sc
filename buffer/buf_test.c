@@ -222,7 +222,7 @@ extern size_t __real_strlen(const char *s);
 size_t __wrap_strlen(const char *s)
 {
     if (mock_strlen) {
-        return UINT64_MAX;
+        return SIZE_MAX;
     }
 
     return __real_strlen(s);
