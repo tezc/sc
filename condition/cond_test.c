@@ -1,23 +1,24 @@
 #include "sc_cond.h"
-#include <string.h>
+
 #include <assert.h>
+#include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 
-#include <windows.h>
+    #include <windows.h>
 
 struct sc_thread
 {
     HANDLE id;
-    void* (*fn)(void*);
-    void* arg;
-    void* ret;
+    void *(*fn)(void *);
+    void *arg;
+    void *ret;
 };
 
 #else
 
-#include <pthread.h>
-#include <unistd.h>
+    #include <pthread.h>
+    #include <unistd.h>
 
 struct sc_thread
 {
@@ -26,41 +27,42 @@ struct sc_thread
 
 #endif
 
-void sc_thread_init(struct sc_thread* thread);
-int sc_thread_term(struct sc_thread* thread);
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg);
-int sc_thread_stop(struct sc_thread* thread, void** ret);
+void sc_thread_init(struct sc_thread *thread);
+int sc_thread_term(struct sc_thread *thread);
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg);
+int sc_thread_stop(struct sc_thread *thread, void **ret);
 
-void sc_thread_init(struct sc_thread* thread)
+void sc_thread_init(struct sc_thread *thread)
 {
     thread->id = 0;
 }
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <process.h>
+    #include <process.h>
 
-unsigned int __stdcall sc_thread_fn(void* arg)
+unsigned int __stdcall sc_thread_fn(void *arg)
 {
-    struct sc_thread* thread = arg;
+    struct sc_thread *thread = arg;
 
     thread->ret = thread->fn(thread->arg);
     return 0;
 }
 
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 {
     int rc;
 
     thread->fn = fn;
     thread->arg = arg;
 
-    thread->id = (HANDLE)_beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
+    thread->id =
+            (HANDLE) _beginthreadex(NULL, 0, sc_thread_fn, thread, 0, NULL);
     rc = thread->id == 0 ? -1 : 0;
 
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread* thread, void** ret)
+int sc_thread_stop(struct sc_thread *thread, void **ret)
 {
     int rc = 0;
     DWORD rv;
@@ -89,7 +91,7 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
 }
 #else
 
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
+int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 {
     int rc;
     pthread_attr_t hndl;
@@ -110,10 +112,10 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread* thread, void** ret)
+int sc_thread_stop(struct sc_thread *thread, void **ret)
 {
     int rc;
-    void* val;
+    void *val;
 
     if (thread->id == 0) {
         return -1;
@@ -131,15 +133,15 @@ int sc_thread_stop(struct sc_thread* thread, void** ret)
 
 #endif
 
-int sc_thread_term(struct sc_thread* thread)
+int sc_thread_term(struct sc_thread *thread)
 {
     return sc_thread_stop(thread, NULL);
 }
 
-void* thread1_fn(void* arg)
+void *thread1_fn(void *arg)
 {
-    char* data;
-    struct sc_cond* cond = arg;
+    char *data;
+    struct sc_cond *cond = arg;
 
     data = sc_cond_wait(cond);
     assert(strcmp(data, "finish") == 0);
@@ -147,9 +149,9 @@ void* thread1_fn(void* arg)
     return NULL;
 }
 
-void* thread2_fn(void* arg)
+void *thread2_fn(void *arg)
 {
-    struct sc_cond* cond = arg;
+    struct sc_cond *cond = arg;
     sc_cond_signal(cond, "finish");
     return NULL;
 }
@@ -161,6 +163,19 @@ int __wrap_pthread_mutexattr_init(pthread_mutexattr_t *attr)
 {
     if (!mock_attrinit) {
         return __real_pthread_mutexattr_init(attr);
+    }
+
+    return -1;
+}
+
+bool mock_condinit = false;
+extern int __real_pthread_cond_init(pthread_cond_t *__restrict cond,
+                                    const pthread_condattr_t *__restrict attr);
+int __wrap_pthread_cond_init(pthread_cond_t *__restrict cond,
+                             const pthread_condattr_t *__restrict attr)
+{
+    if (!mock_condinit) {
+        return __real_pthread_cond_init(cond, attr);
     }
 
     return -1;
@@ -179,6 +194,30 @@ int __wrap_pthread_mutex_init(pthread_mutex_t *__mutex,
     return -1;
 }
 
+bool mock_mutexdestroy = false;
+extern int __real_pthread_mutex_destroy (pthread_mutex_t *m);
+int __wrap_pthread_mutex_destroy (pthread_mutex_t *m)
+{
+    if (!mock_mutexdestroy) {
+        return __real_pthread_mutex_destroy(m);
+    }
+
+    __real_pthread_mutex_destroy(m);
+    return -1;
+}
+
+bool mock_conddestroy = false;
+extern int __real_pthread_cond_destroy(pthread_cond_t *c);
+int __wrap_pthread_cond_destroy (pthread_cond_t *c)
+{
+    if (!mock_conddestroy) {
+        return __real_pthread_cond_destroy(c);
+    }
+
+    __real_pthread_cond_destroy(c);
+    return -1;
+}
+
 void fail_test()
 {
     struct sc_cond cond;
@@ -187,6 +226,12 @@ void fail_test()
     assert(sc_cond_init(&cond) == -1);
     assert(*sc_cond_err(&cond) != '\0');
     mock_attrinit = false;
+
+    mock_condinit = true;
+    assert(sc_cond_init(&cond) == -1);
+    assert(*sc_cond_err(&cond) != '\0');
+    mock_condinit = false;
+
     assert(sc_cond_init(&cond) == 0);
     assert(sc_cond_term(&cond) == 0);
     mock_mutexinit = true;
@@ -194,12 +239,19 @@ void fail_test()
     mock_mutexinit = false;
     assert(sc_cond_init(&cond) == 0);
     assert(sc_cond_term(&cond) == 0);
+
+    assert(sc_cond_init(&cond) == 0);
+    mock_conddestroy = true;
+    assert(sc_cond_term(&cond) != 0);
+
+    assert(sc_cond_init(&cond) == 0);
+    mock_mutexdestroy = true;
+    assert(sc_cond_term(&cond) != 0);
 }
 
 #else
 void fail_test()
 {
-
 }
 #endif
 
