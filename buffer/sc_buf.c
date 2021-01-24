@@ -304,8 +304,6 @@ static uint32_t sc_buf_set_16_pos(struct sc_buf *buf, uint32_t pos, const uint16
 
     p[0] = (unsigned char) (*val >> 0);
     p[1] = (unsigned char) (*val >> 8);
-    p[2] = (unsigned char) (*val >> 16);
-    p[3] = (unsigned char) (*val >> 24);
 
     return sizeof(*val);
 }

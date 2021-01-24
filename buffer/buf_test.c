@@ -217,6 +217,17 @@ void *__wrap_realloc(void *p, size_t n)
     return __real_realloc(p, n);
 }
 
+bool mock_strlen = false;
+extern size_t __real_strlen(const char *s);
+size_t __wrap_strlen(const char *s)
+{
+    if (mock_strlen) {
+        return UINT64_MAX;
+    }
+
+    return __real_strlen(s);
+}
+
 bool fail_vsnprintf;
 int fail_vsnprintf_at = -1;
 extern int __real_vsnprintf(char *str, size_t size, const char *format,
@@ -274,6 +285,12 @@ void fail_test()
     assert(sc_buf_valid(&buf) == false);
     sc_buf_term(&buf);
 
+    sc_buf_init(&buf, 100);
+    mock_strlen = true;
+    sc_buf_put_str(&buf, "t");
+    mock_strlen = false;
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_term(&buf);
 
     sc_buf_init(&buf, 10);
     fail_vsnprintf = true;

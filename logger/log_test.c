@@ -150,7 +150,8 @@ int __wrap_fclose (FILE *__stream)
         return __real_fclose(__stream);
     }
 
-    return 0;
+    __real_fclose(__stream);
+    return -1;
 }
 
 bool mock_localtime = false;
@@ -206,6 +207,10 @@ void fail_test(void)
     sc_log_info("loggg");
     assert(vfprintf_count > 0);
     assert(vprintf_file == stdout);
+
+    vfprintf_ret = -1;
+    assert(sc_log_info("log") != 0);
+    vfprintf_ret = 0;
 
     vfprintf_count = 0;
     sc_log_set_stdout(false);
@@ -271,7 +276,10 @@ void fail_test(void)
     assert(failed == -1);
     mock_fopen = false;
 
-    sc_log_term();
+    assert(sc_log_set_file("prev.txt", "current.txt") == 0);
+    mock_fclose = true;
+    assert(sc_log_term() != 0);
+
     mock_fclose = false;
     mock_fprintf = false;
     mock_vfprintf = false;

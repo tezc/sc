@@ -79,6 +79,7 @@ int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
 #else
     #include <arpa/inet.h>
     #include <netdb.h>
+    #include <netinet/in.h>
     #include <netinet/tcp.h>
     #include <sys/un.h>
     #include <unistd.h>
