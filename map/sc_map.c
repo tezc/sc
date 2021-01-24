@@ -1,7 +1,7 @@
 #include "sc_map.h"
 
 #ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX UINT32_MAX
+    #define SC_SIZE_MAX UINT32_MAX
 #endif
 
 #define sc_map_impl_of_strkey(name, K, V, cmp, hash_fn)                        \
@@ -47,9 +47,11 @@
 
 #define sc_map_impl_of(name, K, V, cmp, hash_fn)                               \
                                                                                \
+    static const struct sc_map_item_##name empty_items_##name[2];              \
+                                                                               \
     static const struct sc_map_##name sc_map_empty_##name = {                  \
             .cap = 1,                                                          \
-            .mem = &(struct sc_map_item_##name){.key = (0)}};                  \
+            .mem = (struct sc_map_item_##name *) &empty_items_##name[1]};      \
                                                                                \
     static void *sc_map_alloc_##name(uint32_t *cap, uint32_t factor)           \
     {                                                                          \
@@ -69,7 +71,8 @@
         v++;                                                                   \
                                                                                \
         *cap = v;                                                              \
-        return sc_map_calloc(sizeof(*t), v);                                   \
+        t = sc_map_calloc(sizeof(*t), v + 1);                                  \
+        return t ? &t[1] : NULL;                                               \
     }                                                                          \
                                                                                \
     bool sc_map_init_##name(struct sc_map_##name *map, uint32_t cap,           \
@@ -106,7 +109,7 @@
     void sc_map_term_##name(struct sc_map_##name *map)                         \
     {                                                                          \
         if (map->mem != sc_map_empty_##name.mem) {                             \
-            sc_map_free(map->mem);                                             \
+            sc_map_free(&map->mem[-1]);                                        \
         }                                                                      \
     }                                                                          \
                                                                                \
@@ -122,6 +125,7 @@
                 map->mem[i].key = 0;                                           \
             }                                                                  \
                                                                                \
+            map->used = false;                                                 \
             map->size = 0;                                                     \
         }                                                                      \
     }                                                                          \
@@ -159,7 +163,8 @@
         }                                                                      \
                                                                                \
         if (map->mem != sc_map_empty_##name.mem) {                             \
-            sc_map_free(map->mem);                                             \
+            new[-1] = map->mem[-1];                                            \
+            sc_map_free(&map->mem[-1]);                                        \
         }                                                                      \
                                                                                \
         map->mem = new;                                                        \
@@ -173,16 +178,16 @@
     {                                                                          \
         uint32_t pos, mod, hash;                                               \
                                                                                \
-        if (key == 0) {                                                        \
-            map->size += !map->used;                                           \
-            map->used = 1;                                                     \
-            map->value = value;                                                \
-                                                                               \
-            return true;                                                       \
-        }                                                                      \
-                                                                               \
         if (!sc_map_remap_##name(map)) {                                       \
             return false;                                                      \
+        }                                                                      \
+                                                                               \
+        if (key == 0) {                                                        \
+            map->size += !map->used;                                           \
+            map->used = true;                                                  \
+            map->mem[-1].value = value;                                        \
+                                                                               \
+            return true;                                                       \
         }                                                                      \
                                                                                \
         mod = map->cap - 1;                                                    \
@@ -208,7 +213,7 @@
         uint32_t hash, pos;                                                    \
                                                                                \
         if (key == 0) {                                                        \
-            *value = map->value;                                               \
+            *value = map->mem[-1].value;                                       \
             return map->used;                                                  \
         }                                                                      \
                                                                                \
@@ -239,7 +244,7 @@
             map->used = false;                                                 \
                                                                                \
             if (value != NULL) {                                               \
-                *value = map->value;                                           \
+                *value = map->mem[-1].value;                                   \
             }                                                                  \
                                                                                \
             return ret;                                                        \
@@ -303,12 +308,13 @@ uint32_t murmurhash(const char *key)
 {
     const uint64_t m = UINT64_C(0xc6a4a7935bd1e995);
     const size_t len = strlen(key);
-    const char *end = key + (len & ~(uint64_t) 0x7);
+    const unsigned char* p = (const unsigned char*) key;
+    const unsigned char *end = p + (len & ~(uint64_t) 0x7);
     uint64_t h = (len * m);
 
-    while (key != end) {
+    while (p != end) {
         uint64_t k;
-        memcpy(&k, key, sizeof(k));
+        memcpy(&k, p, sizeof(k));
 
         k *= m;
         k ^= k >> 47u;
@@ -316,17 +322,17 @@ uint32_t murmurhash(const char *key)
 
         h ^= k;
         h *= m;
-        key += 8;
+        p += 8;
     }
 
     switch (len & 7u) {
-    case 7: h ^= (uint64_t) key[6] << 48ul;
-    case 6: h ^= (uint64_t) key[5] << 40ul;
-    case 5: h ^= (uint64_t) key[4] << 32ul;
-    case 4: h ^= (uint64_t) key[3] << 24ul;
-    case 3: h ^= (uint64_t) key[2] << 16ul;
-    case 2: h ^= (uint64_t) key[1] << 8ul;
-    case 1: h ^= (uint64_t) key[0];
+    case 7: h ^= (uint64_t) p[6] << 48ul;
+    case 6: h ^= (uint64_t) p[5] << 40ul;
+    case 5: h ^= (uint64_t) p[4] << 32ul;
+    case 4: h ^= (uint64_t) p[3] << 24ul;
+    case 3: h ^= (uint64_t) p[2] << 16ul;
+    case 2: h ^= (uint64_t) p[1] << 8ul;
+    case 1: h ^= (uint64_t) p[0];
         h *= m;
     default:
         break;

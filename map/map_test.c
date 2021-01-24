@@ -424,6 +424,41 @@ void test4()
     }
 }
 
+static void test5()
+{
+    int t = 0;
+    uint64_t key, value;
+    struct sc_map_64 map;
+
+    sc_map_init_64(&map, 0, 0);
+    sc_map_put_64(&map, 0, 111);
+
+    t = 0;
+    sc_map_foreach (&map, key, value) {
+        assert(key == 0);
+        assert(value == 111);
+
+        t++;
+    }
+    assert(t == 1);
+
+    t = 0;
+    sc_map_foreach_key (&map, key) {
+        assert(key == 0);
+        t++;
+    }
+    assert(t == 1);
+
+    t = 0;
+    sc_map_foreach_value (&map, value) {
+        assert(value == 111);
+        t++;
+    }
+    assert(t == 1);
+
+    sc_map_term_64(&map);
+}
+
 
 #ifdef SC_HAVE_WRAP
 
@@ -478,6 +513,7 @@ int main(int argc, char *argv[])
     test2();
     test3();
     test4();
+    test5();
 
     return 0;
 }
