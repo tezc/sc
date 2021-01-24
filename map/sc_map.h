@@ -32,10 +32,10 @@
 #include <stdlib.h>
 
 #ifdef SC_HAVE_CONFIG_H
-#include "sc_config.h"
+    #include "sc_config.h"
 #else
-#define sc_map_calloc calloc
-#define sc_map_free   free
+    #define sc_map_calloc calloc
+    #define sc_map_free   free
 #endif
 
 #define sc_map_of_strkey(name, K, V)                                           \
@@ -65,7 +65,6 @@
         uint32_t size;                                                         \
         uint32_t load_factor;                                                  \
         uint32_t remap;                                                        \
-        V value;                                                               \
         bool used;                                                             \
     };                                                                         \
                                                                                \
@@ -79,18 +78,20 @@
     bool sc_map_del_##name(struct sc_map_##name *map, K key, V *val);
 
 #define sc_map_foreach(map, K, V)                                              \
-    for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
+    for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
         for ((V) = (map)->mem[__i].value, (K) = (map)->mem[__i].key, __b = 1;  \
-             __b && (K) != 0; __b = 0)
+             __b && ((__i == -1 && (map)->used) || (K) != 0); __b = 0)
 
 #define sc_map_foreach_key(map, K)                                             \
-    for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
-        for ((K) = (map)->mem[__i].key, __b = 1; __b && (K) != 0; __b = 0)
+    for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
+        for ((K) = (map)->mem[__i].key, __b = 1;                               \
+             __b && ((__i == -1 && (map)->used) || (K) != 0); __b = 0)
 
 #define sc_map_foreach_value(map, V)                                           \
-    for (uint32_t __i = 0, __b = 0; __i < (map)->cap; __i++)                   \
+    for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
         for ((V) = (map)->mem[__i].value, __b = 1;                             \
-             __b && (map)->mem[__i].key != 0; __b = 0)
+             __b && ((__i == -1 && (map)->used) || (map)->mem[__i].key != 0);  \
+             __b = 0)
 
 // clang-format off
 
