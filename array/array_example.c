@@ -14,7 +14,7 @@ int main(int argc, char *argv[])
     sc_array_add(p, 3);
 
     printf("\nRemoving first element \n\n");
-    sc_array_remove(p, 0);
+    sc_array_del(p, 0);
 
     printf("Capacity %zu \n", sc_array_cap(p));
     printf("Element count %zu \n", sc_array_size(p));

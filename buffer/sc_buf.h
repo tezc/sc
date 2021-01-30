@@ -32,11 +32,11 @@
 #include <string.h>
 
 #ifdef SC_HAVE_CONFIG_H
-#include "sc_config.h"
+    #include "sc_config.h"
 #else
-#define sc_buf_malloc  malloc
-#define sc_buf_realloc realloc
-#define sc_buf_free    free
+    #define sc_buf_malloc  malloc
+    #define sc_buf_realloc realloc
+    #define sc_buf_free    free
 #endif
 
 
@@ -83,7 +83,7 @@ void sc_buf_term(struct sc_buf *buf);
  * @param flags if set 'SC_BUF_REF', buffer will not try to expand itself and
  *             'sc_buf_term' will not try to 'free()' buffer.
  *             if set 'SC_BUF_DATA', buffer wpos will be 'len'.
- *             flags can be combined : SC_BUF_REF | SC_BUF_REF
+ *             flags can be combined : SC_BUF_REF | SC_BUF_DATA
  * @return
  */
 struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags);
@@ -287,7 +287,6 @@ void *sc_buf_get_blob(struct sc_buf *buf, uint32_t len);
  * @param len  len
  */
 void sc_buf_get_data(struct sc_buf *buf, void *dest, uint32_t len);
-
 
 /**
  * Put functions, 'val' will be copied to the buffer and write position will

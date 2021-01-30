@@ -33,10 +33,10 @@
 #include <stdlib.h>
 
 #ifdef SC_HAVE_CONFIG_H
-#include "sc_config.h"
+    #include "sc_config.h"
 #else
-#define sc_array_realloc realloc
-#define sc_array_free    free
+    #define sc_array_realloc realloc
+    #define sc_array_free    free
 #endif
 
 /**
@@ -61,62 +61,61 @@ bool sc_array_expand(void **arr, size_t elem_size);
  */
 
 /**
- *   @param arr Array pointer
- *   @param cap Initial capacity, '0' is accepted, then no memory allocation
- *              will be made until first 'add' operation.
+ *   @param arr Array
+ *   @param cap Initial capacity. '0' is a valid initial capacity, then no
+ *              memory allocation will be made until first 'add' operation.
  *   @return   'true' on success, 'false' on out of memory
  */
 #define sc_array_create(arr, cap)                                              \
     sc_array_init((void **) &(arr), sizeof(*(arr)), cap)
 
 /**
- *   @param arr Array pointer
+ *   @param arr Array
  */
 #define sc_array_destroy(arr) sc_array_term((void **) &(arr));
 
 /**
- *   @param arr Array pointer
+ *   @param arr Array
  *   @return    Current allocated capacity
  */
 #define sc_array_cap(arr) (sc_array_meta((arr))->cap)
 
 /**
- *   @param arr Array pointer
+ *   @param arr Array
  *   @return    Current element count
  */
 #define sc_array_size(arr) (sc_array_meta((arr))->size)
 
 /**
- *   Removes items from the list without deallocating underlying memory
+ *   Deletes items from the array without deallocating underlying memory
  *
  *   @param arr Array pointer
  */
 #define sc_array_clear(arr) (sc_array_meta((arr))->size = 0)
 
 /**
- *   @param v    Array pointer
+ *   @param v    Array
  *   @param elem Element to be appended
  *   @return     'true' on success, 'false' if memory allocation fails if we try
  *               to expand underlying memory.
  */
 #define sc_array_add(arr, elem)                                                \
     sc_array_expand((void **) &((arr)), sizeof(*(arr))) == true ?              \
-            (arr)[sc_array_meta(arr)->size++] = (elem),                        \
-            true : false
+            (arr)[sc_array_meta(arr)->size++] = (elem), true : false
 
 
 /**
- *   Removes the element at index i, moves elements to fill the space
- *   unless removed element is the last element
+ *   Deletes the element at index i, moves elements to fill the space
+ *   unless deleted element is the last element
  *
- *   vec[a,b,c,d,e,f] -> sc_array_remove(vec, 2) - > vec[a,b,d,f,e]
+ *   vec[a,b,c,d,e,f] -> sc_array_del(vec, 2) - > vec[a,b,d,f,e]
  *
  *   @param arr Array pointer
- *   @param i   Element index to be removed
+ *   @param i   Element index
  *
  *   If 'i' is out of the range, result is undefined.
  */
-#define sc_array_remove(arr, i)                                                \
+#define sc_array_del(arr, i)                                                   \
     do {                                                                       \
         assert((i) < sc_array_meta(arr)->size);                                \
         const size_t to_move = sc_array_size(arr) - (i) -1;                    \
@@ -127,18 +126,18 @@ bool sc_array_expand(void **arr, size_t elem_size);
     } while (0)
 
 /**
- *   Removes an element at index i, replaces last element with removed element
- *   unless removed element is the last element. This is faster than moving
- *   elements but elements will no longer be in the push order
+ *   Deletes the element at index i, replaces last element with the deleted
+ *   element unless deleted element is the last element. This is faster than
+ *   moving elements but elements will no longer be in the 'add order'
  *
- *   arr[a,b,c,d,e,f] -> sc_array_remove_unordered(vec, 2) - > arr[a,b,f,d,e]
+ *   arr[a,b,c,d,e,f] -> sc_array_del_unordered(vec, 2) - > arr[a,b,f,d,e]
  *
  *   @param arr Array pointer
- *   @param i   Element index to be removed
+ *   @param i   Element index
  *
  *   If 'i' is out of the range, result is undefined.
  */
-#define sc_array_remove_unordered(arr, i)                                      \
+#define sc_array_del_unordered(arr, i)                                         \
     do {                                                                       \
         assert((i) < sc_array_meta(arr)->size);                                \
         (arr)[i] = (arr)[(--sc_array_meta((arr))->size)];                      \
@@ -146,10 +145,11 @@ bool sc_array_expand(void **arr, size_t elem_size);
 
 
 /**
- *   Remove the last element. If there is no element, result is undefined.
+ *   Deletes the last element. If there is no element in the array, result is
+ *   undefined.
  *   @param arr Array pointer
  */
-#define sc_array_remove_last(arr)                                              \
+#define sc_array_del_last(arr)                                                 \
     do {                                                                       \
         assert(sc_array_meta(arr)->size != 0);                                 \
         sc_array_meta(arr)->size--;                                            \
@@ -172,7 +172,7 @@ bool sc_array_expand(void **arr, size_t elem_size);
         for ((value) = (arr)[_i]; _k; _k = !_k)
 
 /**
- * Return last element. If array is empty, result is undefined.
+ * Returns last element. If array is empty, result is undefined.
  */
 #define sc_array_last(arr) (arr)[sc_array_size(arr) - 1]
 

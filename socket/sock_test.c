@@ -504,7 +504,6 @@ void* server(void* arg)
     printf("Received :%d \n", received);
     assert(received == 10000);
 
-
     return NULL;
 }
 
@@ -536,7 +535,6 @@ void* client(void* arg)
     return NULL;
 }
 
-
 void test_poll()
 {
     struct sc_thread thread1;
@@ -551,7 +549,6 @@ void test_poll()
     assert(sc_thread_term(&thread1) == 0);
     assert(sc_thread_term(&thread2) == 0);
 }
-
 
 int main()
 {
