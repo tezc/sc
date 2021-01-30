@@ -71,7 +71,7 @@ if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
         target_compile_options(${PROJECT_NAME}_test PRIVATE --coverage)
         target_link_libraries(${PROJECT_NAME}_test gcov)
     else()
-        message(FATAL_ERROR "Only GCC is supported for coverage")
+        message(FATAL_ERROR " Only GCC is supported for coverage")
     endif()
 endif ()
 
