@@ -55,11 +55,11 @@ endif ()
 add_custom_target(coverage)
 add_custom_command(
         TARGET coverage
-        COMMAND lcov --capture --directory ..
-        --output-file coverage.info --rc lcov_branch_coverage=1
-        COMMAND lcov --remove coverage.info '/usr/*' '*example*' '*test*'
-        --output-file coverage.info --rc lcov_branch_coverage=1
-        COMMAND lcov --list coverage.info --rc lcov_branch_coverage=1
+        COMMAND lcov --capture --exclude='*assert*' --directory .
+        --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
+        COMMAND lcov --exclude='*assert*' --remove coverage.info '/usr/*' '*example*' '*test*'
+        --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
+        COMMAND lcov --exclude='*assert*' --list coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
 )
 
 # -------------------------- Code Coverage End ------------------------------ #

@@ -50,12 +50,12 @@ bool sc_buf_init(struct sc_buf *buf, uint32_t cap)
 struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags)
 {
     struct sc_buf buf = {.mem = data,
-            .cap = len,
-            .limit = flags & SC_BUF_REF ? len : UINT32_MAX,
-            .wpos = flags & SC_BUF_DATA ? len : 0,
-            .rpos = 0,
-            .ref = (bool) (flags & SC_BUF_REF),
-            .error = 0};
+                         .cap = len,
+                         .limit = flags & SC_BUF_REF ? len : UINT32_MAX,
+                         .wpos = flags & SC_BUF_DATA ? len : 0,
+                         .rpos = 0,
+                         .ref = (bool) (flags & SC_BUF_REF),
+                         .error = 0};
 
     return buf;
 }
@@ -204,7 +204,8 @@ void sc_buf_move(struct sc_buf *dest, struct sc_buf *src)
     src->rpos += size;
 }
 
-static uint16_t sc_buf_peek_8_pos(struct sc_buf *buf, uint32_t pos, uint8_t *val)
+static uint16_t sc_buf_peek_8_pos(struct sc_buf *buf, uint32_t pos,
+                                  uint8_t *val)
 {
     if (pos + sizeof(*val) > buf->wpos) {
         buf->error |= SC_BUF_CORRUPT;
@@ -217,9 +218,10 @@ static uint16_t sc_buf_peek_8_pos(struct sc_buf *buf, uint32_t pos, uint8_t *val
     return sizeof(*val);
 }
 
-static uint16_t sc_buf_peek_16_pos(struct sc_buf *buf, uint32_t pos, uint16_t *val)
+static uint16_t sc_buf_peek_16_pos(struct sc_buf *buf, uint32_t pos,
+                                   uint16_t *val)
 {
-    unsigned char* p;
+    unsigned char *p;
 
     if (pos + sizeof(*val) > buf->wpos) {
         buf->error |= SC_BUF_CORRUPT;
@@ -229,15 +231,15 @@ static uint16_t sc_buf_peek_16_pos(struct sc_buf *buf, uint32_t pos, uint16_t *v
 
     p = &buf->mem[pos];
 
-    *val = (uint16_t) p[0] << 0 |
-           (uint16_t) p[1] << 8;
+    *val = (uint16_t) p[0] << 0 | (uint16_t) p[1] << 8;
 
     return sizeof(*val);
 }
 
-static uint32_t sc_buf_peek_32_pos(struct sc_buf *buf, uint32_t pos, uint32_t *val)
+static uint32_t sc_buf_peek_32_pos(struct sc_buf *buf, uint32_t pos,
+                                   uint32_t *val)
 {
-    unsigned char* p;
+    unsigned char *p;
 
     if (pos + sizeof(*val) > buf->wpos) {
         buf->error |= SC_BUF_CORRUPT;
@@ -247,17 +249,16 @@ static uint32_t sc_buf_peek_32_pos(struct sc_buf *buf, uint32_t pos, uint32_t *v
 
     p = &buf->mem[pos];
 
-    *val = (uint32_t) p[0] << 0 |
-           (uint32_t) p[1] << 8 |
-           (uint32_t) p[2] << 16 |
+    *val = (uint32_t) p[0] << 0 | (uint32_t) p[1] << 8 | (uint32_t) p[2] << 16 |
            (uint32_t) p[3] << 24;
 
     return sizeof(*val);
 }
 
-static uint32_t sc_buf_peek_64_pos(struct sc_buf *buf, uint32_t pos, uint64_t *val)
+static uint32_t sc_buf_peek_64_pos(struct sc_buf *buf, uint32_t pos,
+                                   uint64_t *val)
 {
-    unsigned char* p;
+    unsigned char *p;
 
     if (pos + sizeof(*val) > buf->wpos) {
         buf->error |= SC_BUF_CORRUPT;
@@ -267,19 +268,16 @@ static uint32_t sc_buf_peek_64_pos(struct sc_buf *buf, uint32_t pos, uint64_t *v
 
     p = &buf->mem[pos];
 
-    *val = (uint64_t) p[0] << 0 |
-           (uint64_t) p[1] << 8 |
-           (uint64_t) p[2] << 16 |
-           (uint64_t) p[3] << 24 |
-           (uint64_t) p[4] << 32 |
-           (uint64_t) p[5] << 40 |
-           (uint64_t) p[6] << 48 |
+    *val = (uint64_t) p[0] << 0 | (uint64_t) p[1] << 8 | (uint64_t) p[2] << 16 |
+           (uint64_t) p[3] << 24 | (uint64_t) p[4] << 32 |
+           (uint64_t) p[5] << 40 | (uint64_t) p[6] << 48 |
            (uint64_t) p[7] << 56;
 
     return sizeof(*val);
 }
 
-static uint32_t sc_buf_set_8_pos(struct sc_buf *buf, uint32_t pos, const uint8_t *val)
+static uint32_t sc_buf_set_8_pos(struct sc_buf *buf, uint32_t pos,
+                                 const uint8_t *val)
 {
     if (buf->error != 0 || (pos + sizeof(*val) > buf->cap)) {
         buf->error |= SC_BUF_CORRUPT;
@@ -291,9 +289,10 @@ static uint32_t sc_buf_set_8_pos(struct sc_buf *buf, uint32_t pos, const uint8_t
     return sizeof(*val);
 }
 
-static uint32_t sc_buf_set_16_pos(struct sc_buf *buf, uint32_t pos, const uint16_t *val)
+static uint32_t sc_buf_set_16_pos(struct sc_buf *buf, uint32_t pos,
+                                  const uint16_t *val)
 {
-    unsigned char* p;
+    unsigned char *p;
 
     if (buf->error != 0 || (pos + sizeof(*val) > buf->cap)) {
         buf->error |= SC_BUF_CORRUPT;
@@ -308,9 +307,10 @@ static uint32_t sc_buf_set_16_pos(struct sc_buf *buf, uint32_t pos, const uint16
     return sizeof(*val);
 }
 
-static uint32_t sc_buf_set_32_pos(struct sc_buf *buf, uint32_t pos, const uint32_t *val)
+static uint32_t sc_buf_set_32_pos(struct sc_buf *buf, uint32_t pos,
+                                  const uint32_t *val)
 {
-    unsigned char* p;
+    unsigned char *p;
 
     if (buf->error != 0 || (pos + sizeof(*val) > buf->cap)) {
         buf->error |= SC_BUF_CORRUPT;
@@ -327,9 +327,10 @@ static uint32_t sc_buf_set_32_pos(struct sc_buf *buf, uint32_t pos, const uint32
     return sizeof(*val);
 }
 
-static uint32_t sc_buf_set_64_pos(struct sc_buf *buf, uint32_t pos, const uint64_t *val)
+static uint32_t sc_buf_set_64_pos(struct sc_buf *buf, uint32_t pos,
+                                  const uint64_t *val)
 {
-    unsigned char* p;
+    unsigned char *p;
 
     if (buf->error != 0 || (pos + sizeof(*val) > buf->cap)) {
         buf->error |= SC_BUF_CORRUPT;
@@ -608,7 +609,6 @@ void sc_buf_put_32(struct sc_buf *buf, uint32_t val)
 }
 
 
-
 void sc_buf_put_64(struct sc_buf *buf, uint64_t val)
 {
     if (!sc_buf_reserve(buf, sizeof(val))) {
@@ -709,7 +709,6 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
 {
     int rc;
     va_list args;
-    uint32_t pos = 0;
     int offset = sc_buf_size(buf) > 0 ? 1 : 0;
     uint32_t quota = sc_buf_quota(buf);
 
@@ -719,13 +718,13 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
 
     if (rc < 0) {
         buf->error |= SC_BUF_CORRUPT;
-        sc_buf_set_wpos(buf, pos);
+        sc_buf_set_wpos(buf, 0);
         return;
     }
 
     if (rc >= quota) {
         if (!sc_buf_reserve(buf, (uint32_t) rc)) {
-            sc_buf_set_wpos(buf, pos);
+            sc_buf_set_wpos(buf, 0);
             return;
         }
 
@@ -734,7 +733,7 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
         va_end(args);
 
         if (rc < 0 || rc >= quota) {
-            sc_buf_set_wpos(buf, pos);
+            sc_buf_set_wpos(buf, 0);
             buf->error = SC_BUF_OOM;
             return;
         }

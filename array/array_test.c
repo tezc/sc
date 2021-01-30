@@ -7,6 +7,7 @@
 int example()
 {
     int *p;
+    int val;
 
     sc_array_create(p, 0);
 
@@ -15,13 +16,17 @@ int example()
     sc_array_add(p, 3);
 
     printf("\nRemoving first element \n\n");
-    sc_array_remove(p, 0);
+    sc_array_del(p, 0);
 
     printf("Capacity %zu \n", sc_array_cap(p));
     printf("Element count %zu \n", sc_array_size(p));
 
     for (int i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);
+    }
+
+    sc_array_foreach (p, val) {
+        printf("Elem = %d \n", val);
     }
 
     sc_array_destroy(p);
@@ -48,9 +53,9 @@ static void test1(void)
 
     assert(sc_array_size(arr) == 3);
 
-    sc_array_remove(arr, 0);
+    sc_array_del(arr, 0);
     assert(arr[0] == 4);
-    sc_array_remove_last(arr);
+    sc_array_del_last(arr);
     assert(arr[0] == 4);
 
     sc_array_add(arr, 1);
@@ -70,6 +75,42 @@ static void test1(void)
 
     for (int i = 0; i < sc_array_size(arr); i++) {
         assert(arr[i] == i);
+    }
+
+    sc_array_destroy(arr);
+}
+
+void test2()
+{
+    int *arr;
+    int val;
+
+    assert(sc_array_create(arr, 0) == true);
+    sc_array_foreach (arr, val) {
+        assert(true);
+    }
+    sc_array_destroy(arr);
+
+    assert(sc_array_create(arr, 2) == true);
+    sc_array_foreach (arr, val) {
+        assert(true);
+    }
+    sc_array_destroy(arr);
+
+    assert(sc_array_create(arr, 2) == true);
+    assert(sc_array_add(arr, 1) == true);
+    sc_array_foreach (arr, val) {
+        assert(val == 1);
+    }
+    sc_array_del_last(arr);
+    sc_array_foreach (arr, val) {
+        assert(true);
+    }
+
+    assert(sc_array_add(arr, 1) == true);
+    sc_array_del_unordered(arr, 0);
+    sc_array_foreach (arr, val) {
+        assert(true);
     }
 
     sc_array_destroy(arr);
@@ -172,9 +213,9 @@ void fail_test()
 
     assert(sc_array_size(arr) == 3);
 
-    sc_array_remove(arr, 0);
+    sc_array_del(arr, 0);
     assert(arr[0] == 4);
-    sc_array_remove_last(arr);
+    sc_array_del_last(arr);
     assert(arr[0] == 4);
 
     sc_array_add(arr, 1);
@@ -201,7 +242,7 @@ void fail_test()
     assert(total == 10);
 
     sc_array_sort(arr, compare);
-    sc_array_remove_unordered(arr, 0);
+    sc_array_del_unordered(arr, 0);
     assert(arr[0] == 4);
     assert(sc_array_size(arr) == 4);
     sc_array_clear(arr);
@@ -223,6 +264,7 @@ int main(int argc, char *argv[])
 {
     example();
     test1();
+    test2();
     fail_test();
     bounds_test();
 

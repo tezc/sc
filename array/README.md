@@ -4,14 +4,16 @@
 
 - Generic array which grows when you add elements.
 - Index access is possible (e.g float* arr; 'printf("%f", arr[i]')).
-- Just copy <b>sc_array.h</b> and <b>sc_array.c</b> to your project.
+- Copy <b>sc_array.h</b> and <b>sc_array.c</b> to your project.
 
 
 ##### Usage
 
 
 ```c
+
     int *p;
+    int val;
 
     sc_array_create(p, 0);
 
@@ -20,7 +22,7 @@
     sc_array_add(p, 3);
     
     printf("\nRemoving first element \n\n");
-    sc_array_remove(p, 0);
+    sc_array_del(p, 0);
 
     printf("Capacity %zu \n", sc_array_cap(p));
     printf("Element count %zu \n", sc_array_size(p));
@@ -30,8 +32,14 @@
     for (int i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);
     }
+    
+    // Foreach
+    sc_array_foreach(p, val) {
+        printf("Elem = %d \n", val);
+    }
 
     sc_array_destroy(p);
+
 ```
 #### Internals
 
