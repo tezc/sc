@@ -4,7 +4,7 @@
 
 - Generic array which grows when you add elements.
 - Index access is possible (e.g float* arr; 'printf("%f", arr[i]')).
-- Copy <b>sc_array.h</b> and <b>sc_array.c</b> to your project.
+- Lazy allocation. No memory allocation until first 'add'.
 
 
 ##### Usage
@@ -41,15 +41,6 @@
     sc_array_destroy(p);
 
 ```
-#### Internals
-
-##### Memory
-- Single array allocation.
-- Lazy allocation. No memory allocation until first 'add'.
-
-##### Performance
-- As all the items are in a single contiguous memory, it gives the best  
-  performance you can expect.
 
 ##### Note
 

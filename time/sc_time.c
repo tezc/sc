@@ -24,13 +24,13 @@
 #include "sc_time.h"
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <assert.h>
+    #include <assert.h>
     #include <windows.h>
 #else
-#include <assert.h>
-#include <errno.h>
-#include <sys/time.h>
-#include <time.h>
+    #include <assert.h>
+    #include <errno.h>
+    #include <sys/time.h>
+    #include <time.h>
 #endif
 
 uint64_t sc_time_ms()
@@ -142,7 +142,7 @@ int sc_time_sleep(uint64_t milliseconds)
     do {
         t = rem;
         rc = nanosleep(&t, &rem);
-    } while (rc != 0 && errno != EINTR);
+    } while (rc != 0 && errno == EINTR);
 
     return rc;
 #endif

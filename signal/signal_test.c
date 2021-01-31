@@ -27,7 +27,7 @@ void test1()
     sc_signal_snprintf(tmp, sizeof(tmp), "%llu", 100000000000ll);
     assert(strcmp(tmp, "100000000000") == 0);
 
-    char* x = (char*)0xabcdef;
+    char *x = (char *) 0xabcdef;
     sc_signal_snprintf(tmp, sizeof(tmp), "%p", x);
     assert(strcmp(tmp, "0xabcdef") == 0);
 
@@ -46,10 +46,60 @@ void test2()
     assert(sc_signal_init() == 0);
 }
 
-int main()
+#ifdef SC_HAVE_WRAP
+    #include <stdbool.h>
+    #include <stdlib.h>
+    #include <unistd.h>
+    #include <wait.h>
+
+void sig_handler(int signum)
+{
+}
+
+void test3(int argc, char **argv)
+{
+
+
+    pid_t pid = fork();
+    if (pid == -1) {
+        assert(true);
+    } else if (pid) {
+        int status = 0;
+        wait(&status);
+        if (WIFSIGNALED(status)) {
+            return;
+        } else {
+            assert(true);
+        }
+    } else {
+        execvp(argv[1], argv + 1);
+        exit(1);
+    }
+}
+
+void test4()
+{
+    assert(sc_signal_init() == 0);
+    sc_signal_shutdown_fd = STDOUT_FILENO;
+    raise(SIGINT);
+    sleep(3);
+}
+
+#else
+void test3()
+{
+}
+void test4()
+{
+}
+#endif
+
+int main(int argc, char **argv)
 {
     test1();
     test2();
+    test3(argc, argv);
+    test4();
 
     return 0;
 }

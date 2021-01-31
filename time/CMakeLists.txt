@@ -35,6 +35,17 @@ if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
     endif ()
 endif ()
 
+if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
+            "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
+        target_link_options(${PROJECT_NAME}_test PRIVATE
+                -Wl,--wrap=nanosleep)
+    endif ()
+endif ()
+
 add_test(NAME ${PROJECT_NAME}_test COMMAND ${PROJECT_NAME}_test)
 
 SET(MEMORYCHECK_COMMAND_OPTIONS

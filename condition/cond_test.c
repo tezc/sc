@@ -17,8 +17,8 @@ struct sc_thread
 
 #else
 
-    #include <pthread.h>
-    #include <unistd.h>
+#include <pthread.h>
+#include <unistd.h>
 
 struct sc_thread
 {
