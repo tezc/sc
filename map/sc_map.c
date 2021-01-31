@@ -1,5 +1,7 @@
 #include "sc_map.h"
 
+#include <string.h>
+
 #ifndef SC_SIZE_MAX
     #define SC_SIZE_MAX UINT32_MAX
 #endif
