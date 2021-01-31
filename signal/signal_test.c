@@ -86,7 +86,7 @@ void test4()
 }
 
 #else
-void test3()
+void test3((int argc, char **argv)
 {
 }
 void test4()
