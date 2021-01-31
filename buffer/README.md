@@ -10,8 +10,7 @@
 - Integer operations are compiled into bounds check + a single MOV instruction  
   on x86. Buffer keeps data in Little Endian format, so on big endian systems,  
   integer put/get is bswap(byte swap) + MOV.
-- Just copy <b>sc_buf.h</b> and <b>sc_buf.c</b> to your project.
-
+- Max capacity is 4GB. Max string size is ~2 GB
 
 ##### Usage
 
@@ -62,3 +61,69 @@ int main()
     return 0;
 }
 ```
+
+##### Lazy error check
+
+- Rather than checking error code for each   
+  put(Out of memory/limit exceeded) / get(buffer underflow) operation,   
+  error check can be postponed until end of an operation batch.
+
+```c
+
+#include "sc_buf.h"
+#include <stdio.h>
+
+int main()
+{
+    uint32_t val, val2;
+    struct sc_buf buf;
+
+    sc_buf_init(&buf, 0);
+    sc_buf_put_32(&buf, 1);  // Even if we get OOM, it is safe to continue.
+    sc_buf_put_32(&buf, 2);  
+    sc_buf_put_32(&buf, 3);
+    sc_buf_put_32(&buf, 4);
+
+    if (sc_buf_valid(&buf) == false) {
+        printf("OOM!.");
+        exit(EXIT_FAILURE);
+    }
+
+    sc_buf_term(&buf);
+
+    return 0;
+}
+
+```
+
+```c
+
+#include "sc_buf.h"
+#include <stdio.h>
+
+int main()
+{
+    uint32_t val;
+    struct sc_buf buf;
+
+    sc_buf_init(&buf, 0);
+    sc_buf_put_32(&buf, 1); 
+    sc_buf_put_32(&buf, 2);
+    
+    val = sc_buf_get_32(&buf);
+    val = sc_buf_get_32(&buf);
+    val = sc_buf_get_32(&buf); // Buffer underflow here
+    val = sc_buf_get_32(&buf); // Buffer underflow here
+        
+    if (sc_buf_valid(&buf) == false) {
+        printf("Buffer underflow!.");
+        exit(EXIT_FAILURE);
+    }
+
+    sc_buf_term(&buf);
+
+    return 0;
+}
+
+```
+
