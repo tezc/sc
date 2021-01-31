@@ -38,6 +38,31 @@ int __wrap_pthread_mutexattr_init(pthread_mutexattr_t *attr)
 
     return -1;
 }
+
+bool mock_mutexdestroy = false;
+extern int __real_pthread_mutex_destroy(pthread_mutex_t *m);
+int __wrap_pthread_mutex_destroy(pthread_mutex_t *m)
+{
+    int rc;
+
+    rc = __real_pthread_mutex_destroy(m);
+
+    return mock_mutexdestroy ? -1 : rc;
+}
+
+bool mock_mutexinit = false;
+extern int __real_pthread_mutex_init(pthread_mutex_t *__mutex,
+                                     const pthread_mutexattr_t *__mutexattr);
+int __wrap_pthread_mutex_init(pthread_mutex_t *__mutex,
+                              const pthread_mutexattr_t *__mutexattr)
+{
+    if (!mock_mutexinit) {
+        return __real_pthread_mutex_init(__mutex, __mutexattr);
+    }
+
+    return -1;
+}
+
 #endif
 
 int main(int argc, char *argv[])
@@ -47,6 +72,15 @@ int main(int argc, char *argv[])
     mock_attrinit = true;
     assert(sc_mutex_init(&mutex) != 0);
     mock_attrinit = false;
+    assert(sc_mutex_init(&mutex) == 0);
+    mock_mutexdestroy = true;
+    assert(sc_mutex_term(&mutex) == -1);
+    mock_mutexdestroy = false;
+    mock_mutexinit = true;
+    assert(sc_mutex_init(&mutex) != 0);
+    mock_mutexinit = false;
+    assert(sc_mutex_term(&mutex) == 0);
+
 #endif
     assert(sc_mutex_init(&mutex) == 0);
     sc_mutex_lock(&mutex);

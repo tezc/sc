@@ -84,21 +84,30 @@ void test2()
 {
     int *arr;
     int val;
+    bool b;
 
-    assert(sc_array_create(arr, 0) == true);
+    b = sc_array_create(arr, 0);
+    assert(b);
+
     sc_array_foreach (arr, val) {
         assert(true);
     }
     sc_array_destroy(arr);
 
-    assert(sc_array_create(arr, 2) == true);
+    b = sc_array_create(arr, 2);
+    assert(b);
+
     sc_array_foreach (arr, val) {
         assert(true);
     }
     sc_array_destroy(arr);
 
-    assert(sc_array_create(arr, 2) == true);
-    assert(sc_array_add(arr, 1) == true);
+    b = sc_array_create(arr, 2);
+    assert(b);
+
+    b = sc_array_add(arr, 1);
+    assert(b);
+
     sc_array_foreach (arr, val) {
         assert(val == 1);
     }
@@ -107,7 +116,8 @@ void test2()
         assert(true);
     }
 
-    assert(sc_array_add(arr, 1) == true);
+    b = sc_array_add(arr, 1);
+    assert(b == true);
     sc_array_del_unordered(arr, 0);
     sc_array_foreach (arr, val) {
         assert(true);
