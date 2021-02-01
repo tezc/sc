@@ -48,6 +48,7 @@ void test2()
 
 #ifdef SC_HAVE_WRAP
     #include <stdbool.h>
+    #include <stdio.h>
     #include <stdlib.h>
     #include <unistd.h>
     #include <wait.h>
@@ -56,40 +57,182 @@ void sig_handler(int signum)
 {
 }
 
-void test3(int argc, char **argv)
+void test3x(int signal)
 {
-
-
     pid_t pid = fork();
     if (pid == -1) {
         assert(true);
     } else if (pid) {
         int status = 0;
         wait(&status);
-        if (WIFSIGNALED(status)) {
+        if (WEXITSTATUS(status) == -2) {
             return;
         } else {
             assert(true);
         }
     } else {
-        execvp(argv[1], argv + 1);
-        exit(1);
+        printf("Running child \n");
+        raise(signal);
+        printf("Child done \n");
+        exit(-2);
+    }
+}
+
+void test3()
+{
+    test3x(SIGSEGV);
+    test3x(SIGABRT);
+    test3x(SIGBUS);
+    test3x(SIGFPE);
+    test3x(SIGILL);
+    test3x(SIGUSR1);
+}
+
+
+
+void test4x(int signal)
+{
+    pid_t pid = fork();
+    if (pid == -1) {
+        assert(true);
+    } else if (pid) {
+        int status = 0;
+        wait(&status);
+        if (WEXITSTATUS(status) == -2) {
+            return;
+        } else {
+            assert(true);
+        }
+    } else {
+        assert(sc_signal_init() == 0);
+        sc_signal_shutdown_fd = STDOUT_FILENO;
+        printf("Running child \n");
+        raise(signal);
+        sleep(1);
+        printf("Child done \n");
+        exit(-2);
     }
 }
 
 void test4()
 {
-    assert(sc_signal_init() == 0);
-    sc_signal_shutdown_fd = STDOUT_FILENO;
-    raise(SIGINT);
-    sleep(3);
+    test4x(SIGINT);
+    test4x(SIGTERM);
+}
+
+void test5()
+{
+    pid_t pid = fork();
+    if (pid == -1) {
+        assert(true);
+    } else if (pid) {
+        int status = 0;
+        wait(&status);
+        if (WEXITSTATUS(status) == -2) {
+            return;
+        } else {
+            assert(true);
+        }
+    } else {
+        assert(sc_signal_init() == 0);
+        sc_signal_shutdown_fd = STDOUT_FILENO;
+        printf("Running child \n");
+        raise(SIGINT);
+        raise(SIGINT);
+        sleep(1);
+        printf("Child done \n");
+        exit(-2);
+    }
+}
+
+void test6()
+{
+    pid_t pid = fork();
+    if (pid == -1) {
+        assert(true);
+    } else if (pid) {
+        int status = 0;
+        wait(&status);
+        if (WEXITSTATUS(status) == -2) {
+            return;
+        } else {
+            assert(true);
+        }
+    } else {
+        assert(sc_signal_init() == 0);
+        sc_signal_shutdown_fd = 1222;
+        printf("Running child \n");
+        raise(SIGINT);
+        sleep(1);
+        printf("Child done \n");
+        exit(-2);
+    }
+}
+
+void test7()
+{
+    pid_t pid = fork();
+    if (pid == -1) {
+        assert(true);
+    } else if (pid) {
+        int status = 0;
+        wait(&status);
+        if (WEXITSTATUS(status) == -2) {
+            return;
+        } else {
+            assert(true);
+        }
+    } else {
+        assert(sc_signal_init() == 0);
+        printf("Running child \n");
+        raise(SIGINT);
+        sleep(1);
+        printf("Child done \n");
+        exit(-2);
+    }
+}
+
+void test8()
+{
+    pid_t pid = fork();
+    if (pid == -1) {
+        assert(true);
+    } else if (pid) {
+        int status = 0;
+        wait(&status);
+        if (WEXITSTATUS(status) == -2) {
+            return;
+        } else {
+            assert(true);
+        }
+    } else {
+        assert(sc_signal_init() == 0);
+        sc_signal_shutdown_fd = -1;
+        printf("Running child \n");
+        raise(SIGINT);
+        sleep(1);
+        printf("Child done \n");
+        exit(-2);
+    }
 }
 
 #else
-void test3(int argc, char **argv)
+void test3()
 {
 }
 void test4()
+{
+}
+void test5()
+{
+}
+void test6()
+{
+}
+void test7()
+{
+}
+void test8()
 {
 }
 #endif
@@ -98,8 +241,12 @@ int main(int argc, char **argv)
 {
     test1();
     test2();
-    test3(argc, argv);
+    test3();
     test4();
+    test5();
+    test6();
+    test7();
+    test8();
 
     return 0;
 }

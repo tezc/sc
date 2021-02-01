@@ -34,6 +34,7 @@ void test()
 
     sc_rc4_random(&rc4_1, out1, 0);
     sc_rc4_random(&rc4_1, NULL, 0);
+    sc_rc4_random(&rc4_1, NULL, 10);
 }
 
 int main(int argc, char *argv[])

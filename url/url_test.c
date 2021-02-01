@@ -229,6 +229,19 @@ void test12(void)
     sc_url_destroy(url);
 }
 
+void test13(void)
+{
+    struct sc_url *url;
+    const char* f = "foo://user:password@example.com:-1/over/there?x#3";
+    const char* f2 = "foo://user:password@example.com:100000/over/there?x#3";
+
+    url = sc_url_create(f);
+    assert(url == NULL);
+
+    url = sc_url_create(f2);
+    assert(url == NULL);
+}
+
 #ifdef SC_HAVE_WRAP
 
 bool fail_malloc = false;
@@ -251,7 +264,12 @@ void fail_test()
 
     url = sc_url_create("tcp://127.0.0.1");
     assert(url != NULL);
+    sc_url_destroy(url);
 
+    url = sc_url_create("tcp:/127.0.0.1");
+    assert(url != NULL);
+    assert(strcmp(url->scheme, "tcp") == 0);
+    assert(strcmp(url->path, "/127.0.0.1") == 0);
     sc_url_destroy(url);
 }
 #else
@@ -275,6 +293,7 @@ int main(int argc, char *argv[])
     test10();
     test11();
     test12();
+    test13();
     fail_test();
     return 0;
 }

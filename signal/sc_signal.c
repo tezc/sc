@@ -60,7 +60,7 @@ volatile sig_atomic_t sc_signal_will_shutdown;
     (size) == 1 ? va_arg(va, int) :                                            \
                   0
 
-#define PSIZE sizeof(void*) == sizeof(unsigned long long) ? 3 : 2
+#define PSIZE sizeof(void *) == sizeof(unsigned long long) ? 3 : 2
 
 int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
 {
@@ -102,7 +102,7 @@ int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
 
                 } else if (*pos == 'd') {
                     int64_t i64 = get_int(va, pos - orig);
-                    uint64_t u64 = (uint64_t) (i64 < 0 ? -i64 : i64);
+                    uint64_t u64 = (uint64_t)(i64 < 0 ? -i64 : i64);
 
                     do {
                         digits[31 - (len++)] = (char) ('0' + (char) (u64 % 10));
@@ -294,7 +294,7 @@ int sc_signal_init()
 
 #else
 
-    // clang-format off
+// clang-format off
 #include <unistd.h>
 
 #ifdef HAVE_BACKTRACE
@@ -357,7 +357,7 @@ static void sc_signal_on_shutdown(int sig)
 {
     int rc;
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDOUT_FILENO;
-    char buf[4096], *sig_str;
+    char buf[4096], *sig_str = "Shutdown signal";
 
     switch (sig) {
     case SIGINT:
@@ -366,15 +366,15 @@ static void sc_signal_on_shutdown(int sig)
     case SIGTERM:
         sig_str = "SIGTERM";
         break;
-    default:
-        sig_str = "Shutdown signal";
-        break;
     }
 
     sc_signal_log(fd, buf, sizeof(buf), "Received : %s, (%d) \n", sig_str, sig);
 
     if (sc_signal_will_shutdown != 0) {
         sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
+#ifdef SC_SIGNAL_TEST
+        return;
+#endif
         _Exit(1);
     }
 
@@ -387,11 +387,17 @@ static void sc_signal_on_shutdown(int sig)
             sc_signal_log(fd, buf, sizeof(buf),
                           "Failed to send shutdown command, "
                           "shutting down immediately! \n");
+#ifdef SC_SIGNAL_TEST
+            return;
+#endif
             _Exit(1);
         }
     } else {
         sc_signal_log(fd, buf, sizeof(buf),
                       "No shutdown handler, shutting down! \n");
+#ifdef SC_SIGNAL_TEST
+        return;
+#endif
         _Exit(0);
     }
 }
@@ -402,7 +408,7 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
 
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDERR_FILENO;
 
-    char buf[4096], *sig_str;
+    char buf[4096], *sig_str = "unknown signal";
     struct sigaction act;
 
     switch (sig) {
@@ -420,9 +426,6 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
         break;
     case SIGILL:
         sig_str = "SIGILL";
-        break;
-    default:
-        sig_str = "Unknown signal";
         break;
     }
 
@@ -453,7 +456,9 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     act.sa_handler = SIG_DFL;
     sigaction(sig, &act, NULL);
 
+    #ifndef SC_SIGNAL_TEST
     kill(getpid(), sig);
+    #endif
 }
 
 int sc_signal_init()
