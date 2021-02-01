@@ -190,6 +190,45 @@ void test3(void)
     sc_timer_term(&timer);
 }
 
+void test4(void)
+{
+    struct sc_timer timer;
+
+    assert(sc_timer_init(&timer, 0));
+    for (int i = 0; i < 1000; i++) {
+        ids[i] = sc_timer_add(&timer,  rand() % 20, i, (void *) (uintptr_t) i);
+        assert(ids[i] != SC_TIMER_INVALID);
+    }
+
+    for (int i = 0; i < 1000; i += 2) {
+        sc_timer_cancel(&timer, &ids[i]);
+    }
+
+    assert(timer.count == 500);
+    sc_timer_cancel(&timer, &ids[0]);
+    assert(timer.count == 500);
+
+    int t = 10000;
+    uint32_t n;
+    int x = 0;
+    while (t > 0) {
+        x+= 500;
+        n = sc_timer_timeout(&timer, x, (void *) (uintptr_t) 333,
+                             callback);
+        if (timer.count == 0) {
+            break;
+        }
+        t -= n;
+        sleep_ms(n);
+    }
+
+    for (int i = 0; i < 500; i++) {
+        assert(ids[i] == SC_TIMER_INVALID);
+    }
+
+    sc_timer_term(&timer);
+}
+
 #ifdef SC_HAVE_WRAP
 
 bool fail_malloc = false;
@@ -252,6 +291,7 @@ int main(int argc, char *argv[])
     test1();
     test2();
     test3();
+    test4();
 
     return 0;
 }
