@@ -170,18 +170,18 @@ void sc_timer_cancel(struct sc_timer *timer, uint64_t *id)
     *id = SC_TIMER_INVALID;
 }
 
+#define sc_timer_min(a, b) (a) < (b) ? (a) : (b)
+
 uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
                           void (*callback)(void *, uint64_t, uint64_t, void *))
 {
-#define min(a, b) (a) < (b) ? (a) : (b)
-
     const uint64_t time = timestamp - timer->timestamp;
     uint32_t wheel, base;
     uint32_t head = timer->head;
-    uint32_t wheels = (uint32_t) (min(time / TICK, WHEEL_COUNT));
+    uint32_t wheels = (uint32_t) (sc_timer_min(time / TICK, WHEEL_COUNT));
 
     if (wheels == 0) {
-        return min(TICK - time, TICK);
+        return sc_timer_min(TICK - time, TICK);
     }
 
     timer->timestamp = timestamp;
@@ -211,5 +211,5 @@ uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
         head = (head + 1) & (WHEEL_COUNT - 1);
     }
 
-    return min(TICK - time, TICK);
+    return sc_timer_min(TICK - time, TICK);
 }
