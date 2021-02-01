@@ -50,7 +50,7 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
             "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-omit-frame-pointer)
-        target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP -DSC_SIGNAL_TEST)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
     endif ()
 endif ()
