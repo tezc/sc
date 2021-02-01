@@ -137,6 +137,28 @@ void test5()
     }
 }
 
+void test6()
+{
+    char *value;
+    int argc = 2;
+    char *argv[] = {"program", "-j9"};
+
+    struct sc_option opt = {.argv = argv,
+            .count = sizeof(options) / sizeof(struct sc_option_item),
+            .options = options};
+
+    for (int i = 1; i < argc; i++) {
+        char c = sc_option_at(&opt, i, &value);
+        switch (c) {
+        case '?':
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+}
+
 int main(int argc, char *argv[])
 {
     test1();
@@ -144,6 +166,7 @@ int main(int argc, char *argv[])
     test3();
     test4();
     test5();
+    test6();
 
     return 0;
 }
