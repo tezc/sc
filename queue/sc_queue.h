@@ -33,10 +33,10 @@
 #include <string.h>
 
 #ifdef SC_HAVE_CONFIG_H
-#include "sc_config.h"
+    #include "sc_config.h"
 #else
-#define sc_queue_realloc realloc
-#define sc_queue_free    free
+    #define sc_queue_realloc realloc
+    #define sc_queue_free    free
 #endif
 
 /**
@@ -47,7 +47,7 @@ struct sc_queue
     size_t cap;
     size_t first;
     size_t last;
-    uint8_t elems[];
+    unsigned char elems[];
 };
 
 #define sc_queue_meta(q)                                                       \
@@ -87,23 +87,22 @@ static inline size_t sc_queue_dec_last(void *q)
     return meta->last;
 }
 
-bool sc_queue_init(void **q, size_t elem_size, size_t cap);
-void sc_queue_term(void **q);
-bool sc_queue_expand(void **q, size_t elem_size);
+bool sc_queue_init(void *q, size_t elem_size, size_t cap);
+void sc_queue_term(void *q);
+bool sc_queue_expand(void *q, size_t elem_size);
 
 /**
  *   @param q     Queue pointer
  *   @param count Initial capacity, '0' is a valid value if you don't want to
  *                allocate memory immediately.
  */
-#define sc_queue_create(q, count)                                              \
-    sc_queue_init((void **) &(q), sizeof(*(q)), count)
+#define sc_queue_create(q, count) sc_queue_init(&(q), sizeof(*(q)), count)
 
 /**
  *   Deallocate underlying memory.
  *   @param q Queue pointer
  */
-#define sc_queue_destroy(q) sc_queue_term(((void **) &(q)))
+#define sc_queue_destroy(q) sc_queue_term((&(q)))
 
 /**
  *   @param q Queue pointer
@@ -187,7 +186,7 @@ bool sc_queue_expand(void **q, size_t elem_size);
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_last(q, elem)                                             \
-    sc_queue_expand((void **) &(q), sizeof(*(q))) == true ?                    \
+    sc_queue_expand(&(q), sizeof(*(q))) == true ?                              \
             (q)[sc_queue_inc_last((q))] = (elem),                              \
             true : false
 
@@ -204,7 +203,7 @@ bool sc_queue_expand(void **q, size_t elem_size);
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_first(q, elem)                                            \
-    sc_queue_expand((void **) &(q), sizeof(*(q))) == true ?                    \
+    sc_queue_expand(&(q), sizeof(*(q))) == true ?                              \
             (q)[sc_queue_dec_first((q))] = (elem),                             \
             true : false
 

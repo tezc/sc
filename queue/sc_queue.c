@@ -54,58 +54,61 @@ static void *queue_alloc(void *prev, size_t elem_size, size_t *cap)
     return sc_queue_realloc(prev, alloc);
 }
 
-bool sc_queue_init(void **q, size_t elem_size, size_t cap)
+bool sc_queue_init(void *q, size_t elem_size, size_t cap)
 {
     size_t p = cap;
+    void **ptr = q;
     struct sc_queue *meta;
 
     if (cap == 0) {
-        *q = (void *) sc_empty.elems;
+        *ptr = (void *) sc_empty.elems;
         return true;
     }
 
     meta = queue_alloc(NULL, elem_size, &p);
     if (meta == NULL) {
-        *q = NULL;
+        *ptr = NULL;
         return false;
     }
 
     meta->cap = p;
     meta->first = 0;
     meta->last = 0;
-    *q = meta->elems;
+    *ptr = meta->elems;
 
     return true;
 }
 
-void sc_queue_term(void **q)
+void sc_queue_term(void *q)
 {
     struct sc_queue *meta;
+    void **ptr = q;
 
-    if (*q == NULL) {
+    if (*ptr == NULL) {
         return;
     }
 
-    meta = sc_queue_meta(*q);
+    meta = sc_queue_meta(*ptr);
 
     if (meta != &sc_empty) {
         sc_queue_free(meta);
     }
 
-    *q = NULL;
+    *ptr = NULL;
 }
 
-bool sc_queue_expand(void **q, size_t elem_size)
+bool sc_queue_expand(void *q, size_t elem_size)
 {
+    void **ptr = q;
     struct sc_queue *tmp;
-    struct sc_queue *meta = sc_queue_meta(*q);
+    struct sc_queue *meta = sc_queue_meta(*ptr);
     size_t cap, count, size;
     size_t pos = (meta->last + 1) & (meta->cap - 1);
     uint8_t *e;
 
     if (pos == meta->first) {
         if (meta == &sc_empty) {
-            return sc_queue_init(q, elem_size, 4);
+            return sc_queue_init(ptr, elem_size, 4);
         }
 
         cap = meta->cap * 2;
@@ -141,7 +144,7 @@ bool sc_queue_expand(void **q, size_t elem_size)
         tmp->last = tmp->cap - 1;
         tmp->first = 0;
         tmp->cap = cap;
-        *q = tmp->elems;
+        *ptr = tmp->elems;
     }
 
     return true;
