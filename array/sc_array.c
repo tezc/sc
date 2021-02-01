@@ -25,7 +25,7 @@
 #include "sc_array.h"
 
 #ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX SIZE_MAX
+    #define SC_SIZE_MAX SIZE_MAX
 #endif
 
 
@@ -36,53 +36,56 @@
  */
 static const struct sc_array sc_empty = {.size = 0, .cap = 0};
 
-bool sc_array_init(void **arr, size_t elem_size, size_t cap)
+bool sc_array_init(void *arr, size_t elem_size, size_t cap)
 {
     const size_t max = SC_SIZE_MAX / elem_size;
     size_t bytes;
+    void **p = arr;
     struct sc_array *meta;
 
     if (cap == 0) {
-        *arr = (void *) sc_empty.elems;
+        *p = (void *) sc_empty.elems;
         return true;
     }
 
     // Check overflow
     if (cap > max) {
-        *arr = NULL;
+        *p = NULL;
         return false;
     }
 
     bytes = sizeof(*meta) + (elem_size * cap);
     meta = sc_array_realloc(NULL, bytes);
     if (meta == NULL) {
-        *arr = NULL;
+        *p = NULL;
         return false;
     }
 
     meta->size = 0;
     meta->cap = cap;
-    *arr = meta->elems;
+    *p = meta->elems;
 
     return true;
 }
 
-void sc_array_term(void **arr)
+void sc_array_term(void *arr)
 {
-    struct sc_array *meta = sc_array_meta(*arr);
+    void **p = arr;
+    struct sc_array *meta = sc_array_meta(*p);
 
     if (meta != &sc_empty) {
         sc_array_free(meta);
     }
 
-    *arr = NULL;
+    *p = NULL;
 }
 
-bool sc_array_expand(void **arr, size_t elem_size)
+bool sc_array_expand(void *arr, size_t elem_size)
 {
     const size_t max = SC_SIZE_MAX / elem_size;
     size_t size, cap, bytes;
-    struct sc_array *prev, *meta = sc_array_meta(*arr);
+    void **p = arr;
+    struct sc_array *prev, *meta = sc_array_meta(*p);
 
     if (meta->size == meta->cap) {
 
@@ -95,7 +98,7 @@ bool sc_array_expand(void **arr, size_t elem_size)
         cap = (meta != &sc_empty) ? meta->cap * 2 : 2;
         prev = (meta != &sc_empty) ? meta : NULL;
 
-        bytes =  sizeof(*meta) + (elem_size * cap);
+        bytes = sizeof(*meta) + (elem_size * cap);
         meta = sc_array_realloc(prev, bytes);
         if (meta == NULL) {
             return false;
@@ -103,7 +106,7 @@ bool sc_array_expand(void **arr, size_t elem_size)
 
         meta->size = size;
         meta->cap = cap;
-        *arr = meta->elems;
+        *p = meta->elems;
     }
 
     return true;

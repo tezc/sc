@@ -46,15 +46,15 @@ struct sc_array
 {
     size_t size;
     size_t cap;
-    uint8_t elems[];
+    unsigned char elems[];
 };
 
 #define sc_array_meta(arr)                                                     \
     ((struct sc_array *) ((char *) (arr) -offsetof(struct sc_array, elems)))
 
-bool sc_array_init(void **arr, size_t elem_size, size_t cap);
-void sc_array_term(void **arr);
-bool sc_array_expand(void **arr, size_t elem_size);
+bool sc_array_init(void *arr, size_t elem_size, size_t cap);
+void sc_array_term(void *arr);
+bool sc_array_expand(void *arr, size_t elem_size);
 
 /**
  * Internal End.
@@ -66,13 +66,12 @@ bool sc_array_expand(void **arr, size_t elem_size);
  *              memory allocation will be made until first 'add' operation.
  *   @return   'true' on success, 'false' on out of memory
  */
-#define sc_array_create(arr, cap)                                              \
-    sc_array_init((void **) &(arr), sizeof(*(arr)), cap)
+#define sc_array_create(arr, cap) sc_array_init(&(arr), sizeof(*(arr)), cap)
 
 /**
  *   @param arr Array
  */
-#define sc_array_destroy(arr) sc_array_term((void **) &(arr));
+#define sc_array_destroy(arr) sc_array_term(&(arr));
 
 /**
  *   @param arr Array
@@ -100,8 +99,9 @@ bool sc_array_expand(void **arr, size_t elem_size);
  *               to expand underlying memory.
  */
 #define sc_array_add(arr, elem)                                                \
-    sc_array_expand((void **) &((arr)), sizeof(*(arr))) == true ?              \
-            (arr)[sc_array_meta(arr)->size++] = (elem), true : false
+    sc_array_expand(&((arr)), sizeof(*(arr))) == true ?                        \
+            (arr)[sc_array_meta(arr)->size++] = (elem),                        \
+            true : false
 
 
 /**
@@ -168,7 +168,7 @@ bool sc_array_expand(void **arr, size_t elem_size);
  *  @param value Value
  */
 #define sc_array_foreach(arr, value)                                           \
-    for (int _k = 1, _i = 0; _k && _i != sc_array_size(arr); _k = !_k, _i++)  \
+    for (int _k = 1, _i = 0; _k && _i != sc_array_size(arr); _k = !_k, _i++)   \
         for ((value) = (arr)[_i]; _k; _k = !_k)
 
 /**
