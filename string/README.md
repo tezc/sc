@@ -9,7 +9,7 @@ Length prefixed C strings, length is at the start of the allocated memory
                     ^
                   return
     User can keep pointer to first character, so it's like C style strings with
-    additional functionality when it's used with these functions here.
+    additional functionality.
 
 ##### Pros
 - User gets a null terminated `char*`, so it still works with c style string  

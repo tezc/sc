@@ -2,12 +2,7 @@
 
 ### Overview
 
-- Simple ini file parser
-- Just copy <b>sc_ini.h</b> and <b>sc_ini.c</b> to your project.
-
-#### Memory
-
-- No heap memory allocation internally.
+- Ini file parser
 
 #### Features
 

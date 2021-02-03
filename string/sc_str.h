@@ -38,7 +38,7 @@
 #endif
 
 /**
- * Length prefixed C strings, length is at the start of the allocated memory
+ * length prefixed C strings, length is at the start of the allocated memory
  *  e.g :
  *  -----------------------------------------------
  *  | 0 | 0 | 0 | 4 | 'T' | 'E' | 'S' | 'T' | '\0'|
@@ -52,51 +52,51 @@
 
 /**
  * @param str '\0' terminated C string, must not be NULL.
- * @return    Length prefixed string. NULL on out of memory.
+ * @return    length prefixed string. NULL on out of memory.
  */
 char *sc_str_create(const char *str);
 
 /**
  * @param str C string, no need for '\0' termination, must not be NULL.
- * @param len Length of the 'str'.
- * @return    Length prefixed string. NULL on out of memory.
+ * @param len length of the 'str'.
+ * @return    length prefixed string. NULL on out of memory.
  */
 char *sc_str_create_len(const char *str, uint32_t len);
 
 /**
  * printf-style string creation.
  *
- * @param fmt Format
- * @param ... Arguments
- * @return    Length prefixed string. NULL on out of memory.
+ * @param fmt format
+ * @param ... arguments
+ * @return    length prefixed string. NULL on out of memory.
  */
 char *sc_str_create_fmt(const char *fmt, ...);
 
 /**
  * vprintf-style string creation.
  *
- * @param fmt Format
+ * @param fmt format
  * @param va  va_list
- * @return    Length prefixed string. NULL on out of memory.
+ * @return    length prefixed string. NULL on out of memory.
  */
 char *sc_str_create_va(const char *fmt, va_list va);
 
 /**
  * Deallocate length prefixed string.
  *
- * @param str Length prefixed string. NULL values are accepted.
+ * @param str length prefixed string. NULL values are accepted.
  */
 void sc_str_destroy(char *str);
 
 /**
- * @param str Length prefixed string. NULL values are accepted.
- * @return    Length of the string. If NULL, '-1' will be returned.
+ * @param str length prefixed string. NULL values are accepted.
+ * @return    length of the string. If NULL, '-1' will be returned.
  */
 int64_t sc_str_len(const char *str);
 
 /**
- * @param str Length prefixed string. NULL values are accepted.
- * @return    Length of the duplicate. NULL on out of memory.
+ * @param str length prefixed string. NULL values are accepted.
+ * @return    length of the duplicate. NULL on out of memory.
  */
 char *sc_str_dup(const char *str);
 
@@ -109,26 +109,26 @@ char *sc_str_dup(const char *str);
 bool sc_str_set(char **str, const char *param);
 
 /**
- * @param str Pointer to length prefixed string.
- * @param fmt Format
- * @param ... Arguments
+ * @param str pointer to length prefixed string.
+ * @param fmt format
+ * @param ... arguments
  * @return    'false' on out of memory, previous value will remain intact.
  *            'true' on success, '*str' may change.
  */
 bool sc_str_set_fmt(char **str, const char *fmt, ...);
 
 /**
- * @param str  Pointer to length prefixed string.
- * @param text Text to append.
+ * @param str  pointer to length prefixed string.
+ * @param text text to append.
  * @return     'false' on out of memory, previous value will remain intact.
  *             'true' on success, '*str' may change.
  */
 bool sc_str_append(char **str, const char *text);
 
 /**
- * @param str Pointer to length prefixed string. (char**).
- * @param fmt Format
- * @param ... Arguments
+ * @param str pointer to length prefixed string. (char**).
+ * @param fmt format
+ * @param ... arguments
  * @return    'false' on out of memory, previous value will remain intact.
  *            'true' on success, '*str' may change.
  */
@@ -139,8 +139,8 @@ bool sc_str_append(char **str, const char *text);
  * Compare two length prefixed string. If you want to compare with regular
  * C string, use strcmp().
  *
- * @param str   Length prefixed string, must not be NULL.
- * @param other Length prefixed string, must not be NULL.
+ * @param str   length prefixed string, must not be NULL.
+ * @param other length prefixed string, must not be NULL.
  * @return      'true' if equals.
  */
 bool sc_str_cmp(const char *str, const char *other);
@@ -167,26 +167,26 @@ bool sc_str_cmp(const char *str, const char *other);
  * sc_str_token_end(str, &save);
  *
  *
- * @param str   Length prefixed string, must not be NULL.
- * @param save  Helper variable for tokenizer code.
- * @param delim Delimiter list.
- * @return      Token.
+ * @param str   length prefixed string, must not be NULL.
+ * @param save  helper variable for tokenizer code.
+ * @param delim delimiter list.
+ * @return      token.
  */
 const char *sc_str_token_begin(char *str, char **save, const char *delim);
 void sc_str_token_end(char *str, char **save);
 
 /**
- * @param str  Length prefixed string, must not be NULL.
- * @param list Character list to trim.
+ * @param str  length prefixed string, must not be NULL.
+ * @param list character list to trim.
  * @return     'false' on out of memory, previous value will remain intact.
  *             'true' on success, '*str' may change.
  */
 bool sc_str_trim(char **str, const char *list);
 
 /**
- * @param str   Length prefixed string, must not be NULL.
- * @param start Start index.
- * @param end   End index.
+ * @param str   length prefixed string, must not be NULL.
+ * @param start start index.
+ * @param end   end index.
  * @return      'false' on out of range.
  *              'false' on out of memory, previous value will remain intact.
  *              'true' on success, '*str' may change.
@@ -195,9 +195,9 @@ bool sc_str_substring(char **str, uint32_t start, uint32_t end);
 
 /**
  *
- * @param str  Length prefixed string, must not be NULL.
- * @param rep  String to be replaced
- * @param with String to replace with
+ * @param str  length prefixed string, must not be NULL.
+ * @param rep  string to be replaced
+ * @param with string to replace with
  * @return     'false' on out of memory, previous value will remain intact.
  *             'true' on success, '*str' may change.
  */

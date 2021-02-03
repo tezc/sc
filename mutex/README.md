@@ -3,33 +3,21 @@
 ### Mutex wrapper 
 
 - Basic mutex wrapper for Unixes and Windows.
-- Just copy <b>sc_mutex.h</b> and <b>sc_mutex.c</b> to your project.
 
 ```c
 
-#include "sc_mmap.h"
-
-#include <assert.h>
-#include <stdio.h>
+#include "sc_mutex.h"
 
 int main(int argc, char *argv[])
 {
-    int rc;
-    struct sc_mmap mmap;
+    struct sc_mutex mutex;
 
-    rc = sc_mmap_init(&mmap, "x.txt", O_RDWR | O_CREAT | O_TRUNC,
-                      PROT_READ | PROT_WRITE, MAP_SHARED, 0, 15000);
-    assert(rc == 0);
+    sc_mutex_init(&mutex);
 
-    void* ptr = mmap.ptr;
-    size_t mapped_len = mmap.len;
+    sc_mutex_lock(&mutex);
+    sc_mutex_unlock(&mutex);
 
-    printf("mapped len : %zu \n", mapped_len);
-
-    *(char*)ptr = 't';
-
-    sc_mmap_msync(&mmap, 0, 4096);
-    sc_mmap_term(&mmap);
+    sc_mutex_term(&mutex);
 
     return 0;
 }

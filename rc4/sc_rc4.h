@@ -33,7 +33,7 @@ struct sc_rc4
 /**
  *
  * @param rc4  rc4
- * @param rand rand source, possible from /dev/urandom
+ * @param rand rand source, possibly from /dev/urandom
  */
 void sc_rc4_init(struct sc_rc4 *rc4, const unsigned char rand[256]);
 

@@ -8,7 +8,6 @@
 - Single allocation for all the data.
 - Keeps separate first and last element indexes, when you remove an element,  
   it doesn't move elements to fill the space.
-- Just copy <b>sc_queue.h</b> and <b>sc_queue.c</b> to your project.
 
 
 ##### Usage
@@ -49,7 +48,7 @@ int main(int argc, char *argv[])
 
 ##### Note
 
-Queue pointer is not stable, it may change if we expand the memory. If you  
+Queue pointer is not stable, it may change if it expands the memory. If you  
 pass the queue to another function which can add items, do it by passing  
 reference of the queue pointer.
 

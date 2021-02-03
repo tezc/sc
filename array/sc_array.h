@@ -61,40 +61,40 @@ bool sc_array_expand(void *arr, size_t elem_size);
  */
 
 /**
- *   @param arr Array
- *   @param cap Initial capacity. '0' is a valid initial capacity, then no
+ *   @param arr array
+ *   @param cap initial capacity. '0' is a valid initial capacity, then no
  *              memory allocation will be made until first 'add' operation.
  *   @return   'true' on success, 'false' on out of memory
  */
 #define sc_array_create(arr, cap) sc_array_init(&(arr), sizeof(*(arr)), cap)
 
 /**
- *   @param arr Array
+ *   @param arr array
  */
 #define sc_array_destroy(arr) sc_array_term(&(arr));
 
 /**
- *   @param arr Array
- *   @return    Current allocated capacity
+ *   @param arr array
+ *   @return    current allocated capacity
  */
 #define sc_array_cap(arr) (sc_array_meta((arr))->cap)
 
 /**
- *   @param arr Array
- *   @return    Current element count
+ *   @param arr array
+ *   @return    current element count
  */
 #define sc_array_size(arr) (sc_array_meta((arr))->size)
 
 /**
  *   Deletes items from the array without deallocating underlying memory
  *
- *   @param arr Array pointer
+ *   @param arr array
  */
 #define sc_array_clear(arr) (sc_array_meta((arr))->size = 0)
 
 /**
- *   @param v    Array
- *   @param elem Element to be appended
+ *   @param v    array
+ *   @param elem element to be appended
  *   @return     'true' on success, 'false' if memory allocation fails if we try
  *               to expand underlying memory.
  */
@@ -110,8 +110,8 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *
  *   vec[a,b,c,d,e,f] -> sc_array_del(vec, 2) - > vec[a,b,d,f,e]
  *
- *   @param arr Array pointer
- *   @param i   Element index
+ *   @param arr array
+ *   @param i   index
  *
  *   If 'i' is out of the range, result is undefined.
  */
@@ -132,8 +132,8 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *
  *   arr[a,b,c,d,e,f] -> sc_array_del_unordered(vec, 2) - > arr[a,b,f,d,e]
  *
- *   @param arr Array pointer
- *   @param i   Element index
+ *   @param arr array
+ *   @param i   index
  *
  *   If 'i' is out of the range, result is undefined.
  */
@@ -147,7 +147,7 @@ bool sc_array_expand(void *arr, size_t elem_size);
 /**
  *   Deletes the last element. If there is no element in the array, result is
  *   undefined.
- *   @param arr Array pointer
+ *   @param arr array
  */
 #define sc_array_del_last(arr)                                                 \
     do {                                                                       \
@@ -157,15 +157,15 @@ bool sc_array_expand(void *arr, size_t elem_size);
 
 /**
  *   Sorts the array using qsort()
- *   @param arr Array pointer
- *   @param cmp Comparator, check qsort docs online for details
+ *   @param arr array
+ *   @param cmp comparator, check qsort docs online for details
  */
 #define sc_array_sort(arr, cmp)                                                \
     (qsort((arr), sc_array_size((arr)), sizeof(*(arr)), cmp))
 
 /**
- *  @param arr   Array Pointer
- *  @param value Value
+ *  @param arr   array
+ *  @param value value
  */
 #define sc_array_foreach(arr, value)                                           \
     for (int _k = 1, _i = 0; _k && _i != sc_array_size(arr); _k = !_k, _i++)   \

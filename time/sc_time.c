@@ -127,17 +127,17 @@ uint64_t sc_time_mono_ns()
 #endif
 }
 
-int sc_time_sleep(uint64_t milliseconds)
+int sc_time_sleep(uint64_t millis)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    Sleep(milliseconds);
+    Sleep((DWORD) millis);
     return 0;
 #else
     int rc;
     struct timespec t, rem;
 
-    rem.tv_sec = milliseconds / 1000;
-    rem.tv_nsec = (milliseconds % 1000) * 1000000;
+    rem.tv_sec = millis / 1000;
+    rem.tv_nsec = (millis % 1000) * 1000000;
 
     do {
         t = rem;

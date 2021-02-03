@@ -55,6 +55,7 @@ char *sc_math_bytes_to_size(char *buf, size_t max, uint64_t val);
 
 /**
  * Human readable string to bytes, e.g 10 KB to 10240 bytes.
+ *
  * @param buf buf to write output
  * @return    positive value on success, '-1' on error
  */

@@ -10,7 +10,7 @@
 - Integer operations are compiled into bounds check + a single MOV instruction  
   on x86. Buffer keeps data in Little Endian format, so on big endian systems,  
   integer put/get is bswap(byte swap) + MOV.
-- Max capacity is 4GB. Max string size is ~2 GB
+- Max capacity is 4GB. Max string size is a little less than 2 GB
 
 ##### Usage
 

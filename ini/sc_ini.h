@@ -36,21 +36,21 @@
 #define SC_INI_MAX_LINE_LEN 1024
 
 /**
- * @param arg      user arg.
+ * @param arg      user arg
  * @param line     current line number
- * @param section  section.
- * @param key      key.
- * @param value    value.
+ * @param section  section
+ * @param key      key
+ * @param value    value
  * @return         Return '0' on success, any other value will make parser
- *                 stop and return error.
+ *                 stop and return error
  */
 typedef int (*sc_ini_on_item)(void *arg, int line, const char *section,
                               const char *key, const char *value);
 
 /**
- * @param arg      User data to be passed to 'on_item' callback.
- * @param on_item  Callback.
- * @param filename File name.
+ * @param arg      user data to be passed to 'on_item' callback
+ * @param on_item  callback
+ * @param filename filename
  * @return         - '0' on success,
  *                 - '-1' on file IO error.
  *                 - positive line number on parsing error
@@ -59,12 +59,12 @@ typedef int (*sc_ini_on_item)(void *arg, int line, const char *section,
 int sc_ini_parse_file(void *arg, sc_ini_on_item on_item, const char *filename);
 
 /**
- * @param arg      User data to be passed to 'on_item' callback.
- * @param on_item  Callback
- * @param str      String to parse
+ * @param arg      user data to be passed to 'on_item' callback.
+ * @param on_item  callback
+ * @param str      string to parse
  * @return         - '0' on success,
  *                 - positive line number on parsing error
- *                 - 'on_item' return value if it returns other than '0'
+ *                 - "on_item's return value" if it returns other than '0'
  */
 int sc_ini_parse_string(void *arg, sc_ini_on_item on_item, const char *str);
 

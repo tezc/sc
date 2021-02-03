@@ -157,13 +157,16 @@ int sc_sock_term(struct sc_sock *sock)
 int sc_sock_set_rcvtimeo(struct sc_sock *sock, int ms)
 {
     int rc;
+    void *p;
 
     struct timeval tv = {
             .tv_usec = ms % 1000,
             .tv_sec = ms / 1000,
     };
 
-    rc = setsockopt(sock->fdt.fd, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    p = (void *) &tv;
+
+    rc = setsockopt(sock->fdt.fd, SOL_SOCKET, SO_RCVTIMEO, p, sizeof(tv));
     if (rc != 0) {
         sc_sock_errstr(sock, 0);
     }
@@ -174,13 +177,16 @@ int sc_sock_set_rcvtimeo(struct sc_sock *sock, int ms)
 int sc_sock_set_sndtimeo(struct sc_sock *sock, int ms)
 {
     int rc;
+    void *p;
 
     struct timeval tv = {
             .tv_usec = ms % 1000,
             .tv_sec = ms / 1000,
     };
 
-    rc = setsockopt(sock->fdt.fd, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv));
+    p = (void *) &tv;
+
+    rc = setsockopt(sock->fdt.fd, SOL_SOCKET, SO_SNDTIMEO, p, sizeof(tv));
     if (rc != 0) {
         sc_sock_errstr(sock, 0);
     }
@@ -252,6 +258,9 @@ error_unix:
     }
 
     for (struct addrinfo *p = servinfo; p != NULL; p = p->ai_next) {
+        void *tmp;
+        const int tsz = sizeof(int);
+
         sc_sock_int fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (fd == SC_INVALID) {
             continue;
@@ -260,8 +269,8 @@ error_unix:
         sock->fdt.fd = fd;
 
         if (sock->family == AF_INET6) {
-            rc = setsockopt(sock->fdt.fd, IPPROTO_IPV6, IPV6_V6ONLY, &(int){1},
-                            sizeof(int));
+            tmp = (void *) &(int){1};
+            rc = setsockopt(sock->fdt.fd, IPPROTO_IPV6, IPV6_V6ONLY, tmp, tsz);
             if (rc != 0) {
                 goto error;
             }
@@ -272,12 +281,13 @@ error_unix:
             goto error;
         }
 
-        rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
+        tmp = (void *) &(int){1};
+        rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, tmp, sizeof(int));
         if (rc != 0) {
             goto error;
         }
 
-        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int));
+        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, tmp, sizeof(int));
         if (rc != 0) {
             goto error;
         }
@@ -292,7 +302,7 @@ error_unix:
             goto error;
         }
 
-        rc = bind(sock->fdt.fd, p->ai_addr, p->ai_addrlen);
+        rc = bind(sock->fdt.fd, p->ai_addr, (socklen_t) p->ai_addrlen);
         if (rc == -1) {
             goto error;
         }
@@ -398,6 +408,7 @@ error_unix:
     }
 
     for (p = servinfo; p != NULL; p = p->ai_next) {
+        void *tmp;
         sc_sock_int fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (fd == SC_INVALID) {
             continue;
@@ -411,12 +422,13 @@ error_unix:
             goto error;
         }
 
-        rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, &(int){1}, sizeof(int));
+        tmp = (void *) &(int){1};
+        rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, tmp, sizeof(int));
         if (rc != 0) {
             goto error;
         }
 
-        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int));
+        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, tmp, sizeof(int));
         if (rc != 0) {
             goto error;
         }
@@ -439,7 +451,7 @@ error_unix:
             }
 
             for (s = bindinfo; s != NULL; s = s->ai_next) {
-                rc = bind(sock->fdt.fd, s->ai_addr, s->ai_addrlen);
+                rc = bind(sock->fdt.fd, s->ai_addr, (socklen_t) s->ai_addrlen);
                 if (rc != -1) {
                     break;
                 }
@@ -452,7 +464,7 @@ error_unix:
             }
         }
 
-        rc = connect(sock->fdt.fd, p->ai_addr, p->ai_addrlen);
+        rc = connect(sock->fdt.fd, p->ai_addr, (socklen_t) p->ai_addrlen);
         if (rc != 0) {
             if (!sock->blocking && (sc_sock_err() == SC_EINPROGRESS ||
                                     sc_sock_err() == SC_EAGAIN)) {
@@ -549,6 +561,7 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
 
     int rc;
     sc_sock_int fd;
+    void *tmp;
 
     fd = accept(sock->fdt.fd, NULL, NULL);
     if (fd == SC_INVALID) {
@@ -561,7 +574,8 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in)
     in->family = sock->family;
 
     if (in->family != AF_UNIX) {
-        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, &(int){1}, sizeof(int));
+        tmp = (void *) &(int){1};
+        rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, tmp, sizeof(int));
         if (rc != 0) {
             goto error;
         }
@@ -805,24 +819,24 @@ int sc_sock_pipe_term(struct sc_sock_pipe *p)
     return rc;
 }
 
-int sc_sock_pipe_write(struct sc_sock_pipe *p, void *data, int len)
+int sc_sock_pipe_write(struct sc_sock_pipe *p, void *data, unsigned int len)
 {
     int rc;
 
     rc = send(p->fds[1], data, len, 0);
-    if (rc == SOCKET_ERROR || rc != len) {
+    if (rc == SOCKET_ERROR || (unsigned int) rc != len) {
         sc_sock_on_error("pipe send() : errcode(%d) ", WSAGetLastError());
     }
 
     return rc;
 }
 
-int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, int len)
+int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, unsigned int len)
 {
     int rc;
 
     rc = recv(p->fds[0], (char *) data, len, 0);
-    if (rc == SOCKET_ERROR || rc != len) {
+    if (rc == SOCKET_ERROR || (unsigned int) rc != len) {
         sc_sock_on_error("pipe recv() : errcode(%d) ", WSAGetLastError());
     }
 
@@ -1360,7 +1374,7 @@ int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
 
         for (size_t i = 0; i < poll->cap; i++) {
             if (poll->events[i].fd == SC_INVALID) {
-                index = i;
+                index = (int) i;
                 break;
             }
         }
@@ -1453,14 +1467,14 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
     timeout = (timeout == -1) ? 16 : timeout;
 
     do {
-        n = WSAPoll(p->events, p->cap, timeout);
+        n = WSAPoll(p->events, (ULONG) p->cap, timeout);
     } while (n < 0 && errno == EINTR);
 
     if (n == SC_INVALID) {
         sc_sock_on_error("poll : %s ", strerror(errno));
     }
 
-    return p->cap;
+    return (int) p->cap;
 }
 
 #endif

@@ -32,6 +32,8 @@ void sc_thread_init(struct sc_thread *thread)
 }
 
 #if defined(_WIN32) || defined(_WIN64)
+#pragma warning(disable : 4996)
+
 #include <process.h>
 
 static void sc_thread_errstr(struct sc_thread *thread)

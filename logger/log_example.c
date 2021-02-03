@@ -1,3 +1,5 @@
+#define SC_LOG_PRINT_FILE_NAME
+
 #include "sc_log.h"
 
 int log_callback(void *arg, enum sc_log_level level,

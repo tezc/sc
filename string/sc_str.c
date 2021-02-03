@@ -114,7 +114,7 @@ char *sc_str_create_va(const char *fmt, va_list va)
         rc = vsnprintf(str->buf, str->len, fmt, args);
         va_end(args);
 
-        if (rc < 0 || rc > str->len) {
+        if (rc < 0 || (uint32_t) rc > str->len) {
             sc_str_free(str);
             return NULL;
         }
@@ -203,7 +203,7 @@ bool sc_str_append(char **str, const char *param)
     }
 
     memcpy(&meta->buf[meta->len], param, len);
-    meta->len += len;
+    meta->len += (uint32_t) len;
     meta->buf[meta->len] = '\0';
     *str = meta->buf;
 
@@ -346,7 +346,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
     for (count = 0; (tmp = strstr(tmp, replace)) != NULL; count++) {
         tmp += replace_len;
         // Check overflow.
-        if (size > SC_SIZE_MAX - diff) {
+        if ((int64_t) size > (int64_t) SC_SIZE_MAX - diff) {
             return false;
         }
         size += diff;

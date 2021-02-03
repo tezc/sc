@@ -5,6 +5,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #pragma warning(disable : 4996)
+#endif
+
 #ifdef SC_HAVE_WRAP
 
 bool fail_malloc = false;

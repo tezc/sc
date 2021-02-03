@@ -56,15 +56,17 @@ struct sc_timer
 };
 
 /**
- * @param timer     Timer
- * @param timestamp Current timestamp. Use monotonic timer source.
+ * Init timer
+ *
+ * @param timer     timer
+ * @param timestamp current timestamp. Please use monotonic timer source.
  * @return          'false' on out of memory.
  */
 bool sc_timer_init(struct sc_timer *timer, uint64_t timestamp);
 
 /**
  * Destroy timer.
- * @param timer Timer
+ * @param timer timer
  */
 void sc_timer_term(struct sc_timer *timer);
 
@@ -84,14 +86,14 @@ void sc_timer_clear(struct sc_timer *timer);
  *     sc_timer_add(&timer, arg, 10); // Timeout will be at 2010.
  *
  *
- * @param timer   Timer
- * @param timeout Timeout value, this is relative to 'sc_timer_init's timer.
- *                e.g sc_timer_init(&timer, 10); // say, start time 10
+ * @param timer   timer
+ * @param timeout timeout value, this is relative to 'sc_timer_init's timer.
+ *                e.g sc_timer_init(&timer, 10); // say, start time is 10
  * milliseconds
- * @param data    User data to pass into callback on 'sc_timer_timeout' call.
- * @param type    User data to pass into callback on 'sc_timer_timeout' call.
+ * @param data    user data to pass into callback on 'sc_timer_timeout' call.
+ * @param type    user data to pass into callback on 'sc_timer_timeout' call.
  * @return        SC_TIMER_INVALID on out of memory. Otherwise, timer id. You
- *                can cancel this timer via this id.
+ *                can cancel this timer via this id later.
  */
 uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
                       void *data);
@@ -100,8 +102,8 @@ uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
  * uint64_t id = sc_timer_add(&timer, arg, 10);
  * sc_timer_cancel(&timer, &id);
  *
- * @param timer Timer
- * @param id    Timer id
+ * @param timer timer
+ * @param id    timer id
  */
 void sc_timer_cancel(struct sc_timer *timer, uint64_t *id);
 
@@ -115,13 +117,13 @@ void sc_timer_cancel(struct sc_timer *timer, uint64_t *id);
  *
  * while (true) {
  *      uint64_t timeout = sc_timer_timeout(&timer, time_ms(), arg, callback);
- *      sleep(timeout); // select(timeout), epoll_wait(timeout) etc..
+ *      sleep(timeout); // or select(timeout), epoll_wait(timeout) etc..
  * }
  *
  *
- * @param timer     Timer
- * @param timestamp Current timestamp
- * @param arg       User data to user callback
+ * @param timer     timer
+ * @param timestamp current timestamp
+ * @param arg       user data to user callback
  * @param callback  'arg' is user data.
  *                  'timeout' is scheduled timeout for that timer.
  *                  'type' is what user passed on 'sc_timer_add'.

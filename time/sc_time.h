@@ -27,33 +27,33 @@
 #include <stdint.h>
 
 /**
- * This is not a monotonic timer.
- * @return Current timestamp in milliseconds.
+ * This is not a monotonic timer. Gets CLOCK_REALTIME on Unixes.
+ * @return current timestamp in milliseconds.
  */
 uint64_t sc_time_ms();
 
 /**
- * This is not a monotonic timer.
- * @return Current timestamp in nanoseconds.
+ * This is not a monotonic timer. Gets CLOCK_REALTIME on Unixes.
+ * @return current timestamp in nanoseconds.
  */
 uint64_t sc_time_ns();
 
 /**
- * Monotonic timer.
- * @return Current timestamp in milliseconds.
+ * Monotonic timer. Gets CLOCK_MONOTONIC on Unixes
+ * @return current timestamp in milliseconds.
  */
 uint64_t sc_time_mono_ms();
 
 /**
- * Monotonic timer.
+ * Monotonic timer. Gets CLOCK_MONOTONIC on Unixes
  * @return Current timestamp in nanoseconds.
  */
 uint64_t sc_time_mono_ns();
 
 /**
- * @param milliseconds Milliseconds to sleep.
+ * @param millis milliseconds to sleep.
  * @return '0' on success, negative number on failure.
  */
-int sc_time_sleep(uint64_t milliseconds);
+int sc_time_sleep(uint64_t millis);
 
 #endif

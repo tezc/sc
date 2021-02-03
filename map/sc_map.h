@@ -68,25 +68,144 @@
         bool used;                                                             \
     };                                                                         \
                                                                                \
+                                                                               \
+    /**                                                                        \
+     * Create map                                                              \
+     *                                                                         \
+     * struct sc_map_str map;                                                  \
+     * sc_map_init_str(&map, 0, 0);                                            \
+     *                                                                         \
+     * @param map map                                                          \
+     * @param cap initial capacity, zero is accepted                           \
+     * @param load_factor must be >25 and <95. Pass 0 for default value.       \
+     * @return 'true' on success,                                              \
+     *         'false' on out of memory or if 'load_factor' value is invalid.  \
+     */                                                                        \
     bool sc_map_init_##name(struct sc_map_##name *map, uint32_t cap,           \
                             uint32_t load_factor);                             \
+                                                                               \
+    /**                                                                        \
+     * Destroy map.                                                            \
+     *                                                                         \
+     * struct sc_map_str map;                                                  \
+     * sc_map_term_str(&map);                                                  \
+     *                                                                         \
+     * @param map map                                                          \
+     */                                                                        \
     void sc_map_term_##name(struct sc_map_##name *map);                        \
+                                                                               \
+    /**                                                                        \
+     * Get map element count                                                   \
+     *                                                                         \
+     * struct sc_map_str map;                                                  \
+     * uint32_t count = sc_map_size_str(&map);                                 \
+     *                                                                         \
+     * @param map map                                                          \
+     * @return element count                                                   \
+     */                                                                        \
     uint32_t sc_map_size_##name(struct sc_map_##name *map);                    \
+                                                                               \
+    /**                                                                        \
+     * Get map element count                                                   \
+     *                                                                         \
+     * struct sc_map_str map;                                                  \
+     * uint32_t count = sc_map_size_str(&map);                                 \
+     *                                                                         \
+     * @param map map                                                          \
+     */                                                                        \
     void sc_map_clear_##name(struct sc_map_##name *map);                       \
+                                                                               \
+    /**                                                                        \
+     * Put element to the map                                                  \
+     *                                                                         \
+     * struct sc_map_str map;                                                  \
+     * sc_map_put_str(&map, "key", "value");                                   \
+     *                                                                         \
+     * @param map map                                                          \
+     * @param K key                                                            \
+     * @param V value                                                          \
+     * @return 'true' on success, 'false' on out of memory.                    \
+     */                                                                        \
     bool sc_map_put_##name(struct sc_map_##name *map, K key, V val);           \
+                                                                               \
+    /**                                                                        \
+     * Get element                                                             \
+     *                                                                         \
+     * bool found;                                                             \
+     * char *value;                                                            \
+     * struct sc_map_str map;                                                  \
+     *                                                                         \
+     * found = sc_map_get_str(&map, "key", &value);                            \
+     *                                                                         \
+     * @param map map                                                          \
+     * @param K key                                                            \
+     * @param V pointer to value, if key does not exist, value is undefined    \
+     * @return 'true' if key exists, 'false' on if key does not exist.         \
+     */                                                                        \
     bool sc_map_get_##name(struct sc_map_##name *map, K key, V *val);          \
+                                                                               \
+    /**                                                                        \
+     * Delete element                                                          \
+     *                                                                         \
+     * bool found;                                                             \
+     * char *value;                                                            \
+     * struct sc_map_str map;                                                  \
+     *                                                                         \
+     * found = sc_map_del_str(&map, "key", &value);                            \
+     *                                                                         \
+     * @param map map                                                          \
+     * @param K key                                                            \
+     * @param V pointer to current value                                       \
+     *          - if key does not exist, value is undefined                    \
+     *          - Pass NULL if you don't want to get 'value' but just want to  \
+     *            delete element.                                              \
+     * @return 'true' on success, 'false' on if key does not exist.            \
+     */                                                                        \
     bool sc_map_del_##name(struct sc_map_##name *map, K key, V *val);
 
+/**
+ * Foreach loop
+ *
+ * char *key, *value;
+ * struct sc_map_str map;
+ *
+ * sc_map_foreach(&map, key, value) {
+ *      printf("key = %s, value = %s \n");
+ * }
+ *
+ */
 #define sc_map_foreach(map, K, V)                                              \
     for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
         for ((V) = (map)->mem[__i].value, (K) = (map)->mem[__i].key, __b = 1;  \
              __b && ((__i == -1 && (map)->used) || (K) != 0); __b = 0)
 
+/**
+ * Foreach loop for keys
+ *
+ * char *key;
+ * struct sc_map_str map;
+ *
+ * sc_map_foreach_key(&map, key) {
+ *      printf("key = %s \n");
+ * }
+ *
+ */
 #define sc_map_foreach_key(map, K)                                             \
     for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
         for ((K) = (map)->mem[__i].key, __b = 1;                               \
              __b && ((__i == -1 && (map)->used) || (K) != 0); __b = 0)
 
+/**
+ * Foreach loop for values
+ *
+ * char *value;
+ * struct sc_map_str map;
+ *
+ * sc_map_foreach_value(&map, value) {
+ *      printf("value = %s \n");
+ * }
+ *
+ */
 #define sc_map_foreach_value(map, V)                                           \
     for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
         for ((V) = (map)->mem[__i].value, __b = 1;                             \

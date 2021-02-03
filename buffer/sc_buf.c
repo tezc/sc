@@ -664,6 +664,7 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
     int rc;
     va_list args;
     void *mem = (char *) sc_buf_wbuf(buf) + sc_buf_32_len(0);
+    uint32_t written;
     uint32_t pos = sc_buf_wpos(buf);
     uint32_t quota = sc_buf_quota(buf);
 
@@ -682,8 +683,10 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
         return;
     }
 
-    if (rc >= quota) {
-        if (!sc_buf_reserve(buf, (uint32_t) rc)) {
+    written = (uint32_t) rc;
+
+    if (written >= quota) {
+        if (!sc_buf_reserve(buf, written)) {
             return;
         }
 
@@ -694,20 +697,22 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
         rc = vsnprintf(mem, quota, fmt, args);
         va_end(args);
 
-        if (rc < 0 || rc >= quota) {
+        if (rc < 0 || (uint32_t) rc >= quota) {
             buf->error |= SC_BUF_OOM;
             return;
         }
+
+        written = (uint32_t) rc;
     }
 
-
-    sc_buf_set_32_at(buf, pos, (uint32_t) rc);
-    sc_buf_mark_write(buf, rc + sc_buf_32_len(0) + sc_buf_8_len('\0'));
+    sc_buf_set_32_at(buf, pos, written);
+    sc_buf_mark_write(buf, written + sc_buf_32_len(0) + sc_buf_8_len('\0'));
 }
 
 void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
 {
     int rc;
+    uint32_t written;
     va_list args;
     int offset = sc_buf_size(buf) > 0 ? 1 : 0;
     uint32_t quota = sc_buf_quota(buf);
@@ -722,8 +727,10 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
         return;
     }
 
-    if (rc >= quota) {
-        if (!sc_buf_reserve(buf, (uint32_t) rc)) {
+    written = (uint32_t) rc;
+
+    if (written >= quota) {
+        if (!sc_buf_reserve(buf, written)) {
             sc_buf_set_wpos(buf, 0);
             return;
         }
@@ -732,7 +739,7 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
         rc = vsnprintf((char *) sc_buf_wbuf(buf) - offset, quota, fmt, args);
         va_end(args);
 
-        if (rc < 0 || rc >= quota) {
+        if (rc < 0 || (uint32_t) rc >= quota) {
             sc_buf_set_wpos(buf, 0);
             buf->error = SC_BUF_OOM;
             return;

@@ -92,41 +92,43 @@ void sc_queue_term(void *q);
 bool sc_queue_expand(void *q, size_t elem_size);
 
 /**
- *   @param q     Queue pointer
- *   @param count Initial capacity, '0' is a valid value if you don't want to
+ *   @param q     queue
+ *   @param count initial capacity, '0' is a valid value if you don't want to
  *                allocate memory immediately.
  */
 #define sc_queue_create(q, count) sc_queue_init(&(q), sizeof(*(q)), count)
 
 /**
  *   Deallocate underlying memory.
- *   @param q Queue pointer
+ *
+ *   @param q queue
  */
 #define sc_queue_destroy(q) sc_queue_term((&(q)))
 
 /**
- *   @param q Queue pointer
- *   @return  Current capacity
+ *   @param q queue
+ *   @return  current capacity
  */
 #define sc_queue_cap(q) (sc_queue_meta((q))->cap)
 
 /**
- *   @param q Queue pointer
- *   @return  Element count
+ *   @param q queue
+ *   @return  element count
  */
 #define sc_queue_size(q)                                                       \
     ((sc_queue_meta(q)->last - sc_queue_meta(q)->first) &                      \
      (sc_queue_meta(q)->cap - 1))
 
 /**
- *   @param q Queue pointer
+ *   @param q queue
  *   @return true if queue is empty
  */
 #define sc_queue_empty(q) ((sc_queue_meta(q)->last == sc_queue_meta(q)->first))
 
 /**
  * Clear the queue without deallocating underlying memory.
- * @param q Queue pointer
+ *
+ * @param q queue
  */
 #define sc_queue_clear(q)                                                      \
     do {                                                                       \
@@ -135,19 +137,19 @@ bool sc_queue_expand(void *q, size_t elem_size);
     } while (0)
 
 /**
- * @param q Queue pointer
- * @return  Index of the first element. If queue is empty, result is undefined.
+ * @param q queue
+ * @return  index of the first element. If queue is empty, result is undefined.
  */
 #define sc_queue_first(q) (sc_queue_meta(q)->first)
 
 /**
- * @param q Queue pointer
- * @return  Index of the last element. If queue is empty, result is undefined.
+ * @param q queue
+ * @return  index of the last element. If queue is empty, result is undefined.
  */
 #define sc_queue_last(q) (sc_queue_meta(q)->last)
 
 /**
- * @return Index of the next element after i, if there is no element after i
+ * @return index of the next element after i, if there is no element after i
  *            result is undefined.
  */
 #define sc_queue_next(q, i) (((i) + 1) & (sc_queue_meta(q)->cap - 1))
@@ -159,30 +161,30 @@ bool sc_queue_expand(void *q, size_t elem_size);
  *           printf("%d" \n, sc_queue_at(q, i));
  *      }
  *
- *   @param q Queue pointer
+ *   @param q queue
  *   @return element at index i
  */
 #define sc_queue_at(q, i)                                                      \
     (q)[((sc_queue_meta(q)->first) + (i)) & (sc_queue_cap(q) - 1)]
 
 /**
- *   @param q Queue pointer
- *   @return  First element without removing from the queue.
+ *   @param q queue
+ *   @return  first element without removing from the queue.
  *            If queue is empty, result is undefined
  */
 #define sc_queue_peek_first(q) ((q)[sc_queue_meta(q)->first])
 
 /**
- *   @param q Queue pointer
- *   @return  Last element without removing from the queue.
+ *   @param q queue
+ *   @return  last element without removing from the queue.
  *            If queue is empty, result is undefined
  */
 #define sc_queue_peek_last(q)                                                  \
     (q)[(sc_queue_meta(q)->last - 1) & (sc_queue_meta(q)->cap - 1)]
 
 /**
- * @param q    Queue pointer
- * @param elem Elem to be added at the end of the list
+ * @param q    queue
+ * @param elem elem to be added at the end of the list
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_last(q, elem)                                             \
@@ -191,15 +193,15 @@ bool sc_queue_expand(void *q, size_t elem_size);
             true : false
 
 /**
- * @param q Queue pointer
- * @return  Delete the last element from the queue and return its value.
+ * @param q queue
+ * @return  delete the last element from the queue and return its value.
  *            If queue is empty, result is undefined.
  */
 #define sc_queue_del_last(q) ((q)[sc_queue_dec_last((q))])
 
 /**
- * @param q    Queue pointer.
- * @param elem Elem to be added at the head of the list.
+ * @param q    queue.
+ * @param elem elem to be added at the head of the list.
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_first(q, elem)                                            \
@@ -208,8 +210,8 @@ bool sc_queue_expand(void *q, size_t elem_size);
             true : false
 
 /**
- * @param q Queue pointer
- * @return  Delete the first element from the queue and return its value.
+ * @param q queue
+ * @return  delete the first element from the queue and return its value.
  *          If queue is empty, result is undefined.
  */
 #define sc_queue_del_first(q) (q)[sc_queue_inc_first((q))]

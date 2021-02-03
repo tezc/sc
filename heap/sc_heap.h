@@ -53,34 +53,34 @@ struct sc_heap
 };
 
 /**
- * @param heap Heap
- * @param cap  Initial capacity, pass '0' for no initial memory allocation
+ * @param heap heap
+ * @param cap  initial capacity, pass '0' for no initial memory allocation
  * @return     'true' on success, 'false' on failure (memory allocation failure)
  */
 bool sc_heap_init(struct sc_heap *heap, size_t cap);
 
 /**
  * Destroys heap, frees memory
- * @param heap Heap
+ * @param heap heap
  */
 void sc_heap_term(struct sc_heap *heap);
 
 /**
- * @param heap Heap
- * @return     Current element count
+ * @param heap heap
+ * @return     element count
  */
 size_t sc_heap_size(struct sc_heap *heap);
 
 /**
  * Clears elements from the queue, does not free the allocated memory.
- * @param heap heap pointer
+ * @param heap heap
  */
 void sc_heap_clear(struct sc_heap *heap);
 
 /**
- * @param heap Heap
- * @param key  Key
- * @param data Data
+ * @param heap heap
+ * @param key  key
+ * @param data data
  * @return     'false' on out of memory.
  */
 bool sc_heap_add(struct sc_heap *heap, int64_t key, void *data);
@@ -88,7 +88,7 @@ bool sc_heap_add(struct sc_heap *heap, int64_t key, void *data);
 /**
  * Read top element without removing from the heap.
  *
- * @param heap Heap
+ * @param heap heap
  * @param key  [out] key
  * @param data [out] data
  * @return     'false' if there is no element in the heap.
@@ -98,7 +98,7 @@ bool sc_heap_peek(struct sc_heap *heap, int64_t *key, void **data);
 /**
  * Read top element and remove it from the heap.
  *
- * @param heap Heap
+ * @param heap heap
  * @param key  [out] key
  * @param data [out] data
  * @return     'false' if there is no element in the heap.

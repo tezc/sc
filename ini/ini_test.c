@@ -4,6 +4,11 @@
 #include <memory.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+
+#if defined(_WIN32) || defined(_WIN64)
+    #pragma warning(disable : 4996)
+#endif
 
 int cb(void *arg, int line, const char *section, const char *key,
        const char *value)
