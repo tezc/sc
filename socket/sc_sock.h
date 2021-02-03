@@ -209,7 +209,9 @@ int sc_sock_send(struct sc_sock *sock, char *buf, int len, int flags);
  * @param buf   buf
  * @param len   len
  * @param flags normally should be zero, otherwise flags are passed to recv().
- * @return
+ * @return      - on success, returns bytes received.
+ *              - SC_SOCK_WANT_READ on EAGAIN.
+ *              - SC_SOCK_ERROR on error
  */
 int sc_sock_recv(struct sc_sock *sock, char *buf, int len, int flags);
 
