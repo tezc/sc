@@ -57,3 +57,12 @@ int main(int argc, char *argv[])
 }
 
 ```
+
+Output is like : 
+
+```
+[2021-02-03 04:46:22][INFO ][my app thread] (log_example.c:28) Hello world! 
+[2021-02-03 04:46:22][INFO ][my app thread] (log_example.c:34) to stdout and file! 
+[2021-02-03 04:46:22][INFO ][my app thread] (log_example.c:40) to all!
+[2021-02-03 04:47:32][INFO ][my app thread] (log_example.c:41) to all! 
+```

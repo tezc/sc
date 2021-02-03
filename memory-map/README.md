@@ -3,8 +3,7 @@
 ### Mmap wrapper 
 
 - Basic mmap wrapper for Unix and Windows.
-- File is expanded automatically depending on init flags.
-- Just copy <b>sc_mmap.h</b> and <b>sc_mmap.c</b> to your project.
+- File is expanded automatically depending on init flags on 'sc_map_init()'.
 
 ```c
 

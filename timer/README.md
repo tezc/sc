@@ -8,7 +8,6 @@
   this data structure trades accuracy for performance. Schedule a timer for  
   10000ms and another for 10001ms and you might see 10001ms timer expires  
   just before 10000ms timer.
-- Just copy <b>sc_timer.h</b> and <b>sc_timer.c</b> to your project.
 
 
 ##### Usage

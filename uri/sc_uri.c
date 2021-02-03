@@ -22,14 +22,14 @@
  * SOFTWARE.
  */
 
-#include "sc_url.h"
+#include "sc_uri.h"
 
 #include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <string.h>
 
-struct sc_url *sc_url_create(const char *str)
+struct sc_uri *sc_uri_create(const char *str)
 {
     const char *s1 = "%.*s%.*s%.*s%.*s%.*s%.*s%.*s%.*s";
     const char *s2 = "%.*s%c%.*s%c%.*s%c%.*s%c%.*s%c%.*s%c%.*s%c";
@@ -46,7 +46,7 @@ struct sc_url *sc_url_create(const char *str)
     char *path, *query = "", *fragment = "";
     char *ptr, *dest, *parse_end;
     char *pos = (char *) str;
-    struct sc_url *url;
+    struct sc_uri *uri;
 
     if (str == NULL || (ptr = strstr(pos, ":")) == NULL) {
         return NULL;
@@ -121,18 +121,18 @@ struct sc_url *sc_url_create(const char *str)
     parts_len -= (query_len != 0);
     parts_len -= (fragment_len != 0);
 
-    url = sc_url_malloc(sizeof(*url) + parts_len + full_len);
-    if (url == NULL) {
+    uri = sc_uri_malloc(sizeof(*uri) + parts_len + full_len);
+    if (uri == NULL) {
         return NULL;
     }
 
-    len = (size_t) snprintf(url->buf, full_len, s1, scheme_len, scheme,
+    len = (size_t) snprintf(uri->buf, full_len, s1, scheme_len, scheme,
                             authority_len, authority, userinfo_len, userinfo,
                             host_len, host, port_len, port, path_len, path,
                             query_len, query, fragment_len, fragment);
     assert(len == full_len - 1);
 
-    dest = url->buf + strlen(url->buf) + 1;
+    dest = uri->buf + strlen(uri->buf) + 1;
 
     scheme_len -= (scheme_len != 0);     // Skip ":"
     userinfo_len -= (userinfo_len != 0); // Skip "@"
@@ -152,19 +152,19 @@ struct sc_url *sc_url_create(const char *str)
                            fragment, 0);
     assert(len == parts_len - 1);
 
-    url->str = url->buf;
-    url->scheme = dest;
-    url->userinfo = dest + scheme_len + 1;
-    url->host = url->userinfo + userinfo_len + 1;
-    url->port = url->host + host_len + 1;
-    url->path = url->port + port_len + 1;
-    url->query = url->path + path_len + 1;
-    url->fragment = url->query + query_len + 1;
+    uri->str = uri->buf;
+    uri->scheme = dest;
+    uri->userinfo = dest + scheme_len + 1;
+    uri->host = uri->userinfo + userinfo_len + 1;
+    uri->port = uri->host + host_len + 1;
+    uri->path = uri->port + port_len + 1;
+    uri->query = uri->path + path_len + 1;
+    uri->fragment = uri->query + query_len + 1;
 
-    return url;
+    return uri;
 }
 
-void sc_url_destroy(struct sc_url *url)
+void sc_uri_destroy(struct sc_uri *uri)
 {
-    sc_url_free(url);
+    sc_uri_free(uri);
 }

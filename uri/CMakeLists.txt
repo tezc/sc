@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(sc_url C)
+project(sc_uri C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_url url_example.c sc_url.h sc_url.c)
+add_executable(sc_uri uri_example.c sc_uri.h sc_uri.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pedantic -Werror -D_GNU_SOURCE")
@@ -21,7 +21,7 @@ include(CheckCCompilerFlag)
 
 enable_testing()
 
-add_executable(${PROJECT_NAME}_test url_test.c sc_url.c)
+add_executable(${PROJECT_NAME}_test uri_test.c sc_uri.c)
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=140000ul)
 

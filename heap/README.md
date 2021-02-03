@@ -3,7 +3,6 @@
 ### Overview
 
 - Min-heap implementation, it can be used as Max-heap/priority queue as well.
-- Just copy <b>sc_heap.h</b> and <b>sc_heap.c</b> to your project.
 
 #### Usage
 

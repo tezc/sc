@@ -21,7 +21,7 @@
     sc_array_add(p, 1);
     sc_array_add(p, 3);
     
-    printf("\nRemoving first element \n\n");
+    printf("\nDelete first element \n\n");
     sc_array_del(p, 0);
 
     printf("Capacity %zu \n", sc_array_cap(p));

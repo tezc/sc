@@ -27,8 +27,18 @@
 
 #include <stdint.h>
 
+/**
+ * Call once globally.
+ */
 void sc_crc32_init(void);
 
+/**
+ * @param crc initial value, if you're not calculating crc from partial buffers,
+ *            it should be zero.
+ * @param buf buf
+ * @param len len
+ * @return    crc value
+ */
 uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len);
 
 #endif

@@ -21,14 +21,14 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef SC_URL_H
-#define SC_URL_H
+#ifndef SC_URI_H
+#define SC_URI_H
 
 #ifdef SC_HAVE_CONFIG_H
-#include "sc_config.h"
+    #include "sc_config.h"
 #else
-#define sc_url_malloc malloc
-#define sc_url_free   free
+    #define sc_uri_malloc malloc
+    #define sc_uri_free   free
 #endif
 
 #include <stdbool.h>
@@ -53,9 +53,9 @@
  *
  */
 
-struct sc_url
+struct sc_uri
 {
-    const char *str;
+    const char *str;          // Full string
     const char *scheme;
     const char *host;
     const char *userinfo;
@@ -67,7 +67,38 @@ struct sc_url
     char buf[];
 };
 
-struct sc_url *sc_url_create(const char *str);
-void sc_url_destroy(struct sc_url *url);
+/**
+ * Parse uri.
+ *
+ * Internally, it does a single allocation. Each part is also represented as
+ * NULL ended string.
+ *
+ * E.g :
+ *
+ * struct sc_uri* uri;
+ *
+ * struct sc_uri* uri;
+ * uri = sc_uri_create("http://user:pass@any.com:8042/over/there?name=jane#doe");
+ *
+ * printf("%s \n", uri->str);       // prints full string.
+ * printf("%s \n", uri->scheme);    // prints "http"
+ * printf("%s \n", uri->host);      // prints "any.com"
+ * printf("%s \n", uri->userinfo);  // prints "user:pass"
+ * printf("%s \n", uri->port);      // prints "8042"
+ * printf("%s \n", uri->path);      // prints "/over/there"
+ * printf("%s \n", uri->query);     // prints "name=jane"
+ * printf("%s \n", uri->fragment);  // prints "doe"
+ *
+ *
+ * @param str uri string
+ * @return    uri struct pointer
+ */
+struct sc_uri *sc_uri_create(const char *str);
+
+/**
+ * Free uri
+ * @param uri uri
+ */
+void sc_uri_destroy(struct sc_uri *uri);
 
 #endif

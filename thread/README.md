@@ -1,3 +1,15 @@
+# Thread
+
+#### Overview
+
+- Thread wrapper for Unixes and Windows
+
+
+##### Usage
+
+
+```c
+
 #include "sc_thread.h"
 
 #include <stdio.h>
@@ -15,6 +27,7 @@ int main(int argc, char *argv[])
     sc_thread_init(&thread);
     sc_thread_start(&thread, fn, "first");
     sc_thread_term(&thread);
-
     return 0;
 }
+
+```

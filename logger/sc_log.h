@@ -149,7 +149,7 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...);
         "(%s:%d) " fmt, strrchr("/" __FILE__, '/') + 1, __LINE__,         \
                 __VA_ARGS__
 #else
-#define sc_log_ap(fmt, ...) fmt, __VA_ARGS__
+    #define sc_log_ap(fmt, ...) fmt, __VA_ARGS__
 #endif
 
 /**

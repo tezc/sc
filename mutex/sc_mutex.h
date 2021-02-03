@@ -40,9 +40,30 @@ struct sc_mutex
 #endif
 };
 
+/**
+ * Create mutex
+ *
+ * @param mtx mtx
+ * @return    '0' on success, '-1' on error.
+ */
 int sc_mutex_init(struct sc_mutex *mtx);
+
+/**
+ * Destroy mutex
+ *
+ * @param mtx mtx
+ * @return    '0' on success, '-1' on error.
+ */
 int sc_mutex_term(struct sc_mutex *mtx);
+
+/**
+ * @param mtx mtx
+ */
 void sc_mutex_lock(struct sc_mutex *mtx);
+
+/**
+ * @param mtx mtx
+ */
 void sc_mutex_unlock(struct sc_mutex *mtx);
 
 #endif

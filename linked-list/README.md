@@ -2,21 +2,10 @@
 
 ### Overview
 
-- Intrusive doubly linked-list implementation.
+- Intrusive doubly linked list implementation.
 - Basically, same as adding next and prev pointers to your structs.
 - Add/remove from head/tail is possible so it can be used as list, stack,  
   queue, dequeue etc.
-- Just copy <b><i>sc_list.h</i></b> and <b><i>sc_list.c</i></b> to your project.
-
-
-#### Memory
-
-- No heap memory allocation.
-
-#### Performance
-
-- Good fit if you already have structs allocated in memory and willing to put  
-  them into a list without making extra allocations.
 
 #### Usage
 

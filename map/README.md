@@ -3,11 +3,10 @@
 ### Overview
 
 - Open addressing hashmap with linear probing.
-- Just copy <b>sc_map.h</b> and <b>sc_map.c</b> to your project.
 - Key and value types can be integers(32bit/64bit) or pointers only. This is  
   required for good performance.
 - Naming requires prefixes, it's ugly but macros are necessary to avoid  
-  alternative solutions for copy/compare (function pointers, memcpy calls etc..)
+  copy/compare function pointers, memcpy calls etc..
 - Other types can be added but must be scalar types, not structs.
 - Comes with predefined key value pairs :
   
@@ -26,8 +25,8 @@
   - Single array allocation for all data. 
   - Linear probing over an array.
   - Deletion without tombstones
-  - Macros generate functions in sc_map.h and sc_map.c, it doesn't inline  
-    automatically. So, it doesn't bloat your binary. Inlining is upto compiler.
+  - Macros generate functions in sc_map.h and sc_map.c, it doesn't force  
+    compiler to inline. Inlining is upto the compiler.
 
 #### Usage
 

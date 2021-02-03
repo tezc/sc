@@ -33,7 +33,7 @@ add_subdirectory(string)
 add_subdirectory(time)
 add_subdirectory(timer)
 add_subdirectory(thread)
-add_subdirectory(url)
+add_subdirectory(uri)
 
 
 
