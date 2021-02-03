@@ -5,6 +5,9 @@
 #include <stdarg.h>
 #include <time.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #pragma warning(disable : 4996)
+#endif
 
 int callback(void *arg, enum sc_log_level level, const char *fmt, va_list va)
 {

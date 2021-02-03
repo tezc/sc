@@ -139,6 +139,7 @@ static char *file_next_line(void *p, char *buf, size_t size)
 static char *string_next_line(void *p, char *buf, size_t size)
 {
     size_t len;
+    size_t diff;
     char *t;
     char *str = (*(char **) p);
 
@@ -151,7 +152,8 @@ static char *string_next_line(void *p, char *buf, size_t size)
         t = str + strlen(str);
     }
 
-    len = (t - str) < size ? (t - str) : size;
+    diff = (size_t) (t - str);
+    len = diff < size ? diff : size;
     memcpy(buf, str, len);
     buf[len] = '\0';
 
