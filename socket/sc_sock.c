@@ -302,7 +302,7 @@ error_unix:
             goto error;
         }
 
-        rc = bind(sock->fdt.fd, p->ai_addr, p->ai_addrlen);
+        rc = bind(sock->fdt.fd, p->ai_addr, (socklen_t) p->ai_addrlen);
         if (rc == -1) {
             goto error;
         }
@@ -451,7 +451,7 @@ error_unix:
             }
 
             for (s = bindinfo; s != NULL; s = s->ai_next) {
-                rc = bind(sock->fdt.fd, s->ai_addr, s->ai_addrlen);
+                rc = bind(sock->fdt.fd, s->ai_addr, (socklen_t) s->ai_addrlen);
                 if (rc != -1) {
                     break;
                 }
@@ -464,7 +464,7 @@ error_unix:
             }
         }
 
-        rc = connect(sock->fdt.fd, p->ai_addr, p->ai_addrlen);
+        rc = connect(sock->fdt.fd, p->ai_addr, (socklen_t) p->ai_addrlen);
         if (rc != 0) {
             if (!sock->blocking && (sc_sock_err() == SC_EINPROGRESS ||
                                     sc_sock_err() == SC_EAGAIN)) {
@@ -1467,14 +1467,14 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
     timeout = (timeout == -1) ? 16 : timeout;
 
     do {
-        n = WSAPoll(p->events, p->cap, timeout);
+        n = WSAPoll(p->events, (ULONG) p->cap, timeout);
     } while (n < 0 && errno == EINTR);
 
     if (n == SC_INVALID) {
         sc_sock_on_error("poll : %s ", strerror(errno));
     }
 
-    return p->cap;
+    return (int) p->cap;
 }
 
 #endif

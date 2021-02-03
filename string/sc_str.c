@@ -346,7 +346,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
     for (count = 0; (tmp = strstr(tmp, replace)) != NULL; count++) {
         tmp += replace_len;
         // Check overflow.
-        if ((int64_t) size > SC_SIZE_MAX - diff) {
+        if ((int64_t) size > (int64_t) SC_SIZE_MAX - diff) {
             return false;
         }
         size += diff;
