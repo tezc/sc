@@ -28,16 +28,26 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef SC_HAVE_CONFIG_H
+    #include "sc_config.h"
+#else
+    #define sc_sock_malloc malloc
+    #define sc_sock_realloc realloc
+    #define sc_sock_free    free
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
-#include <Ws2tcpip.h>
-#include <windows.h>
-#include <winsock2.h>
-#pragma comment(lib, "ws2_32.lib")
+
+    #include <Ws2tcpip.h>
+    #include <windows.h>
+    #include <winsock2.h>
+    #pragma comment(lib, "ws2_32.lib")
 
 typedef SOCKET sc_sock_int;
 
 #else
-#include <sys/socket.h>
+    #include <sys/socket.h>
+
 typedef int sc_sock_int;
 #endif
 
@@ -70,7 +80,7 @@ struct sc_sock_fd
 {
     sc_sock_int fd;
     enum sc_sock_ev op;
-    int type;
+    int type;           // user data
     int index;
 };
 
@@ -82,90 +92,321 @@ struct sc_sock
     char err[128];
 };
 
-void sc_sock_init(struct sc_sock* sock, int type, bool blocking, int family);
-int sc_sock_term(struct sc_sock* sock);
+/**
+ * Initialize sock
+ *
+ * @param sock      sock
+ * @param type      user data
+ * @param blocking  is socket blocking
+ * @param family    one of SC_SOCK_INET, SC_SOCK_INET6, SC_SOCK_UNIX
+ */
+void sc_sock_init(struct sc_sock *sock, int type, bool blocking, int family);
 
-int sc_sock_listen(struct sc_sock* sock, const char* host, const char* port);
-int sc_sock_accept(struct sc_sock* sock, struct sc_sock* in);
+/**
+ * Destroy sock
+ *
+ * @param sock sock
+ * @return     '0' on success, negative number on failure.
+ *              call sc_sock_err() for error string.
+ */
+int sc_sock_term(struct sc_sock *sock);
 
-int sc_sock_connect(struct sc_sock* sock, const char* dest_addr,
-                    const char* dest_port, const char* source_addr,
-                    const char* source_port);
+/**
+ * Listen on host:port
+ *
+ * @param sock sock
+ * @param host host
+ * @param port port
+ * @return    '0' on success, negative number on failure.
+ *             call sc_sock_err() for error string.
+ */
+int sc_sock_listen(struct sc_sock *sock, const char *host, const char *port);
 
+/**
+ * Accept connections
+ *
+ * @param sock sock
+ * @param in   sock struct pointer the incoming connection
+ * @return    '0' on success, negative number on failure.
+ *             call sc_sock_err() for error string.
+ */
+int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in);
+
+/**
+ * Connect to destination
+ *
+ * @param sock         sock
+ * @param dest_addr    destination addr
+ * @param dest_port    destination port
+ * @param source_addr  source addr (outgoing addr)
+ * @param source_port  source port (outgoing port)
+ * @return            '0' on success, negative number on failure.
+ *                     call sc_sock_err() for error string.
+ */
+int sc_sock_connect(struct sc_sock *sock, const char *dest_addr,
+                    const char *dest_port, const char *source_addr,
+                    const char *source_port);
+
+/**
+ * Set socket blocking or nonblocking. Normally, you don't call this directly.
+ * sc_sock_init() takes 'blocking' parameter, so sockets will be set according
+ * to it.
+ *
+ * @param sock     sock
+ * @param blocking blocking
+ * @return         '0' on success, negative number on failure.
+ *                 call sc_sock_err() for error string.
+ */
 int sc_sock_set_blocking(struct sc_sock *sock, bool blocking);
-int sc_sock_set_rcvtimeo(struct sc_sock* sock, int ms);
-int sc_sock_set_sndtimeo(struct sc_sock* sock, int ms);
-int sc_sock_finish_connect(struct sc_sock* sock);
 
-int sc_sock_send(struct sc_sock* sock, char* buf, int len, int flags);
-int sc_sock_recv(struct sc_sock* sock, char* buf, int len, int flags);
+/**
+ * Set receive timeout
+ *
+ * @param sock sock
+ * @param ms   timeout milliseconds
+ * @return     '0' on success, negative number on failure.
+ *             call sc_sock_err() for error string.
+ */
+int sc_sock_set_rcvtimeo(struct sc_sock *sock, int ms);
 
-const char* sc_sock_error(struct sc_sock* sock);
+/**
+ * Set send timeout
+ *
+ * @param sock sock
+ * @param ms   timeout milliseconds
+ * @return     '0' on success, negative number on failure.
+ *             call sc_sock_err() for error string.
+ */
+int sc_sock_set_sndtimeo(struct sc_sock *sock, int ms);
+
+/**
+ * Finish connect for nonblocking connections. This function must be called
+ * after sc_sock_poll() indicates socket is writable.
+ *
+ * @param sock sock
+ * @return     '0' on success, negative number on failure.
+ *             call sc_sock_err() for error string.
+ */
+int sc_sock_finish_connect(struct sc_sock *sock);
+
+/**
+ * Send data
+ *
+ * @param sock  sock
+ * @param buf   buf
+ * @param len   len
+ * @param flags normally should be zero, otherwise flags are passed to send().
+ * @return      - on success, returns sent byte count.
+ *              - SC_SOCK_WANT_WRITE on EAGAIN.
+ *              - SC_SOCK_ERROR on error
+ */
+int sc_sock_send(struct sc_sock *sock, char *buf, int len, int flags);
+
+/**
+ * Receive data
+ *
+ * @param sock  sock
+ * @param buf   buf
+ * @param len   len
+ * @param flags normally should be zero, otherwise flags are passed to recv().
+ * @return
+ */
+int sc_sock_recv(struct sc_sock *sock, char *buf, int len, int flags);
+
+const char *sc_sock_error(struct sc_sock *sock);
 const char *sc_sock_local_str(struct sc_sock *sock, char *buf, size_t len);
 const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, size_t len);
-void sc_sock_print(struct sc_sock* sock, char* buf, size_t len);
+void sc_sock_print(struct sc_sock *sock, char *buf, size_t len);
 
 
 struct sc_sock_pipe
 {
     struct sc_sock_fd fdt;
     sc_sock_int fds[2];
+    char err[128];
 };
 
-int sc_sock_pipe_init(struct sc_sock_pipe* pipe, int type);
-int sc_sock_pipe_term(struct sc_sock_pipe* pipe);
-int sc_sock_pipe_write(struct sc_sock_pipe* pipe, void* data, unsigned int len);
-int sc_sock_pipe_read(struct sc_sock_pipe* pipe, void* data, unsigned int len);
+/**
+ * Create pipe
+ *
+ * @param pipe pipe
+ * @param type user data into struct sc_sock_fdt
+ * @return '0' on success, negative number on failure,
+ *         call sc_sock_pipe_err() to get error string
+ */
+int sc_sock_pipe_init(struct sc_sock_pipe *pipe, int type);
 
-#define sc_sock_on_error(...)
+/**
+ * Destroy pipe
+ *
+ * @param pipe pipe
+ * @return '0' on success, negative number on failure,
+ *         call sc_sock_pipe_err() to get error string
+ */
+int sc_sock_pipe_term(struct sc_sock_pipe *pipe);
+
+/**
+ * Write data to pipe
+ *
+ * @param pipe pipe
+ * @param data data
+ * @param len  data len
+ * @return     written data len, normally pipe is blocking, return value should
+ *             be equal to 'len'
+ */
+int sc_sock_pipe_write(struct sc_sock_pipe *pipe, void *data, unsigned int len);
+
+/**
+ * Read data from pipe
+ *
+ * @param pipe pipe
+ * @param data destination
+ * @param len  read size
+ * @return     read data len, normally pipe is blocking, return value should
+ *             be equal to 'len'
+ */
+int sc_sock_pipe_read(struct sc_sock_pipe *pipe, void *data, unsigned int len);
+
+/**
+ * Get error string
+ * @param pipe pipe
+ * @return     last error string
+ */
+const char* sc_sock_pipe_err(struct sc_sock_pipe *pipe);
 
 #if defined(__linux__)
-#include <sys/epoll.h>
+    #include <sys/epoll.h>
 
 
 struct sc_sock_poll
 {
     int fds;
-    size_t count;
-    size_t cap;
-    struct epoll_event* events;
+    int count;
+    int cap;
+    struct epoll_event *events;
+    char err[128];
 };
 
 #elif defined(__FreeBSD__) || defined(__APPLE__)
-#include <sys/event.h>
+    #include <sys/event.h>
 
 struct sc_sock_poll
 {
     int fds;
-    size_t count;
-    size_t cap;
-    struct kevent* events;
+    int count;
+    int cap;
+    struct kevent *events;
+    char err[128];
 };
 #else
-#if !defined(_WIN32)
-#include <sys/poll.h>
-#endif
+    #if !defined(_WIN32)
+        #include <sys/poll.h>
+    #endif
 
 struct sc_sock_poll
 {
-    size_t count;
-    size_t cap;
-    void** data;
-    struct pollfd* events;
+    int count;
+    int cap;
+    void **data;
+    struct pollfd *events;
+    char err[128];
 };
 
 #endif
 
-int sc_sock_poll_init(struct sc_sock_poll* poll);
-int sc_sock_poll_term(struct sc_sock_poll* poll);
+/**
+ * Create poll
+ *
+ * @param poll poll
+ * @return     '0' on success, negative number on failure,
+ *             call sc_sock_poll_err() to get error string
+ */
+int sc_sock_poll_init(struct sc_sock_poll *poll);
 
-int sc_sock_poll_add(struct sc_sock_poll* poll, struct sc_sock_fd* fdt,
-                     enum sc_sock_ev events, void* data);
-int sc_sock_poll_del(struct sc_sock_poll* poll, struct sc_sock_fd* fdt,
-                     enum sc_sock_ev events, void* data);
+/**
+ * Destroy poll
+ *
+ * @param poll poll
+ * @return     '0' on success, negative number on failure,
+ *             call sc_sock_poll_err() to get error string
+ */
+int sc_sock_poll_term(struct sc_sock_poll *poll);
 
-void* sc_sock_poll_data(struct sc_sock_poll* poll, size_t i);
-uint32_t sc_sock_poll_event(struct sc_sock_poll* poll, size_t i);
-int sc_sock_poll_wait(struct sc_sock_poll* poll, int timeout);
+/**
+ * Add fd to to poller.
+ *
+ * @param poll    poll
+ * @param fdt     fdt
+ * @param events  SC_SOCK_READ, SC_SOCK_WRITE or SC_SOCK_READ | SC_SOCK_WRITE
+ * @param data    user data
+ * @return        '0' on success, negative number on failure,
+ *                call sc_sock_poll_err() to get error string
+ */
+int sc_sock_poll_add(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
+                     enum sc_sock_ev events, void *data);
+
+/**
+ *
+ * @param poll   poll
+ * @param fdt    fdt
+ * @param events SC_SOCK_READ, SC_SOCK_WRITE or SC_SOCK_READ | SC_SOCK_WRITE
+ * @param data   user data
+ * @return       '0' on success, negative number on failure,
+ *               call sc_sock_poll_err() to get error string
+ */
+int sc_sock_poll_del(struct sc_sock_poll *poll, struct sc_sock_fd *fdt,
+                     enum sc_sock_ev events, void *data);
+
+/**
+ * e.g
+ *  int n = sc_sock_poll_wait(poll, 100);
+ *  for (int i = 0; i < n; i++) {
+ *      void *user_data = sc_sock_poll_data(poll, i);
+ *      uint32_t events = sc_sock_poll_event(poll, i);
+ *
+ *      if (events & SC_SOCK_READ)  {
+ *          // Handle read event
+ *      }
+ *
+ *      if (events & SC_SOCK_WRITE)  {
+ *          // Handle write event
+ *      }
+ *  }
+ *
+ * @param poll  poll
+ * @param i
+ * @return
+ */
+int sc_sock_poll_wait(struct sc_sock_poll *poll, int timeout);
+
+/**
+ *
+ * @param poll poll
+ * @param i    event index
+ * @return     user data of fd at index 'i'
+ */
+void *sc_sock_poll_data(struct sc_sock_poll *poll, int i);
+
+/**
+ *
+ * @param poll poll
+ * @param i    event index
+ * @return     events of fd at index 'i', events might be :
+ *             - SC_SOCK_READ
+ *             - SC_SOCK_WRITE
+ *             - SC_SOCK_READ | SC_SOCK_WRITE
+ *
+ *             Closed fd will set SC_SOCK_READ | SC_SOCK_WRITE together. So,
+ *             any attempt to read or write will indicate socket is closed.
+ */
+uint32_t sc_sock_poll_event(struct sc_sock_poll *poll, int i);
+
+/**
+ * Get error string
+ *
+ * @param poll poll
+ * @return     last error string
+ */
+const char* sc_sock_poll_err(struct sc_sock_poll *poll);
 
 #endif

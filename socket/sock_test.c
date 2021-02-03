@@ -405,6 +405,7 @@ void pipe_fail_test()
     struct sc_sock_pipe pipe;
     fail_pipe = true;
     assert(sc_sock_pipe_init(&pipe, 0) != 0);
+    assert(*sc_sock_pipe_err(&pipe) != '\0');
     fail_pipe = false;
     assert(sc_sock_pipe_init(&pipe, 0) == 0);
     fail_close = true;
@@ -431,6 +432,7 @@ void *server(void *arg)
 
 
     assert(sc_sock_poll_init(&poll) == 0);
+    assert(*sc_sock_poll_err(&poll) == '\0');
     assert(sc_sock_poll_term(&poll) == 0);
     assert(sc_sock_poll_init(&poll) == 0);
 
