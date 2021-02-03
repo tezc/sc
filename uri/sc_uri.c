@@ -29,6 +29,11 @@
 #include <stdio.h>
 #include <string.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #pragma warning(disable : 4996)
+#endif
+
+
 struct sc_uri *sc_uri_create(const char *str)
 {
     const char *s1 = "%.*s%.*s%.*s%.*s%.*s%.*s%.*s%.*s";

@@ -130,7 +130,7 @@ uint64_t sc_time_mono_ns()
 int sc_time_sleep(uint64_t millis)
 {
 #if defined(_WIN32) || defined(_WIN64)
-    Sleep(millis);
+    Sleep((DWORD) millis);
     return 0;
 #else
     int rc;

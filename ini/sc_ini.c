@@ -28,6 +28,10 @@
 #include <stdint.h>
 #include <string.h>
 
+#if defined(_WIN32) || defined(_WIN64)
+    #pragma warning(disable : 4996)
+#endif
+
 static char *trim_space(char *str)
 {
     char *end;
