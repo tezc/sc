@@ -25,17 +25,16 @@
 #ifndef SC_HEAP_H
 #define SC_HEAP_H
 
-
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
 #ifdef SC_HAVE_CONFIG_H
-#include "sc_config.h"
+    #include "sc_config.h"
 #else
-#define sc_heap_malloc  malloc
-#define sc_heap_realloc realloc
-#define sc_heap_free    free
+    #define sc_heap_malloc  malloc
+    #define sc_heap_realloc realloc
+    #define sc_heap_free    free
 #endif
 
 

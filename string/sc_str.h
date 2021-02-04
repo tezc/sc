@@ -194,7 +194,6 @@ bool sc_str_trim(char **str, const char *list);
 bool sc_str_substring(char **str, uint32_t start, uint32_t end);
 
 /**
- *
  * @param str  length prefixed string, must not be NULL.
  * @param rep  string to be replaced
  * @param with string to replace with

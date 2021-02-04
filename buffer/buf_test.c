@@ -7,6 +7,7 @@
 
 void test1()
 {
+    const char* xstr;
     struct sc_buf buf, buf2;
 
     sc_buf_init(&buf2, 100);
@@ -141,6 +142,22 @@ void test1()
     assert(strcmp(sc_buf_get_str(&buf2), "2test") == 0);
     sc_buf_term(&buf);
     sc_buf_term(&buf2);
+
+    sc_buf_init(&buf, 1);
+    for (int i = 0; i < 1000; i++) {
+        sc_buf_put_fmt(&buf, "testtesttesttesttesttesttesttest%d", i);
+    }
+
+    for (int i = 0; i < 1000; i++) {
+        char xtmp[128];
+        snprintf(xtmp, sizeof(xtmp), "testtesttesttesttesttesttesttest%d", i);
+
+        xstr = sc_buf_get_str(&buf);
+        assert(strcmp(xstr, xtmp) == 0);
+    }
+
+    assert(sc_buf_valid(&buf));
+    sc_buf_term(&buf);
 }
 
 void test2()

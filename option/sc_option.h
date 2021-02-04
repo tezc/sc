@@ -21,8 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#ifndef SC_OPT_H
-#define SC_OPT_H
+#ifndef SC_OPTION_H
+#define SC_OPTION_H
 
 #include <stdbool.h>
 #include <stddef.h>

@@ -1484,21 +1484,22 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
     return events;
 }
 
-int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
+int sc_sock_poll_wait(struct sc_sock_poll* p, int timeout)
 {
-    int n;
+    int n, rc = p->cap;
 
     timeout = (timeout == -1) ? 16 : timeout;
 
     do {
-        n = WSAPoll(p->events, (ULONG) p->cap, timeout);
+        n = WSAPoll(p->events, (ULONG)p->cap, timeout);
     } while (n < 0 && errno == EINTR);
 
     if (n == SC_INVALID) {
+        rc = -1;
         sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
     }
 
-    return p->cap;
+    return rc;
 }
 
 #endif
