@@ -119,6 +119,16 @@ bool sc_queue_expand(void *q, size_t elem_size)
 
         /**
          * Move items to make empty slots at the end.
+         *
+         * Doing a lot here to work with realloc, normally
+         * 1 - allocating new memory
+         * 2 - copy items
+         * 3 - free old memory
+         *
+         * would be easier. But I use this code with a specific allocator,
+         * it's much more efficient with realloc, so leaving this one as it is
+         * for now.
+         *
          * e.g :
          *               last    first
          *                |       |
