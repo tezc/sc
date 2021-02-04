@@ -221,7 +221,7 @@ void *server_ip6(void *arg)
     char tmp[128];
     struct sc_sock sock, accepted;
 
-    sc_sock_init(&sock, 0, true, AF_INET6);
+    sc_sock_init(&sock, 0, true, SC_SOCK_INET6);
     assert(sc_sock_listen(&sock, "::1", "8006") == 0);
     sc_sock_print(&sock, tmp, sizeof(tmp));
     assert(strcmp(tmp, "Local(::1:8006), Remote() ") == 0);
@@ -240,7 +240,7 @@ void *client_ip6(void *arg)
     int rc;
     struct sc_sock sock;
 
-    sc_sock_init(&sock, 0, true, AF_INET6);
+    sc_sock_init(&sock, 0, true, SC_SOCK_INET6);
 
     for (int i = 0; i < 5; i++) {
         rc = sc_sock_connect(&sock, "::1", "8006", NULL, NULL);
@@ -279,7 +279,7 @@ void *server_unix(void *arg)
     char tmp[128];
     struct sc_sock sock, accepted;
 
-    sc_sock_init(&sock, 0, true, AF_UNIX);
+    sc_sock_init(&sock, 0, true, SC_SOCK_UNIX);
     assert(sc_sock_listen(&sock, "x.sock", NULL) == 0);
     sc_sock_print(&sock, tmp, sizeof(tmp));
     assert(strcmp(tmp, "Local(x.sock), Remote() ") == 0);
@@ -304,7 +304,7 @@ void *client_unix(void *arg)
     struct sc_sock sock;
 
     sleep(3);
-    sc_sock_init(&sock, 0, true, AF_UNIX);
+    sc_sock_init(&sock, 0, true, SC_SOCK_UNIX);
     for (int i = 0; i < 10; i++) {
         printf("Will connect to x.sock \n");
         rc = sc_sock_connect(&sock, "x.sock", NULL, NULL, NULL);
@@ -563,17 +563,17 @@ void test_err()
 
     sc_sock_init(&sock, 0, true, AF_INET);
     assert(sc_sock_listen(&sock, "127.0.0.1x", "8004") != 0);
-    sc_sock_init(&sock, 0, true, AF_UNIX);
+    sc_sock_init(&sock, 0, true, SC_SOCK_UNIX);
     assert(sc_sock_listen(&sock, "/", "8004") != 0);
-    sc_sock_init(&sock, 0, true, AF_INET6);
+    sc_sock_init(&sock, 0, true, SC_SOCK_INET6);
     assert(sc_sock_listen(&sock, "/", "8004") != 0);
-    sc_sock_init(&sock, 0, true, AF_INET6);
+    sc_sock_init(&sock, 0, true, SC_SOCK_INET6);
     assert(sc_sock_listen(&sock, "0.0.0.0", "99999") != 0);
     sc_sock_init(&sock, 0, true, AF_INET);
     assert(sc_sock_listen(&sock, "0.0.0.3", "99999") != 0);
-    sc_sock_init(&sock, 0, true, AF_INET6);
+    sc_sock_init(&sock, 0, true, SC_SOCK_INET6);
     assert(sc_sock_connect(&sock, "::1", "8006", NULL, NULL) != 0);
-    sc_sock_init(&sock, 0, true, AF_UNIX);
+    sc_sock_init(&sock, 0, true, SC_SOCK_UNIX);
     assert(sc_sock_connect(&sock, "/", "8006", NULL, NULL) != 0);
     sc_sock_init(&sock, 0, true, AF_INET);
     assert(sc_sock_connect(&sock, "0.0.0.0", "8006", NULL, NULL) != 0);
@@ -585,9 +585,13 @@ void test_err()
 
     sc_sock_init(&sock, 0, true, AF_INET);
     assert(sc_sock_connect(&sock, "0.0.0.0", "8006", "127.0.0.1", "8080") != 0);
-    sc_sock_init(&sock, 0, true, AF_INET6);
+    sc_sock_init(&sock, 0, true, SC_SOCK_INET6);
     assert(sc_sock_connect(&sock, "0.0.0.0", "8006", "::1", "8080") != 0);
     assert(sc_sock_term(&sock) == 0);
+
+    struct sc_sock_poll p = {0};
+    assert(sc_sock_poll_wait(&p, 100) != 0);
+    assert(*sc_sock_poll_err(&p) != '\0');
 }
 
 int main()

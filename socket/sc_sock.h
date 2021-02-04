@@ -112,8 +112,6 @@ void sc_sock_init(struct sc_sock *sock, int type, bool blocking, int family);
 int sc_sock_term(struct sc_sock *sock);
 
 /**
- * Listen on host:port
- *
  * @param sock sock
  * @param host host
  * @param port port
@@ -123,8 +121,6 @@ int sc_sock_term(struct sc_sock *sock);
 int sc_sock_listen(struct sc_sock *sock, const char *host, const char *port);
 
 /**
- * Accept connections
- *
  * @param sock sock
  * @param in   sock struct pointer the incoming connection
  * @return    '0' on success, negative number on failure.
@@ -133,8 +129,6 @@ int sc_sock_listen(struct sc_sock *sock, const char *host, const char *port);
 int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in);
 
 /**
- * Connect to destination
- *
  * @param sock         sock
  * @param dest_addr    destination addr
  * @param dest_port    destination port
@@ -160,8 +154,6 @@ int sc_sock_connect(struct sc_sock *sock, const char *dest_addr,
 int sc_sock_set_blocking(struct sc_sock *sock, bool blocking);
 
 /**
- * Set receive timeout
- *
  * @param sock sock
  * @param ms   timeout milliseconds
  * @return     '0' on success, negative number on failure.
@@ -170,8 +162,6 @@ int sc_sock_set_blocking(struct sc_sock *sock, bool blocking);
 int sc_sock_set_rcvtimeo(struct sc_sock *sock, int ms);
 
 /**
- * Set send timeout
- *
  * @param sock sock
  * @param ms   timeout milliseconds
  * @return     '0' on success, negative number on failure.
@@ -190,8 +180,6 @@ int sc_sock_set_sndtimeo(struct sc_sock *sock, int ms);
 int sc_sock_finish_connect(struct sc_sock *sock);
 
 /**
- * Send data
- *
  * @param sock  sock
  * @param buf   buf
  * @param len   len
@@ -203,8 +191,6 @@ int sc_sock_finish_connect(struct sc_sock *sock);
 int sc_sock_send(struct sc_sock *sock, char *buf, int len, int flags);
 
 /**
- * Receive data
- *
  * @param sock  sock
  * @param buf   buf
  * @param len   len
@@ -215,9 +201,35 @@ int sc_sock_send(struct sc_sock *sock, char *buf, int len, int flags);
  */
 int sc_sock_recv(struct sc_sock *sock, char *buf, int len, int flags);
 
+/**
+ * @param sock sock
+ * @return     last error string
+ */
 const char *sc_sock_error(struct sc_sock *sock);
+
+/**
+ * @param sock sock
+ * @param buf  buf
+ * @param len  buf len
+ * @return     local host:port string of the socket.
+ */
 const char *sc_sock_local_str(struct sc_sock *sock, char *buf, size_t len);
+
+/**
+ * @param sock sock
+ * @param buf  buf
+ * @param len  buf len
+ * @return     remote host:port string of the socket.
+ */
 const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, size_t len);
+
+/**
+ * Print socket in format "Local(127.0.0.1:8080), Remote(180.20.20.3:9000)"
+ *
+ * @param sock sock
+ * @param buf  buf
+ * @param len  buf len
+ */
 void sc_sock_print(struct sc_sock *sock, char *buf, size_t len);
 
 

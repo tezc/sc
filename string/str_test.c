@@ -371,6 +371,13 @@ void test5()
     sc_str_trim(&s1, "a");
 
     sc_str_destroy(s1);
+
+    s1 = sc_str_create("   elem1,elem2, elem3   ");
+    sc_str_trim(&s1, " ");
+    assert(strcmp(s1, "elem1,elem2, elem3") == 0);
+    sc_str_replace(&s1, " ", "");
+    assert(strcmp(s1, "elem1,elem2,elem3") == 0);
+    sc_str_destroy(s1);
 }
 
 

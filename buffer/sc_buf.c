@@ -664,7 +664,7 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
     int rc;
     va_list args;
     void *mem = (char *) sc_buf_wbuf(buf) + sc_buf_32_len(0);
-    uint32_t written;
+    uint32_t wr;
     uint32_t pos = sc_buf_wpos(buf);
     uint32_t quota = sc_buf_quota(buf);
 
@@ -683,10 +683,10 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
         return;
     }
 
-    written = (uint32_t) rc;
+    wr = (uint32_t) rc;
 
-    if (written >= quota) {
-        if (!sc_buf_reserve(buf, written)) {
+    if (wr >= quota) {
+        if (!sc_buf_reserve(buf, wr + sc_buf_32_len(0))) {
             return;
         }
 
@@ -702,11 +702,11 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...)
             return;
         }
 
-        written = (uint32_t) rc;
+        wr = (uint32_t) rc;
     }
 
-    sc_buf_set_32_at(buf, pos, written);
-    sc_buf_mark_write(buf, written + sc_buf_32_len(0) + sc_buf_8_len('\0'));
+    sc_buf_set_32_at(buf, pos, wr);
+    sc_buf_mark_write(buf, wr + sc_buf_32_len(0) + sc_buf_8_len('\0'));
 }
 
 void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
@@ -730,7 +730,7 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
     written = (uint32_t) rc;
 
     if (written >= quota) {
-        if (!sc_buf_reserve(buf, written)) {
+        if (!sc_buf_reserve(buf, written + 1)) {
             sc_buf_set_wpos(buf, 0);
             return;
         }
