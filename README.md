@@ -2,7 +2,7 @@
 
 - Stand-alone portable C libraries. 
 - Each folder includes a single .h .c pair which is independent of other files.
-- There is no build, just copy paste *.h *.c file into your project.
+- There is no build, just copy paste *.h *.c file into your project. 
 - CI runs on Linux, MacOS, FreeBSD and Windows with GCC, Clang and MSVC.
 
 # Details
@@ -12,7 +12,7 @@
 
 | Library                                                                 | Description                                                    |
 |-------------------------------------------------------------------------|----------------------------------------------------------------|
-| [array](array)             | Generic array/vector                                           |
+| [array](array)                                                          | Generic array/vector                                           |
 | [buffer](https://github.com/tezc/simple-c/tree/master/buffer)           | Buffer for encoding/decoding variables                         |
 | [condition](https://github.com/tezc/simple-c/tree/master/condition)     | Condition wrapper with extra functionality                     |
 | [crc32](https://github.com/tezc/simple-c/tree/master/crc32)             | Crc32c implementation                                          |
