@@ -3,7 +3,7 @@
 ### Overview
 
 - Log destination can be stdout, file and user callback.
-- You can get logs to all destinations at the same time.
+- You can pass logs to all destinations at the same time.
 - Log files are rotated.
 - Thread-safe.
 
@@ -39,13 +39,13 @@ int main(int argc, char *argv[])
     //Enable logging to file.
     sc_log_set_file("log.0.txt", "log-latest.txt");
 
-    //stdout and file will get the log line
+    //Log to stdout and file
     sc_log_info("to stdout and file!");
 
     //Enable callback
     sc_log_set_callback(log_callback, (void*) my_app_name);
 
-    //stdout, file and callback will get the log line
+    //Log to stdout, file and callback at the same time
     sc_log_info("to all!");
     sc_log_info("to all!");
 

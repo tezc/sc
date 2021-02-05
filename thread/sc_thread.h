@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 Ozan Tezcan
+ * Copyright (c) 2021 Ozan Tezcan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -73,7 +73,7 @@ int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg);
  * @return       '0' on success,
  *               '-1' on error, call 'sc_thread_err()' for error string.
  */
-int sc_thread_stop(struct sc_thread* thread, void** ret);
+int sc_thread_join(struct sc_thread* thread, void** ret);
 
 /**
  * @param thread thread

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 Ozan Tezcan
+ * Copyright (c) 2021 Ozan Tezcan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -133,7 +133,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread *thread, void **ret)
+int sc_thread_join(struct sc_thread *thread, void **ret)
 {
     int rc;
     void *val;
@@ -160,7 +160,7 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 
 int sc_thread_term(struct sc_thread *thread)
 {
-    return sc_thread_stop(thread, NULL);
+    return sc_thread_join(thread, NULL);
 }
 
 const char* sc_thread_err(struct sc_thread * thread)

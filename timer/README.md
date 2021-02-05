@@ -2,12 +2,12 @@
 
 #### Overview
 
-- Hashed timer wheel implementation.
-- Provides fast cancel and poll operations compared to a priority queue.
+- Hashed timing wheel implementation.
+- Provides fast cancel(O(1)) and poll operations compared to a priority queue.
 - Timers in the same hash slot are not ordered between each other. So, basically    
   this data structure trades accuracy for performance. Schedule a timer for  
   10000ms and another for 10001ms and you might see 10001ms timer expires  
-  just before 10000ms timer.
+  just before 10000ms timer. 
 
 
 ##### Usage

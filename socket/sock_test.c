@@ -39,7 +39,7 @@ struct sc_thread
 void sc_thread_init(struct sc_thread *thread);
 int sc_thread_term(struct sc_thread *thread);
 int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg);
-int sc_thread_stop(struct sc_thread *thread, void **ret);
+int sc_thread_join(struct sc_thread *thread, void **ret);
 
 void sc_thread_init(struct sc_thread *thread)
 {
@@ -71,7 +71,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread *thread, void **ret)
+int sc_thread_join(struct sc_thread *thread, void **ret)
 {
     int rc = 0;
     DWORD rv;
@@ -122,7 +122,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread *thread, void **ret)
+int sc_thread_join(struct sc_thread *thread, void **ret)
 {
     int rc;
     void *val;
@@ -145,7 +145,7 @@ int sc_thread_stop(struct sc_thread *thread, void **ret)
 
 int sc_thread_term(struct sc_thread *thread)
 {
-    return sc_thread_stop(thread, NULL);
+    return sc_thread_join(thread, NULL);
 }
 
 void *server_ip4(void *arg)

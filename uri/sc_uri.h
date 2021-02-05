@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 Ozan Tezcan
+ * Copyright (c) 2021 Ozan Tezcan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -70,7 +70,7 @@ struct sc_uri
 /**
  * Parse uri.
  *
- * Internally, it does a single allocation. Each part is also represented as
+ * Internally, it does a single allocation but each part is also represented as
  * NULL ended string.
  *
  * E.g :
@@ -96,7 +96,7 @@ struct sc_uri
 struct sc_uri *sc_uri_create(const char *str);
 
 /**
- * Free uri
+ * Destroy uri
  * @param uri uri
  */
 void sc_uri_destroy(struct sc_uri *uri);

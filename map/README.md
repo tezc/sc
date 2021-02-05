@@ -31,9 +31,8 @@ Key and value types can be integers(32bit/64bit) or pointers only.
 Other types can be added but must be scalar types, not structs. This is a   
 design decision, I don't remember when was the last time I wanted to store  
 struct as a key or value. I use hashmap for fast look-ups and small key-value  
-pairs with open addressing probing plays well with cache lines and hardware  
-prefetcher. If you want to use structs anyway, you need to change the code a
-little bit.
+pairs with linear probing play well with cache lines and hardware prefetcher.  
+If you want to use structs anyway, you need to change the code a little bit.
 
 
 #### Usage

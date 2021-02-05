@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 Ozan Tezcan
+ * Copyright (c) 2021 Ozan Tezcan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -32,8 +32,9 @@
 /**
  * Set shutdown fd here. When shutdown signal is received e.g SIGINT, SIGTERM.
  * Signal handler will write 1 byte to shutdown fd. So, your app can detect
- * shutdown command received and shutdown properly. Before app shutdowns, if
- * another shutdown signal is received, _Exit() is called without waiting.
+ * shutdown command received and shutdown properly (Assuming you observe this fd
+ * with select() like function). Before app shutdowns, if another shutdown
+ * signal is received, _Exit() is called without waiting.
  * e.g CTRL+C to shutdown, twice CTRL+C means 'I don't want to wait anything'.
  */
 #if defined(_WIN32)
@@ -72,7 +73,8 @@ int sc_signal_init();
 void sc_signal_log(int fd, char *buf, size_t size, char *fmt, ...);
 
 /**
- * Signal safe vsnprintf
+ * Signal safe vsnprintf.
+ * Supports only "%s, "%u", "%lu", "%llu", "%d", "%ld", "%lld" and "%p"
  *
  * @param buf  buf
  * @param size size
@@ -83,7 +85,8 @@ void sc_signal_log(int fd, char *buf, size_t size, char *fmt, ...);
 int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va);
 
 /**
- * Signal safe snprintf
+ * Signal safe snprintf.
+ * Supports only "%s, "%u", "%lu", "%llu", "%d", "%ld", "%lld" and "%p"
  *
  * @param buf  buf
  * @param size size
