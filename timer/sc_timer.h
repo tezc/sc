@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 Ozan Tezcan
+ * Copyright (c) 2021 Ozan Tezcan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -78,7 +78,7 @@ void sc_timer_clear(struct sc_timer *timer);
 
 /**
  * Add timer
- * 'timeout' is relative to latest 'timestamp' value given to 'timer' object.
+ * 'timeout' is relative to latest 'timestamp' value given to the 'timer'.
  *
  * e.g sc_timer_init(&timer, 1000); // Current timestamp is 1000.
  *     sc_timer_add(&timer, arg, 10); // Timeout will be at 1010.

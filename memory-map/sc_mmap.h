@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 Ozan Tezcan
+ * Copyright (c) 2021 Ozan Tezcan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -51,8 +51,8 @@
 struct sc_mmap
 {
     int fd;
-    unsigned char* ptr;
-    size_t len;
+    unsigned char* ptr; // memory map start address
+    size_t len;         // memory map length
     char err[128];
 };
 

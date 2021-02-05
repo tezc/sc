@@ -5,9 +5,6 @@
 - Type generic queue which grows when you add elements.
 - Add/remove from head/tail is possible so it can be used as list, stack,  
   queue, dequeue etc.
-- Single allocation for all the data.
-- Keeps separate first and last element indexes, when you remove an element,  
-  it doesn't move elements to fill the space.
 
 
 ##### Usage

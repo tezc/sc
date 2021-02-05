@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2020 Ozan Tezcan
+ * Copyright (c) 2021 Ozan Tezcan
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -90,7 +90,7 @@ void sc_str_destroy(char *str);
 
 /**
  * @param str length prefixed string. NULL values are accepted.
- * @return    length of the string. If NULL, '-1' will be returned.
+ * @return    length of the string. If NULL, returns -1.
  */
 int64_t sc_str_len(const char *str);
 
@@ -136,7 +136,7 @@ bool sc_str_append(char **str, const char *text);
     sc_str_set_fmt(str, "%s" fmt, *str, __VA_ARGS__)
 
 /**
- * Compare two length prefixed string. If you want to compare with regular
+ * Compare two length prefixed strings. If you want to compare with regular
  * C string, use strcmp().
  *
  * @param str   length prefixed string, must not be NULL.
@@ -150,17 +150,17 @@ bool sc_str_cmp(const char *str, const char *other);
  * but it is temporary. On each 'sc_str_token_begin' call, this function will
  * place '\0' character at the end of a token and put delimiter at the end of
  * the 'str'.
- * e.g user1,user2\0 after first iteration will be user1\0user2,
+ * e.g user1-user2\0 after first iteration will be user1\0user2-
  *
  * sc_str_token_end() will fix original string if necessary.
  *
  * usage:
  *
- * char *str = sc_str_create("user1,user2,user3");
+ * char *str = sc_str_create("user1-user2-user3");
  * char *save = NULL; // Must be initialized with NULL.
  * const char *token;
  *
- * while ((token = sc_str_token_begin(str, &save, ",") != NULL) {
+ * while ((token = sc_str_token_begin(str, &save, "-") != NULL) {
  *      printf("token : %s \n", token);
  * }
  *

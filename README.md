@@ -1,6 +1,6 @@
 ### Overview
 
-Stand-alone, portable C libraries. 
+Common data structures and utilities for C.  
 
 Each folder is independent and contains a header and a source file.  
 There is no build, just copy paste *.h *.c files into your project.
@@ -17,7 +17,7 @@ There is no build, just copy paste *.h *.c files into your project.
 | **[ini](ini)**                 | Ini parser                                                                                 |
 | **[linked list](linked-list)** | Intrusive linked list                                                                      |
 | **[logger](logger)**           | Logger                                                                                     |
-| **[map](map)**                 | A high performance hashmap                                                                 |
+| **[map](map)**                 | A high performance open addressing hashmap                                                 |
 | **[math](math)**               | Utility functions                                                                          |
 | **[memory map](memory-map)**   | Mmap wrapper for Posix and Windows                                                         |
 | **[mutex](mutex)**             | Mutex wrapper for Posix and Windows                                                        |
@@ -30,12 +30,12 @@ There is no build, just copy paste *.h *.c files into your project.
 | **[string](string)**           | Length prefixed, null terminated C strings.                                                |
 | **[thread](thread)**           | Thread wrapper for Posix and Windows.                                                      |
 | **[time](time)**               | Time and sleep functions for Posix and Windows                                             |
-| **[timer](timer)**             | Hashed timer wheel implementation for fast poll / cancel ops                               |
+| **[timer](timer)**             | Hashed timing wheel implementation with fast poll / cancel ops                              |
 | **[uri](uri)**                 | A basic uri parser                                                                         |
 
 ### Test
 
-Although I use on Linux mostly, CI runs with some combination of 
+Although I use on Linux mostly, CI runs with
 
 <pre>
 OS         : Linux, MacOS, FreeBSD and Windows  
@@ -48,7 +48,7 @@ To run all tests :
 <pre>
 #with valgrind
 mkdir build; cd build;
-cmake .. && make && make check
+cmake .. && make && make valgrind
 
 #with address sanitizer
 mkdir build; cd build;
@@ -57,5 +57,10 @@ cmake .. -DSANITIZER=address && make && make check
 #with undefined sanitizer
 mkdir build; cd build;
 cmake .. -DSANITIZER=undefined && make && make check
+
+#coverage
+mkdir build; cd build;
+cmake .. -DCMAKE_BUILD_TYPE=Coverage; make; make coverage
+
 </pre>
 

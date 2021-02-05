@@ -3,7 +3,6 @@
 ### Mmap wrapper 
 
 - Basic mmap wrapper for Unix and Windows.
-- File is expanded automatically depending on init flags on 'sc_map_init()'.
 
 ```c
 

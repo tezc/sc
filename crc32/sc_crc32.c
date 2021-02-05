@@ -41,7 +41,7 @@
 /* CRC-32C (iSCSI) polynomial in reversed bit order. */
 #define CRC32_POLY 0x82f63b78
 
-#ifdef SC_HAVE_CRC32_HARDWARE
+#ifdef HAVE_CRC32C
 #include <x86intrin.h>
 
 /* Multiply a matrix times a vector over the Galois field of two elements,
@@ -322,7 +322,7 @@ static uint32_t crc32_sw(uint32_t crci, const void *buf, size_t len)
 
 uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len)
 {
-#ifdef SC_HAVE_CRC32_HARDWARE
+#ifdef HAVE_CRC32C
     return crc32_hw(crc, buf, len);
 #else
     return crc32_sw(crc, buf, len);
@@ -331,7 +331,7 @@ uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len)
 
 void sc_crc32_init()
 {
-#ifdef SC_HAVE_CRC32_HARDWARE
+#ifdef HAVE_CRC32C
     crc32_init_hw();
 #else
     crc32_init_sw();

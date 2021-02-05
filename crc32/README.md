@@ -5,7 +5,7 @@
 
 - Compile time switch to hardware version if supported  
   (crc32c instruction on x64), fallback to software version if not available
-- See CmakeLists.txt, it checks "-msse4.2" flag. Stackoverflow answer has
+- See CmakeLists.txt, it checks "-msse4.2" flag. Stackoverflow answer has  
   runtime dispatch between hardware and software versions if you'd like that.
 
 
@@ -14,13 +14,15 @@
 ```cmake
 ## Cmake
 
+# Needs HAVE_CRC32C definition to enable CPU instruction usage.
+
 ## Only use hardware version in 64 bit architectures.
 include(CheckCCompilerFlag)
 
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
     check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
     if (${HAVE_CRC32_HARDWARE})
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.2 -DSC_HAVE_CRC32_HARDWARE")
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -msse4.2 -DHAVE_CRC32C")
     endif ()
 endif()
 ```
