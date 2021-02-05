@@ -3,11 +3,9 @@
 ### Overview
 
 - Open addressing hashmap with linear probing.
-- Key and value types can be integers(32bit/64bit) or pointers only. This is  
-  required for good performance.
-- Naming requires prefixes, it's ugly but macros are necessary to avoid  
+- Requires postfix naming, it's ugly but macros are necessary to avoid  
   copy/compare function pointers, memcpy calls etc..
-- Other types can be added but must be scalar types, not structs.
+
 - Comes with predefined key value pairs :
   
 ```
@@ -24,19 +22,31 @@
 - This is a very fast hashmap. 
   - Single array allocation for all data. 
   - Linear probing over an array.
-  - Deletion without tombstones
-  - Macros generate functions in sc_map.h and sc_map.c, it doesn't force  
-    compiler to inline. Inlining is upto the compiler.
+  - Deletion without tombstones.
+  - Macros generate functions in sc_map.c. So, inlining is upto the compiler.
+
+
+### Note
+Key and value types can be integers(32bit/64bit) or pointers only.  
+Other types can be added but must be scalar types, not structs. This is a   
+design decision, I don't remember when was the last time I wanted to store  
+struct as a key or value. I use hashmap for fast look-ups and small key-value  
+pairs with open addressing probing plays well with cache lines and hardware  
+prefetcher. If you want to use structs anyway, you need to change the code a
+little bit.
+
 
 #### Usage
 
 
 ```c
+
 #include "sc_map.h"
 
 #include <stdio.h>
 
-int main(int argc, char *argv[])
+
+void example_str()
 {
     const char *key, *value;
     struct sc_map_str map;
@@ -52,7 +62,36 @@ int main(int argc, char *argv[])
     }
 
     sc_map_term_str(&map);
+}
+
+void example_int_to_str()
+{
+    uint32_t key;
+    const char *value;
+    struct sc_map_64s map;
+
+    sc_map_init_64s(&map, 0, 0);
+
+    sc_map_put_64s(&map, 100, "chicago");
+    sc_map_put_64s(&map, 200, "new york");
+    sc_map_put_64s(&map, 300, "atlanta");
+
+    sc_map_del_64s(&map, 100, &value);
+    printf("Deleted : %s \n", value);
+
+    sc_map_foreach (&map, key, value) {
+        printf("Key:[%d], Value:[%s] \n", key, value);
+    }
+
+    sc_map_term_64s(&map);
+}
+
+int main(int argc, char *argv[])
+{
+    example_str();
+    example_int_to_str();
 
     return 0;
 }
+
 ```

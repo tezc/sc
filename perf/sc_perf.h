@@ -25,19 +25,8 @@
 #ifndef SC_PERF_H
 #define SC_PERF_H
 
-#include <assert.h>
-#include <errno.h>
 #include <linux/perf_event.h>
-#include <stdarg.h>
-#include <stdbool.h>
 #include <stdint.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <sys/ioctl.h>
-#include <sys/syscall.h>
-#include <time.h>
-#include <unistd.h>
 
 #define SC_PERF_HW_CACHE(CACHE, OP, RESULT)                                    \
     ((PERF_COUNT_HW_CACHE_##CACHE) | (PERF_COUNT_HW_CACHE_OP_##OP << 8u) |     \

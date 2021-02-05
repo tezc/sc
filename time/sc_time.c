@@ -21,6 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+#define _XOPEN_SOURCE 700
+
 #include "sc_time.h"
 
 #if defined(_WIN32) || defined(_WIN64)

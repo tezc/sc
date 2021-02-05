@@ -36,7 +36,7 @@
 struct sc_cond
 {
     bool done;
-    void* data;
+    void *data;
     char err[64];
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -52,30 +52,30 @@ struct sc_cond
  * @param cond cond
  * @return     '0' on success, '-1' on error, use 'sc_cond_err' to get error msg
  */
-int sc_cond_init(struct sc_cond* cond);
+int sc_cond_init(struct sc_cond *cond);
 
 /**
  * @param cond cond
  * @return     '0' on success, '-1' on error, use 'sc_cond_err' to get error msg
  */
-int sc_cond_term(struct sc_cond* cond);
+int sc_cond_term(struct sc_cond *cond);
 
 /**
  * @param cond cond
  * @param data data to pass to thread which will call 'sc_cond_wait'.
  */
-void sc_cond_signal(struct sc_cond* cond, void* data);
+void sc_cond_signal(struct sc_cond *cond, void *data);
 
 /**
  * @param cond cond
  * @return     'user data'.'data' argument on previous sc_cond_signal() call
  */
-void* sc_cond_wait(struct sc_cond* cond);
+void *sc_cond_wait(struct sc_cond *cond);
 
 /**
  * @param cond cond
  * @return     latest error message if any.
  */
-const char* sc_cond_err(struct sc_cond *cond);
+const char *sc_cond_err(struct sc_cond *cond);
 
 #endif

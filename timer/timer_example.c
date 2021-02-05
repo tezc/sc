@@ -1,3 +1,5 @@
+#define _XOPEN_SOURCE 700
+
 #include "sc_timer.h"
 
 #include <errno.h>

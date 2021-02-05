@@ -26,6 +26,7 @@
 #define SC_SIGNAL_H
 
 #include <signal.h>
+#include <stddef.h>
 #include <stdarg.h>
 
 /**

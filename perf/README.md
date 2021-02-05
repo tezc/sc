@@ -9,8 +9,8 @@
 - All predefined hardware and software counters are generated in the header  
   file, you can uncomment counters as you wish. 
 - If some counters or combination of counters doesn't work or doesn't work as  
-  expected, please check out performance counter register allocation  
-  documentation for your CPU. CPUs have limited registers for performance  
+  expected, don't be surprised and check out performance counter register   
+  allocation algorithm of Linux. CPUs have limited registers for performance  
   counters and some counters can use specific registers only. 
 - Golang version : https://github.com/tezc/goperf
 
