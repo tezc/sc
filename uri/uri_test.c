@@ -1,6 +1,7 @@
 #include "sc_uri.h"
 
 #include <assert.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -256,6 +257,41 @@ void *__wrap_malloc(size_t n)
     return __real_malloc(n);
 }
 
+bool fail_snprintf;
+
+int __wrap_snprintf(char *str, size_t size, const char *format, ...)
+{
+    int rc;
+    va_list va;
+
+    if (!fail_snprintf) {
+        va_start(va, format);
+        rc = vsnprintf(str, size, format, va);
+        va_end(va);
+
+        return rc;
+    }
+
+    return -1;
+}
+
+bool fail_sprintf;
+int __wrap_sprintf(char *str, const char *format, ...)
+{
+    int rc;
+    va_list va;
+
+    if (!fail_sprintf) {
+        va_start(va, format);
+        rc = vsprintf(str, format, va);
+        va_end(va);
+
+        return rc;
+    }
+
+    return -1;
+}
+
 void fail_test()
 {
     struct sc_uri *uri;
@@ -272,6 +308,14 @@ void fail_test()
     assert(strcmp(uri->scheme, "tcp") == 0);
     assert(strcmp(uri->path, "/127.0.0.1") == 0);
     sc_uri_destroy(uri);
+
+    fail_snprintf = true;
+    assert(sc_uri_create("tcp://127.0.0.1") == NULL);
+    fail_snprintf = false;
+
+    fail_sprintf = true;
+    assert(sc_uri_create("tcp://127.0.0.1") == NULL);
+    fail_snprintf = false;
 }
 #else
 void fail_test()

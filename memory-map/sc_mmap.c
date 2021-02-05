@@ -22,12 +22,13 @@
  * SOFTWARE.
  */
 
+#define _XOPEN_SOURCE 700
+
 #include "sc_mmap.h"
 
 #include <errno.h>
 #include <string.h>
 #include <sys/stat.h>
-
 
 #if defined(_WIN32)
     #include <io.h>

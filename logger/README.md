@@ -3,10 +3,9 @@
 ### Overview
 
 - Log destination can be stdout, file and user callback.
-- Possible to get logs to all destinations at the same time.
+- You can get logs to all destinations at the same time.
 - Log files are rotated.
 - Thread-safe.
-- Just copy <b>sc_log.h</b> and <b>sc_log.c</b> to your project.
 
 #### Usage
 

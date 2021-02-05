@@ -47,11 +47,11 @@ size_t sc_math_to_pow2(size_t size);
  * Bytes to human readable form, e.g 10240 bytes  to 10 KB.
  *
  * @param buf  buf to write output
- * @param max  buf size
+ * @param len  buf len
  * @param val  val to be converted into human readable form
  * @return     'buf' on success, 'NULL' on failure.
  */
-char *sc_math_bytes_to_size(char *buf, size_t max, uint64_t val);
+char *sc_math_bytes_to_size(char *buf, size_t len, uint64_t val);
 
 /**
  * Human readable string to bytes, e.g 10 KB to 10240 bytes.

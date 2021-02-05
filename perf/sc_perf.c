@@ -21,9 +21,22 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+#define _GNU_SOURCE
+
+#define _XOPEN_SOURCE 700
+
 #include "sc_perf.h"
 
+#include <time.h>
+#include <stdio.h>
+#include <errno.h>
+#include <stdlib.h>
+#include <stdbool.h>
+#include <string.h>
+#include <sys/syscall.h>
 #include <sys/prctl.h>
+#include <unistd.h>
 
 #define ITEMS_SIZE (sizeof(sc_perf_hw) / sizeof(struct sc_perf_event))
 

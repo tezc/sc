@@ -8,7 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 add_executable(sc_uri uri_example.c sc_uri.h sc_uri.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pedantic -Werror -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pedantic -Werror")
 endif ()
 
 
@@ -30,7 +30,8 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
             "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
         target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
-        target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=malloc)
+        target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=malloc
+                 -Wl,--wrap=snprintf -Wl,--wrap=sprintf)
     endif ()
 endif ()
 

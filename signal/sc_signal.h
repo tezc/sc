@@ -26,6 +26,7 @@
 #define SC_SIGNAL_H
 
 #include <signal.h>
+#include <stddef.h>
 #include <stdarg.h>
 
 /**
@@ -36,10 +37,10 @@
  * e.g CTRL+C to shutdown, twice CTRL+C means 'I don't want to wait anything'.
  */
 #if defined(_WIN32)
-#include <WinSock2.h>
-extern volatile SOCKET sc_signal_shutdown_fd;
+    #include <WinSock2.h>
+    extern volatile SOCKET sc_signal_shutdown_fd;
 #else
-extern volatile sig_atomic_t sc_signal_shutdown_fd;
+    extern volatile sig_atomic_t sc_signal_shutdown_fd;
 #endif
 
 /**

@@ -22,50 +22,52 @@ void test1(void)
     sc_log_init();
     sc_log_set_callback(callback, &count);
     assert(sc_log_set_level("errrorr") == -1);
-    sc_log_debug("test");
+    sc_log_debug("test \n");
     assert(count == 0);
 
+    assert(sc_log_set_level("debuG") == 0);
     sc_log_set_level("DEBUG");
-    sc_log_debug("test");
+    sc_log_debug("test \n");
     assert(count == 1);
-    sc_log_info("test");
+    sc_log_info("test \n");
     assert(count == 2);
-    sc_log_warn("test");
+    sc_log_warn("test \n");
     assert(count == 3);
-    sc_log_error("test");
+    sc_log_error("test \n");
     assert(count == 4);
 
     count = 0;
+    assert(sc_log_set_level("iNfO") == 0);
     sc_log_set_level("INFO");
-    sc_log_debug("test");
+    sc_log_debug("test \n");
     assert(count == 0);
-    sc_log_info("test");
+    sc_log_info("test \n");
     assert(count == 1);
-    sc_log_warn("test");
+    sc_log_warn("test \n");
     assert(count == 2);
-    sc_log_error("test");
+    sc_log_error("test \n");
     assert(count == 3);
 
     count = 0;
     sc_log_set_level("WARN");
-    sc_log_debug("test");
+    sc_log_debug("test \n");
     assert(count == 0);
-    sc_log_info("test");
+    sc_log_info("test \n");
     assert(count == 0);
-    sc_log_warn("test");
+    sc_log_warn("test \n");
     assert(count == 1);
-    sc_log_error("test");
+    sc_log_error("test \n");
     assert(count == 2);
 
     count = 0;
     sc_log_set_level("OFF");
-    sc_log_debug("test");
+    sc_log_debug("test \n");
     assert(count == 0);
-    sc_log_info("test");
+    sc_log_info("test \n");
     assert(count == 0);
-    sc_log_warn("test");
+    sc_log_warn("test \n");
     assert(count == 0);
-    sc_log_error("test");
+    sc_log_error("test \n");
     assert(count == 0);
 
     sc_log_set_level("INFO");
@@ -240,6 +242,7 @@ void fail_test(void)
     sc_log_set_stdout(true);
     fprintf_ret = -1;
     assert(sc_log_info("test") == -1);
+    assert(*sc_log_errstr() != '\0');
     fprintf_ret = 0;
     assert(sc_log_info("test") == 0);
 

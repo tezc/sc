@@ -22,11 +22,14 @@
  * SOFTWARE.
  */
 
+#define _XOPEN_SOURCE 700
+
 #include "sc_log.h"
 
+#include <ctype.h>
 #include <errno.h>
-#include <stdarg.h>
 #include <time.h>
+
 
 #ifndef thread_local
     #if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
@@ -146,7 +149,7 @@ int sc_log_init(void)
 {
     int rc;
 
-    sc_log = (struct sc_log) {0};
+    sc_log = (struct sc_log){0};
 
     sc_log.level = SC_LOG_INFO;
     sc_log.to_stdout = true;
@@ -176,9 +179,29 @@ int sc_log_term(void)
     return rc;
 }
 
+const char *sc_log_errstr(void)
+{
+    return sc_log.err;
+}
+
 void sc_log_set_thread_name(const char *name)
 {
     strncpy(sc_name, name, sizeof(sc_name) - 1);
+}
+
+static int sc_strcasecmp(const char *a, const char *b)
+{
+    int n;
+
+    for (;; a++, b++) {
+        if (*a == 0 && *b == 0) {
+            return 0;
+        }
+
+        if ((n = tolower(*a) - tolower(*b)) != 0) {
+            return n;
+        }
+    }
 }
 
 int sc_log_set_level(const char *str)
@@ -186,7 +209,7 @@ int sc_log_set_level(const char *str)
     size_t count = sizeof(sc_log_levels) / sizeof(struct sc_log_level_pair);
 
     for (size_t i = 0; i < count; i++) {
-        if (strcasecmp(str, sc_log_levels[i].str) == 0) {
+        if (sc_strcasecmp(str, sc_log_levels[i].str) == 0) {
             sc_log_mutex_lock(&sc_log.mtx);
             sc_log.level = sc_log_levels[i].id;
             sc_log_mutex_unlock(&sc_log.mtx);

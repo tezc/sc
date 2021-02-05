@@ -41,7 +41,11 @@ struct sc_mutex
 };
 
 /**
- * Create mutex
+ * Create mutex.
+ *
+ * Be warned on Windows, mutexes are recursive, on Posix default
+ * mutex type is not recursive. Edit code if that bothers you. Pass
+ * PTHREAD_MUTEX_RECURSIVE instead of PTHREAD_MUTEX_NORMAL.
  *
  * @param mtx mtx
  * @return    '0' on success, '-1' on error.

@@ -28,6 +28,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdarg.h>
 #include <string.h>
 
 enum sc_log_level
@@ -75,6 +76,12 @@ int sc_log_init(void);
  * @return '0' on success, negative value on error
  */
 int sc_log_term(void);
+
+/**
+ * Get last error string if any of the functions returns error
+ * @return last error string.
+ */
+const char* sc_log_errstr(void);
 
 /**
  * Call once from each thread, it will copy the name passed into a thread

@@ -2,7 +2,8 @@
 
 #include <stdio.h>
 
-int main(int argc, char *argv[])
+
+void example_str()
 {
     const char *key, *value;
     struct sc_map_str map;
@@ -18,6 +19,34 @@ int main(int argc, char *argv[])
     }
 
     sc_map_term_str(&map);
+}
+
+void example_int_to_str()
+{
+    uint32_t key;
+    const char *value;
+    struct sc_map_64s map;
+
+    sc_map_init_64s(&map, 0, 0);
+
+    sc_map_put_64s(&map, 100, "chicago");
+    sc_map_put_64s(&map, 200, "new york");
+    sc_map_put_64s(&map, 300, "atlanta");
+
+    sc_map_del_64s(&map, 100, &value);
+    printf("Deleted : %s \n", value);
+
+    sc_map_foreach (&map, key, value) {
+        printf("Key:[%d], Value:[%s] \n", key, value);
+    }
+
+    sc_map_term_64s(&map);
+}
+
+int main(int argc, char *argv[])
+{
+    example_str();
+    example_int_to_str();
 
     return 0;
 }

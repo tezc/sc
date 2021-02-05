@@ -18,16 +18,13 @@ Length prefixed C strings, length is at the start of the allocated memory
 - Provides a few more functions to make easier create/append/trim/substring  
   operations.
 
-##### Performance
+##### Cons
 - 4 bytes fixed overhead per string.
-- Faster length access and copy.
 - When you create/set/append a string, new memory is allocated. If you are  
   modifying strings a lot, consider using buffer-like implementation for that if  
   performance is critical for your use-case. I modify strings rarely but access  
-  a lot (copy/move etc.), so ease of use and read/copy/move performance was  
-  primary goal for this implementation.
-
-
+  a lot (copy/move etc.).
+  
 ```c
 #include "sc_str.h"
 
@@ -38,7 +35,7 @@ int main(int argc, char *argv[])
     char* s1;
 
     s1 = sc_str_create("*-hello-*");
-    printf("%s \n", s1); // prints **hello**
+    printf("%s \n", s1); // prints *-hello-*
 
     sc_str_trim(&s1, "*-");
     printf("%s \n", s1); // prints hello

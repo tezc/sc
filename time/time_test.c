@@ -1,3 +1,6 @@
+#define _GNU_SOURCE
+#define _XOPEN_SOURCE 700
+
 #include "sc_time.h"
 
 #include <assert.h>
@@ -40,14 +43,16 @@ void test2(void)
 }
 
 #ifdef SC_HAVE_WRAP
+
     #include <signal.h>
     #include <stdbool.h>
     #include <unistd.h>
     #include <errno.h>
+    #include <stdio.h>
 
 void sig_handler(int signum)
 {
-
+    printf("signal : %d", signum);
 }
 
 void test3(void)
@@ -55,7 +60,7 @@ void test3(void)
     uint64_t t1, t2;
 
     signal(SIGALRM, sig_handler);
-    alarm(2);
+    printf("%d \n", alarm(2));
 
     t1 = sc_time_mono_ms();
     sc_time_sleep(4000);
@@ -63,7 +68,7 @@ void test3(void)
 
     assert(t2 > t1);
 
-    alarm(2);
+    printf("%d \n", alarm(2));
     t1 = sc_time_mono_ns();
     sc_time_sleep(4000);
     t2 = sc_time_mono_ns();

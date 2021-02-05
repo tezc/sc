@@ -22,6 +22,9 @@
  * SOFTWARE.
  */
 
+#define _GNU_SOURCE
+#define _XOPEN_SOURCE 700
+
 #include "sc_signal.h"
 
 #include <stdbool.h>
@@ -32,9 +35,9 @@
 
 #if defined(_WIN32)
     #include <WinSock2.h>
-volatile SOCKET sc_signal_shutdown_fd;
+    volatile SOCKET sc_signal_shutdown_fd;
 #else
-volatile sig_atomic_t sc_signal_shutdown_fd;
+    volatile sig_atomic_t sc_signal_shutdown_fd;
 #endif
 
 /**

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 void example(void)
 {
@@ -459,6 +460,55 @@ static void test5()
     sc_map_term_64(&map);
 }
 
+static void test6()
+{
+    const int count = 120000;
+    uint32_t val;
+    bool b, exists;
+    struct sc_map_32 map;
+
+    srand(time(NULL));
+
+    uint32_t *keys = malloc(sizeof(uint32_t) * count);
+    uint32_t *values = malloc(sizeof(uint32_t) * count);
+
+    for (int i = 0; i < count; i++) {
+        keys[i] = i;
+        values[i] = (i * 33);
+    }
+
+    sc_map_init_32(&map, 0, 0);
+    for (int i = 0; i < count; i++) {
+        b = sc_map_put_32(&map, keys[i], values[i]);
+        assert(b);
+
+        if (i % 7 == 0 || i % 17 == 0 || i % 79 == 0) {
+            b = sc_map_del_32(&map, keys[i], &val);
+            assert(b);
+            assert(val == values[i]);
+        }
+    }
+
+    for (int i = 0; i < count; i++) {
+        exists = true;
+        if (i % 7 == 0 || i % 17 == 0 || i % 79 == 0) {
+            exists = false;
+        }
+
+        b = sc_map_get_32(&map, keys[i], &val);
+        assert(b == exists);
+
+        if (b) {
+            assert(val == values[i]);
+        }
+    }
+
+    sc_map_term_32(&map);
+
+    free(keys);
+    free(values);
+}
+
 
 #ifdef SC_HAVE_WRAP
 
@@ -514,6 +564,7 @@ int main(int argc, char *argv[])
     test3();
     test4();
     test5();
+    test6();
 
     return 0;
 }
