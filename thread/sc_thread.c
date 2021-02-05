@@ -76,7 +76,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
     return rc;
 }
 
-int sc_thread_stop(struct sc_thread *thread, void **ret)
+int sc_thread_join(struct sc_thread *thread, void **ret)
 {
     int rc = 0;
     DWORD rv;
