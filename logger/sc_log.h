@@ -77,6 +77,12 @@ int sc_log_init(void);
 int sc_log_term(void);
 
 /**
+ * Get last error string if any of the functions returns error
+ * @return last error string.
+ */
+const char* sc_log_errstr(void);
+
+/**
  * Call once from each thread, it will copy the name passed into a thread
  * local buffer. Max size is 31 characters.
  *

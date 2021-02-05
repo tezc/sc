@@ -90,7 +90,6 @@ void sc_list_add_head(struct sc_list *list, struct sc_list *elem);
  */
 struct sc_list *sc_list_pop_head(struct sc_list *list);
 
-
 /**
  *  before : [head]item1 -> [tail]item2
  *  after  : [head]item1 -> item2 -> [tail]'elem'
@@ -102,7 +101,7 @@ void sc_list_add_tail(struct sc_list *list, struct sc_list *elem);
 
 /**
  *  before : [head]item1 -> item2 -> item3
- *  after  : [head]item2 -> item2
+ *  after  : [head]item1 -> item2
  *
  * @param list list
  * @return     head element, if list is empty, returns NULL.
@@ -111,7 +110,7 @@ struct sc_list *sc_list_pop_tail(struct sc_list *list);
 
 /**
  *  before : item1 -> 'prev' -> item2
- *  after  : item1 -> 'prev'-> 'elem' -> item2
+ *  after  : item1 -> 'prev' -> 'elem' -> item2
  *
  * @param list list
  * @param prev previous element of the 'elem'
@@ -136,7 +135,7 @@ void sc_list_add_before(struct sc_list *list, struct sc_list *next,
  *  after  : item1 -> item2
  *
  * @param list list pointer
- * @param elem  elem to be deleted
+ * @param elem elem to be deleted
  */
 void sc_list_del(struct sc_list *list, struct sc_list *elem);
 

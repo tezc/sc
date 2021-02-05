@@ -9,15 +9,6 @@
   called. Signal will mark the condition 'done', so when another thread calls  
   wait(), it won't be blocked, it will return immediately with the user  
   provided data.
-- Conditions can be problematic if you are looking for performance. E.g :
-  - Thread A calls wait()
-  - Thread B locks the mutex and calls signal() and just before it calls   
-    mutex unlock(), Thread A wakes up and sees mutex is still locked so it goes  
-    back to sleep.
-  - So, this implementation provides 'async wait()' semantics, 'wait  
-    thread2 can call wait() later, even after signal thread completes its job.
-    
-
 
 ##### Usage
 

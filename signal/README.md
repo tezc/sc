@@ -2,8 +2,8 @@
 
 #### Overview
 
-- Signal handling for shutdown and fatal signals.
-- Provides signal safe snprintf/vsnprintf.
+- Signal handling to handle shutdown and fatal signals.
+- Also provides signal safe snprintf/vsnprintf.
 - On shutdown signal, writes 1 byte to a fd which is set by user, so your app   
   can shutdown properly. 
 - Double shutdown signal handling: e.g user presses CTRL+C twice, exits without  

@@ -82,7 +82,6 @@ int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
 int sc_mmap_term(struct sc_mmap* m);
 
 /**
- *
  * @param m      mmap
  * @param offset offset
  * @param len    len

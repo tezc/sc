@@ -87,12 +87,11 @@ int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
 {
     int rc = 0, line = 0;
     char buf[SC_INI_MAX_LINE_LEN];
-    char section[256] = {0}, prev_key[256] = {0};
+    char section[256] = {0}, key[256] = {0};
     char *head, *end;
 
     while ((head = next_line(arg1, buf, sizeof(buf) - 1)) != NULL) {
         if (++line == 1) {
-            // Skip byte order mark
             head = trim_bom(head);
         }
 
@@ -101,15 +100,15 @@ int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
             continue;
         }
 
-        if (head > buf && *prev_key) {
+        if (head > buf && *key) {
             // Multi-line case. This line is another value to previous key.
-            rc = on_item(arg, line, section, prev_key, head);
+            rc = on_item(arg, line, section, key, head);
         } else if (*head == '[') {
             if ((end = strchr(head, ']')) == NULL) {
                 return line;
             }
 
-            *prev_key = '\0';
+            *key = '\0';
             *end = '\0';
             strncpy(section, head + 1, sizeof(section) - 1);
         } else {
@@ -119,7 +118,7 @@ int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
 
             *end = '\0';
             trim_space(head);
-            strncpy(prev_key, head, sizeof(prev_key) - 1);
+            strncpy(key, head, sizeof(key) - 1);
             rc = on_item(arg, line, section, head, trim_space(end + 1));
         }
 
@@ -138,10 +137,8 @@ static char *file_next_line(void *p, char *buf, size_t size)
 
 static char *string_next_line(void *p, char *buf, size_t size)
 {
-    size_t len;
-    size_t diff;
-    char *t;
-    char *str = (*(char **) p);
+    size_t len, diff;
+    char *t, *str = (*(char **) p);
 
     if (str == NULL || *str == '\0') {
         return NULL;
@@ -157,7 +154,7 @@ static char *string_next_line(void *p, char *buf, size_t size)
     memcpy(buf, str, len);
     buf[len] = '\0';
 
-    *(char **) p = *t == '\0' ? '\0' : t + 1;
+    *(char **) p = (*t == '\0') ? '\0' : t + 1;
 
     return buf;
 }

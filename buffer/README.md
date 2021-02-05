@@ -8,8 +8,8 @@
   when you are reading, you just get the pointer. This is useful to avoid memory  
   allocation overhead.
 - Integer operations are compiled into bounds check + a single MOV instruction  
-  on x86. Buffer keeps data in Little Endian format, so on big endian systems,  
-  integer put/get is bswap(byte swap) + MOV.
+  with a good compiler. Buffer keeps data in Little Endian format, so on big  
+  endian systems, integer put/get is bswap(byte swap) + MOV.
 - Max capacity is 4GB. Max string size is a little less than 2 GB
 
 ##### Usage
@@ -64,9 +64,9 @@ int main()
 
 ##### Lazy error check
 
-- Rather than checking error code for each   
-  put(Out of memory/limit exceeded) / get(buffer underflow) operation,   
-  error check can be postponed until end of an operation batch.
+- Rather than checking error code for each put(Out of memory/limit exceeded) or   
+  get(buffer underflow) operation, error check can be postponed until end of an  
+  operation batch.
 
 ```c
 

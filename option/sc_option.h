@@ -45,9 +45,9 @@ struct sc_option
  *
  * @param opt    Already initialized sc_opt struct
  * @param index  Index for argv
- * @param value  [out] Value for the option if exists. It should come after '='
+ * @param value  [out] Value for the option if exists. It should be after '='
  *               sign. E.g : -key=value or -k=value. If value does not exists
- *               (*value) will point '\0' character. It won't be NULL itself.
+ *               (*value) will point to '\0' character. It won't be NULL itself.
  *
  *               To check if option has value associated : if (*value != '\0')
  *

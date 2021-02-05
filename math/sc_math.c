@@ -31,13 +31,13 @@
 #include <string.h>
 
 #if (SIZE_MAX == 0xFFFF)
-#define SIZE_T_BITS 16
+    #define SIZE_T_BITS 16
 #elif (SIZE_MAX == 0xFFFFFFFF)
-#define SIZE_T_BITS 32
+    #define SIZE_T_BITS 32
 #elif (SIZE_MAX == 0xFFFFFFFFFFFFFFFF)
-#define SIZE_T_BITS 64
+    #define SIZE_T_BITS 64
 #else
-#error unknown size_t bits
+    #error unknown size_t bits
 #endif
 
 bool sc_math_is_pow2(size_t num)
@@ -62,19 +62,19 @@ size_t sc_math_to_pow2(size_t size)
     return size;
 }
 
-char *sc_math_bytes_to_size(char *buf, size_t max, uint64_t val)
+char *sc_math_bytes_to_size(char *buf, size_t len, uint64_t val)
 {
     int i, size;
     uint64_t bytes = 1;
-    char *suffix[] = {"B", "KB", "MB", "GB", "TB", "PB"};
-    size_t length = sizeof(suffix) / sizeof(suffix[0]);
+    const char *suffix[] = {"B", "KB", "MB", "GB", "TB", "PB"};
+    const size_t length = sizeof(suffix) / sizeof(suffix[0]);
 
     for (i = 0; bytes * 1024 < val && i < length; i++) {
         bytes *= 1024;
     }
 
-    size = snprintf(buf, max, "%.02lf %s", (((double) val) / bytes), suffix[i]);
-    if (size <= 0 || size >= max) {
+    size = snprintf(buf, len, "%.02lf %s", (((double) val) / bytes), suffix[i]);
+    if (size <= 0 || size >= len) {
         return NULL;
     }
 
@@ -86,7 +86,7 @@ int64_t sc_math_size_to_bytes(const char *buf)
     int count;
     int64_t val;
     char *parse_end;
-    char *end = (char *) (buf + strlen(buf));
+    const char *end = (char *) (buf + strlen(buf));
 
     errno = 0;
     val = strtoll(buf, &parse_end, 10);

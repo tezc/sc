@@ -98,7 +98,6 @@ struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags);
 void sc_buf_limit(struct sc_buf *buf, uint32_t limit);
 
 /**
- *
  * @param buf buffer
  * @param pos pos
  * @return    buffer address at 'pos'
@@ -106,13 +105,13 @@ void sc_buf_limit(struct sc_buf *buf, uint32_t limit);
 void *sc_buf_at(struct sc_buf *buf, uint32_t pos);
 
 /**
- *
  * @param buf buffer
  * @return    current capacity.
  */
 uint32_t sc_buf_cap(struct sc_buf *buf);
 
 /**
+ * Reserve space
  *
  * @param buf buffer
  * @param len len
@@ -122,7 +121,6 @@ uint32_t sc_buf_cap(struct sc_buf *buf);
 bool sc_buf_reserve(struct sc_buf *buf, uint32_t len);
 
 /**
- *
  * @param buf buffer
  * @return    'true' if buffer is valid. Buffer can be invalid either on
  *            allocation failure or when you try to read data more than buffer
@@ -151,6 +149,7 @@ void sc_buf_clear(struct sc_buf *buf);
 /**
  * Compact buffer, e.g if bytes in buffer at [3, 20],
  * it will be moved to [0, 17]
+ *
  * @param buf buffer
  */
 void sc_buf_compact(struct sc_buf *buf);
@@ -158,6 +157,7 @@ void sc_buf_compact(struct sc_buf *buf);
 /**
  * Advance read position, useful when you pass underlying array to another
  * function which operates on void*. e.g socket write() call.
+ *
  * @param buf buffer
  * @param len len
  */
@@ -166,6 +166,7 @@ void sc_buf_mark_read(struct sc_buf *buf, uint32_t len);
 /**
  * Advance read position, useful when you pass underlying array to another
  * function which operates on void*. e.g socket read() call.
+ *
  * @param buf buffer
  * @param len len
  */
@@ -197,6 +198,7 @@ void sc_buf_set_wpos(struct sc_buf *buf, uint32_t pos);
 
 /**
  * Get address of read position. Useful for e.g : write(fd, sc_buf_rbuf(buf) ..)
+ *
  * @param buf buffer
  * @return    read address
  */
@@ -204,6 +206,7 @@ void *sc_buf_rbuf(struct sc_buf *buf);
 
 /**
  * Get address of write position. Useful for e.g : read(fd, sc_buf_wbuf(buf) ..)
+ *
  * @param buf buffer
  * @return    write address
  */
@@ -220,7 +223,7 @@ void sc_buf_move(struct sc_buf *dest, struct sc_buf *src);
 
 /**
  * Read from buffer without advancing read position. 'peek' functions will set
- * error flags if buffer does not have required data.
+ * error flags if buffer does not have required amount of data.
  */
 uint8_t sc_buf_peek_8_at(struct sc_buf *buf, uint32_t pos);
 uint16_t sc_buf_peek_16_at(struct sc_buf *buf, uint32_t pos);
@@ -320,6 +323,7 @@ void sc_buf_put_str_len(struct sc_buf *buf, const char *str, int len);
 
 /**
  * Put formatted string, passes arguments to vsnprintf
+ *
  * @param buf buffer
  * @param fmt fmt
  * @param ... arguments
@@ -329,7 +333,17 @@ void sc_buf_put_fmt(struct sc_buf *buf, const char *fmt, ...);
 /**
  * Put formatted string, passes arguments to vsnprintf but concatenates strings.
  * Only useful if you want to append strings. It doesn't store string as length
- * prefixed string.
+ * prefixed string. So, only valid use case is :
+ *
+ * e.g
+ *
+ * char tmp[128];
+ * struct sc_buf buf = sc_buf_wrap(tmp, sizeof(tmp), SC_BUF_REF);
+ * sc_buf_put_text(&buf, "Hello");
+ * sc_buf_put_text(&buf, " world");
+ *
+ * printf("%s", buf.mem); // Prints "Hello world"
+ *
  *
  * @param buf buffer
  * @param fmt fmt

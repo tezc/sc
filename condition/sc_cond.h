@@ -28,9 +28,9 @@
 #include <stdbool.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <windows.h>
+    #include <windows.h>
 #else
-#include <pthread.h>
+    #include <pthread.h>
 #endif
 
 struct sc_cond

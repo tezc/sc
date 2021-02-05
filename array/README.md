@@ -2,44 +2,62 @@
 
 #### Overview
 
-- Generic array which grows when you add elements.
+- Type generic array/vector.
 - Index access is possible (e.g float* arr; 'printf("%f", arr[i]')).
-- Lazy allocation. No memory allocation until first 'add'.
 
 
 ##### Usage
 
 
 ```c
+#include "sc_array.h"
 
+#include <stdio.h>
+
+void example_str()
+{
+    char **p, *it;
+
+    sc_array_create(p, 0);
+    
+    sc_array_add(p, "item0");
+    sc_array_add(p, "item1");
+    sc_array_add(p, "item2");
+
+    printf("\nDelete first element \n\n");
+    sc_array_del(p, 0);
+
+    sc_array_foreach (p, it) {
+        printf("Elem = %s \n", it);
+    }
+
+    sc_array_destroy(p);
+}
+
+void example_int()
+{
     int *p;
-    int val;
 
     sc_array_create(p, 0);
 
     sc_array_add(p, 0);
     sc_array_add(p, 1);
-    sc_array_add(p, 3);
-    
-    printf("\nDelete first element \n\n");
-    sc_array_del(p, 0);
+    sc_array_add(p, 2);
 
-    printf("Capacity %zu \n", sc_array_cap(p));
-    printf("Element count %zu \n", sc_array_size(p));
-
-
-    // Simple loop
     for (int i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);
     }
-    
-    // Foreach
-    sc_array_foreach(p, val) {
-        printf("Elem = %d \n", val);
-    }
 
     sc_array_destroy(p);
+}
 
+int main(int argc, char *argv[])
+{
+    example_int();
+    example_str();
+
+    return 0;
+}
 ```
 
 ##### Note

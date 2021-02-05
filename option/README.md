@@ -2,7 +2,7 @@
 
 ### Portable getopt alternative 
 
-- Very simple alternative to getopt
+- Very basic alternative to getopt
 - Long or short version of options are supported. Values are accepted only with  
   '=' sign.
   - --address=127.0.0.1

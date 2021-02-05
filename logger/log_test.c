@@ -240,6 +240,7 @@ void fail_test(void)
     sc_log_set_stdout(true);
     fprintf_ret = -1;
     assert(sc_log_info("test") == -1);
+    assert(*sc_log_errstr() != '\0');
     fprintf_ret = 0;
     assert(sc_log_info("test") == 0);
 

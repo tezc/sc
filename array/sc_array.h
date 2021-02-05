@@ -108,7 +108,7 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *   Deletes the element at index i, moves elements to fill the space
  *   unless deleted element is the last element
  *
- *   vec[a,b,c,d,e,f] -> sc_array_del(vec, 2) - > vec[a,b,d,f,e]
+ *   vec[a,b,c,d,e,f] -> sc_array_del(vec, 2) - > vec[a,b,d,e,f]
  *
  *   @param arr array
  *   @param i   index

@@ -176,6 +176,11 @@ int sc_log_term(void)
     return rc;
 }
 
+const char* sc_log_errstr(void)
+{
+    return sc_log.err;
+}
+
 void sc_log_set_thread_name(const char *name)
 {
     strncpy(sc_name, name, sizeof(sc_name) - 1);

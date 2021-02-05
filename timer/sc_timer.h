@@ -59,7 +59,7 @@ struct sc_timer
  * Init timer
  *
  * @param timer     timer
- * @param timestamp current timestamp. Please use monotonic timer source.
+ * @param timestamp current timestamp. Use monotonic timer source.
  * @return          'false' on out of memory.
  */
 bool sc_timer_init(struct sc_timer *timer, uint64_t timestamp);
@@ -108,6 +108,8 @@ uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
 void sc_timer_cancel(struct sc_timer *timer, uint64_t *id);
 
 /**
+ * Checks timeouts and calls 'callback' function for each timeout.
+ *
  * Logical pattern is :
  *
  * e.g:
