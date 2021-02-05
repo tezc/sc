@@ -40,9 +40,9 @@ struct sc_uri *sc_uri_create(const char *str)
     const char *s2 = "%.*s%c%.*s%c%.*s%c%.*s%c%.*s%c%.*s%c%.*s%c";
     const char *authority = "//";
 
-    int diff;
+    int diff, ret;
     unsigned long val;
-    size_t len, full_len, parts_len;
+    size_t full_len, parts_len;
     size_t scheme_len, authority_len = 0, userinfo_len = 0;
     size_t host_len = 0, port_len = 0, path_len;
     size_t query_len = 0, fragment_len = 0;
@@ -131,11 +131,15 @@ struct sc_uri *sc_uri_create(const char *str)
         return NULL;
     }
 
-    len = (size_t) snprintf(uri->buf, full_len, s1, scheme_len, scheme,
-                            authority_len, authority, userinfo_len, userinfo,
-                            host_len, host, port_len, port, path_len, path,
-                            query_len, query, fragment_len, fragment);
-    assert(len == full_len - 1);
+    ret = snprintf(uri->buf, full_len, s1, scheme_len, scheme, authority_len,
+                   authority, userinfo_len, userinfo, host_len, host, port_len,
+                   port, path_len, path, query_len, query, fragment_len,
+                   fragment);
+    if (ret < 0) {
+        goto error;
+    }
+
+    assert((size_t) ret == full_len - 1);
 
     dest = uri->buf + strlen(uri->buf) + 1;
 
@@ -151,11 +155,14 @@ struct sc_uri *sc_uri_create(const char *str)
     fragment_len -= diff; // Skip "#"
     fragment += diff;     // Skip "#"
 
-    len = (size_t) sprintf(dest, s2, scheme_len, scheme, 0, userinfo_len,
-                           userinfo, 0, host_len, host, 0, port_len, port, 0,
-                           path_len, path, 0, query_len, query, 0, fragment_len,
-                           fragment, 0);
-    assert(len == parts_len - 1);
+    ret = sprintf(dest, s2, scheme_len, scheme, 0, userinfo_len, userinfo, 0,
+                  host_len, host, 0, port_len, port, 0, path_len, path, 0,
+                  query_len, query, 0, fragment_len, fragment, 0);
+    if (ret < 0) {
+        goto error;
+    }
+
+    assert((size_t) ret == parts_len - 1);
 
     uri->str = uri->buf;
     uri->scheme = dest;
@@ -167,6 +174,10 @@ struct sc_uri *sc_uri_create(const char *str)
     uri->fragment = uri->query + query_len + 1;
 
     return uri;
+
+error:
+    sc_uri_free(uri);
+    return NULL;
 }
 
 void sc_uri_destroy(struct sc_uri *uri)

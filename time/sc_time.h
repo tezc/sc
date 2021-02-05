@@ -27,13 +27,13 @@
 #include <stdint.h>
 
 /**
- * This is not a monotonic timer. Gets CLOCK_REALTIME on Posix.
+ * Wall clock time. Gets CLOCK_REALTIME on Posix.
  * @return current timestamp in milliseconds.
  */
 uint64_t sc_time_ms();
 
 /**
- * This is not a monotonic timer. Gets CLOCK_REALTIME on Posix.
+ * Wall clock time. Gets CLOCK_REALTIME on Posix.
  * @return current timestamp in nanoseconds.
  */
 uint64_t sc_time_ns();
