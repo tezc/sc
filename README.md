@@ -3,9 +3,7 @@
 Stand-alone, portable C libraries. 
 
 Each folder is independent and contains a header and a source file.  
-There is no build, just copy paste *.h *.c file into your project.  
-
-
+There is no build, just copy paste *.h *.c files into your project.
 
 ### List
 
@@ -34,10 +32,6 @@ There is no build, just copy paste *.h *.c file into your project.
 | **[time](time)**               | Time and sleep functions for Posix and Windows                                             |
 | **[timer](timer)**             | Hashed timer wheel implementation for fast poll / cancel ops                               |
 | **[uri](uri)**                 | A basic uri parser                                                                         |
-
-### Details
-- Errors are reported to user. (e.g Out of memory, system call errors)
-- Some
 
 ### Test
 

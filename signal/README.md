@@ -41,3 +41,33 @@ int main()
     return 0;
 }
 ```
+
+# Backtrace on fatal signals
+
+If 'HAVE_BACKTRACE' is defined, it will print backtrace on fatal signals. To  
+detect if system has backtrace() function on CMAKE : 
+
+```cmake
+include(CheckCCompilerFlag)
+
+check_c_source_compiles("
+    #include <execinfo.h>
+    #include <unistd.h>
+
+    int main(int argc, char **argv) {
+        void *array[10];
+        size_t size = backtrace(array, 10);
+        backtrace_symbols_fd(array, size, STDERR_FILENO);
+        return 0;
+}" HAVE_BACKTRACE)
+
+FIND_LIBRARY(EXECINFO_LIBRARY NAMES execinfo)
+IF (EXECINFO_LIBRARY)
+    SET(CMAKE_REQUIRED_LIBRARIES "${EXECINFO_LIBRARY}")
+ENDIF(EXECINFO_LIBRARY)
+
+if (${HAVE_BACKTRACE})
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHAVE_BACKTRACE")
+endif ()
+
+```

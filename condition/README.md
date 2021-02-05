@@ -25,7 +25,7 @@ int main()
     sc_cond_signal(&cond, "test"); // Call this on thread-1
     char* p = sc_cond_wait(&cond); // Call this on another thread.
 
-    printf("%s \n", p);
+    printf("%s \n", p); // Prints "test"
 
     return 0;
 }
