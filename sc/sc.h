@@ -65,12 +65,6 @@ struct sc_rand
  * @param init rand source, possibly from /dev/urandom, must be 256 bytes long.
  */
 void sc_rand_init(struct sc_rand *r, const unsigned char *init);
-
-/**
- * @param r    sc_rand
- * @param buf  out buf
- * @param size buf size
- */
 void sc_rand_read(struct sc_rand *r, void *buf, int size);
 
 /**
