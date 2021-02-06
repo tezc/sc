@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-#include "sc_math.h"
+#include "sc.h"
 
 #include <ctype.h>
 #include <errno.h>
@@ -40,12 +40,50 @@
     #error unknown size_t bits
 #endif
 
-bool sc_math_is_pow2(size_t num)
+#include <memory.h>
+
+void sc_rand_init(struct sc_rand *r, const unsigned char *init)
+{
+    unsigned char t;
+
+    *r = (struct sc_rand){0};
+
+    memcpy(r->init, init, 256);
+
+    for (int i = 0; i < 256; i++) {
+        r->j += r->init[i] + init[i];
+        t = r->init[r->j];
+        r->init[r->j] = r->init[i];
+        r->init[i] = t;
+    }
+}
+
+void sc_rand_read(struct sc_rand *r, void *buf, int size)
+{
+    unsigned char t;
+    unsigned char *p = buf;
+
+    if (size <= 0 || buf == NULL) {
+        return;
+    }
+
+    do {
+        r->i++;
+        t = r->init[r->i];
+        r->j += t;
+        r->init[r->i] = r->init[r->j];
+        r->init[r->j] = t;
+        t += r->init[r->i];
+        *(p++) = r->init[t];
+    } while (--size);
+}
+
+bool sc_is_pow2(size_t num)
 {
     return (num != 0) && (num & (num - 1)) == 0;
 }
 
-size_t sc_math_to_pow2(size_t size)
+size_t sc_to_pow2(size_t size)
 {
     if (size == 0) {
         return 1;
@@ -62,7 +100,7 @@ size_t sc_math_to_pow2(size_t size)
     return size;
 }
 
-char *sc_math_bytes_to_size(char *buf, size_t len, uint64_t val)
+char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
 {
     int i, size;
     uint64_t bytes = 1;
@@ -81,7 +119,7 @@ char *sc_math_bytes_to_size(char *buf, size_t len, uint64_t val)
     return buf;
 }
 
-int64_t sc_math_size_to_bytes(const char *buf)
+int64_t sc_size_to_bytes(const char *buf)
 {
     int count;
     int64_t val;

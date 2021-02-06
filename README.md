@@ -22,13 +22,12 @@ CI runs on Linux, MacOS, FreeBSD and Windows with gcc, clang and msvc.
 | **[linked list](linked-list)** | Intrusive linked list                                                                      |
 | **[logger](logger)**           | Logger                                                                                     |
 | **[map](map)**                 | A high performance open addressing hashmap                                                 |
-| **[math](math)**               | Utility functions                                                                          |
 | **[memory map](memory-map)**   | Mmap wrapper for Posix and Windows                                                         |
 | **[mutex](mutex)**             | Mutex wrapper for Posix and Windows                                                        |
 | **[option](option)**           | Cmdline argument parser. Very basic one                                                    |
 | **[perf](perf)**               | Benchmark utility to get performance counters info via perf_event_open()                   | 
 | **[queue](queue)**             | Generic queue which can be used as dequeue/stack/list as well                              |
-| **[rc4](rc4)**                 | Random number generator                                                                    |
+| **[sc](sc)**                   | Utility functions                                                                          |
 | **[signal](signal)**           | Signal handler & signal safe snprintf (handling CTRL+C, printing backtrace on crash etc)   |
 | **[socket](socket)**           | Pipe, TCP sockets, Epoll/Kqueue/WSAPoll for Posix and Windows                              |
 | **[string](string)**           | Length prefixed, null terminated C strings.                                                |

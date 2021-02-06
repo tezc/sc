@@ -1,11 +1,11 @@
 cmake_minimum_required(VERSION 3.5.1)
-project(sc_math C)
+project(sc C)
 
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_math math_example.c sc_math.h sc_math.c)
+add_executable(sc sc_example.c sc.h sc.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -Werror -pthread")
@@ -21,7 +21,7 @@ include(CheckCCompilerFlag)
 
 enable_testing()
 
-add_executable(${PROJECT_NAME}_test math_test.c sc_math.c)
+add_executable(${PROJECT_NAME}_test sc_test.c sc.c)
 
 target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
 

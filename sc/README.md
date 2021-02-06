@@ -1,6 +1,4 @@
-# Math
-
-### Math
+# Sc
 
 - Utility functions
 
