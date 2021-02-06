@@ -3,7 +3,8 @@
 Common data structures and utilities for C.  
 
 Each folder is independent and contains a header and a source file.  
-There is no build, just copy paste *.h *.c files into your project.
+There is no build for libraries, just copy *.h *.c files into your project.  
+
 
 ### List
 
@@ -30,7 +31,7 @@ There is no build, just copy paste *.h *.c files into your project.
 | **[string](string)**           | Length prefixed, null terminated C strings.                                                |
 | **[thread](thread)**           | Thread wrapper for Posix and Windows.                                                      |
 | **[time](time)**               | Time and sleep functions for Posix and Windows                                             |
-| **[timer](timer)**             | Hashed timing wheel implementation with fast poll / cancel ops                              |
+| **[timer](timer)**             | Hashed timing wheel implementation with fast poll / cancel ops                             |
 | **[uri](uri)**                 | A basic uri parser                                                                         |
 
 ### Test

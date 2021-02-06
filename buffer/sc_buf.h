@@ -76,7 +76,7 @@ void sc_buf_term(struct sc_buf *buf);
 
 /**
  * Wrap memory into buffer, write position will be '0' after this call.
- * Useful for using preallocated or stack allocated buffers.
+ * Useful for using with pre-allocated/stack allocated buffers.
  *
  * @param data data pointer
  * @param len  len
