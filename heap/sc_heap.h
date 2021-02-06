@@ -54,7 +54,7 @@ struct sc_heap
 /**
  * @param heap heap
  * @param cap  initial capacity, pass '0' for no initial memory allocation
- * @return     'true' on success, 'false' on failure (memory allocation failure)
+ * @return     'true' on success, 'false' on out of memory
  */
 bool sc_heap_init(struct sc_heap *heap, size_t cap);
 

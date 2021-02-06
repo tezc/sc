@@ -39,9 +39,7 @@
     #define sc_array_free    free
 #endif
 
-/**
- * Internals, do not use
- */
+// Internals, do not use
 struct sc_array
 {
     size_t size;
@@ -55,21 +53,17 @@ struct sc_array
 bool sc_array_init(void *arr, size_t elem_size, size_t cap);
 void sc_array_term(void *arr);
 bool sc_array_expand(void *arr, size_t elem_size);
-
-/**
- * Internal End.
- */
+// Internals end
 
 /**
  *   @param arr array
- *   @param cap initial capacity. '0' is a valid initial capacity, then no
- *              memory allocation will be made until first 'add' operation.
+ *   @param cap initial capacity. '0' is a valid initial capacity.
  *   @return   'true' on success, 'false' on out of memory
  */
 #define sc_array_create(arr, cap) sc_array_init(&(arr), sizeof(*(arr)), cap)
 
 /**
- *   @param arr array
+ *   @param arr array to be destroyed
  */
 #define sc_array_destroy(arr) sc_array_term(&(arr));
 
@@ -87,33 +81,23 @@ bool sc_array_expand(void *arr, size_t elem_size);
 
 /**
  *   Deletes items from the array without deallocating underlying memory
- *
  *   @param arr array
  */
 #define sc_array_clear(arr) (sc_array_meta((arr))->size = 0)
 
 /**
- *   @param v    array
+ *   @param arr  array
  *   @param elem element to be appended
- *   @return     'true' on success, 'false' if memory allocation fails if we try
- *               to expand underlying memory.
+ *   @return     'true' on success, 'false' on out of memory.
  */
 #define sc_array_add(arr, elem)                                                \
     sc_array_expand(&((arr)), sizeof(*(arr))) == true ?                        \
             (arr)[sc_array_meta(arr)->size++] = (elem),                        \
             true : false
 
-
 /**
- *   Deletes the element at index i, moves elements to fill the space
- *   unless deleted element is the last element
- *
- *   vec[a,b,c,d,e,f] -> sc_array_del(vec, 2) - > vec[a,b,d,e,f]
- *
  *   @param arr array
- *   @param i   index
- *
- *   If 'i' is out of the range, result is undefined.
+ *   @param i   element index, If 'i' is out of the range, result is undefined.
  */
 #define sc_array_del(arr, i)                                                   \
     do {                                                                       \
@@ -133,9 +117,7 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *   arr[a,b,c,d,e,f] -> sc_array_del_unordered(vec, 2) - > arr[a,b,f,d,e]
  *
  *   @param arr array
- *   @param i   index
- *
- *   If 'i' is out of the range, result is undefined.
+ *   @param i   index. If 'i' is out of the range, result is undefined.
  */
 #define sc_array_del_unordered(arr, i)                                         \
     do {                                                                       \
@@ -143,10 +125,8 @@ bool sc_array_expand(void *arr, size_t elem_size);
         (arr)[i] = (arr)[(--sc_array_meta((arr))->size)];                      \
     } while (0)
 
-
 /**
- *   Deletes the last element. If there is no element in the array, result is
- *   undefined.
+ *   Deletes the last element. If current size is zero, result is undefined.
  *   @param arr array
  */
 #define sc_array_del_last(arr)                                                 \
@@ -157,19 +137,19 @@ bool sc_array_expand(void *arr, size_t elem_size);
 
 /**
  *   Sorts the array using qsort()
- *   @param arr array
- *   @param cmp comparator, check qsort docs online for details
+ *   @param arr array.
+ *   @param cmp comparator, check qsort() documentation for details
  */
 #define sc_array_sort(arr, cmp)                                                \
     (qsort((arr), sc_array_size((arr)), sizeof(*(arr)), cmp))
 
 /**
- *  @param arr   array
- *  @param value value
+ *  @param arr  array
+ *  @param elem elem
  */
-#define sc_array_foreach(arr, value)                                           \
+#define sc_array_foreach(arr, elem)                                            \
     for (int _k = 1, _i = 0; _k && _i != sc_array_size(arr); _k = !_k, _i++)   \
-        for ((value) = (arr)[_i]; _k; _k = !_k)
+        for ((elem) = (arr)[_i]; _k; _k = !_k)
 
 /**
  * Returns last element. If array is empty, result is undefined.

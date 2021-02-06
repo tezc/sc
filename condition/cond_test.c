@@ -224,12 +224,10 @@ void fail_test()
 
     mock_attrinit = true;
     assert(sc_cond_init(&cond) == -1);
-    assert(*sc_cond_err(&cond) != '\0');
     mock_attrinit = false;
 
     mock_condinit = true;
     assert(sc_cond_init(&cond) == -1);
-    assert(*sc_cond_err(&cond) != '\0');
     mock_condinit = false;
 
     assert(sc_cond_init(&cond) == 0);

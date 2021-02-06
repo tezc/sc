@@ -37,7 +37,6 @@ struct sc_cond
 {
     bool done;
     void *data;
-    char err[64];
 
 #if defined(_WIN32) || defined(_WIN64)
     CONDITION_VARIABLE cond;
@@ -50,13 +49,13 @@ struct sc_cond
 
 /**
  * @param cond cond
- * @return     '0' on success, '-1' on error, use 'sc_cond_err' to get error msg
+ * @return     '0' on success, negative on error, errno will be set.
  */
 int sc_cond_init(struct sc_cond *cond);
 
 /**
  * @param cond cond
- * @return     '0' on success, '-1' on error, use 'sc_cond_err' to get error msg
+ * @return     '0' on success, negative on error, errno will be set.
  */
 int sc_cond_term(struct sc_cond *cond);
 
@@ -72,10 +71,6 @@ void sc_cond_signal(struct sc_cond *cond, void *data);
  */
 void *sc_cond_wait(struct sc_cond *cond);
 
-/**
- * @param cond cond
- * @return     latest error message if any.
- */
-const char *sc_cond_err(struct sc_cond *cond);
+
 
 #endif

@@ -139,8 +139,8 @@
      *                                                                         \
      * @param map map                                                          \
      * @param K key                                                            \
-     * @param V pointer to value, if key does not exist, value is undefined    \
-     * @return 'true' if key exists, 'false' on if key does not exist.         \
+     * @param V pointer to put value, if key is missing, value is undefined    \
+     * @return 'true' if key exists, 'false' otherwise                         \
      */                                                                        \
     bool sc_map_get_##name(struct sc_map_##name *map, K key, V *val);          \
                                                                                \
@@ -155,11 +155,10 @@
      *                                                                         \
      * @param map map                                                          \
      * @param K key                                                            \
-     * @param V pointer to current value                                       \
+     * @param V pointer to put current value                                   \
      *          - if key does not exist, value is undefined                    \
-     *          - Pass NULL if you don't want to get 'value' but just want to  \
-     *            delete element.                                              \
-     * @return 'true' on success, 'false' on if key does not exist.            \
+     *          - Pass NULL if you don't want to get previous 'value'          \
+     * @return 'true' if key exists, 'false' otherwise                         \
      */                                                                        \
     bool sc_map_del_##name(struct sc_map_##name *map, K key, V *val);
 
@@ -172,7 +171,6 @@
  * sc_map_foreach(&map, key, value) {
  *      printf("key = %s, value = %s \n");
  * }
- *
  */
 #define sc_map_foreach(map, K, V)                                              \
     for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
@@ -188,7 +186,6 @@
  * sc_map_foreach_key(&map, key) {
  *      printf("key = %s \n");
  * }
- *
  */
 #define sc_map_foreach_key(map, K)                                             \
     for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \
@@ -204,7 +201,6 @@
  * sc_map_foreach_value(&map, value) {
  *      printf("value = %s \n");
  * }
- *
  */
 #define sc_map_foreach_value(map, V)                                           \
     for (int64_t __i = -1, __b = 0; __i < (map)->cap; __i++)                   \

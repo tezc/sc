@@ -48,7 +48,6 @@ int main(int argc, char *argv[])
      * Max-heap usage, negate when adding into heap
      * and negate back after pop :
      */
-
     for (int i = 0; i < 5; i++) {
         sc_heap_add(&heap, -(n[i].priority), n[i].data);
     }

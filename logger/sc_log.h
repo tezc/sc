@@ -25,10 +25,10 @@
 #ifndef SC_LOG_H
 #define SC_LOG_H
 
+#include <stdarg.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <stdarg.h>
 #include <string.h>
 
 enum sc_log_level
@@ -54,116 +54,67 @@ const static struct sc_log_level_pair
 };
 // clang-format on
 
-/**
- * User callback
- *
- * @param arg   user provided data
- * @param level log level
- * @param fmt   format
- * @param va    arg list
- */
-typedef int (*sc_log_callback)(void *arg, enum sc_log_level level,
-                               const char *fmt, va_list va);
-
-/**
- * Not thread-safe, should be called from a single thread.
- * @return '0' on success, negative value on error
- */
-int sc_log_init(void);
-
-/**
- * Not thread-safe, should be called from a single thread.
- * @return '0' on success, negative value on error
- */
-int sc_log_term(void);
-
-/**
- * Get last error string if any of the functions returns error
- * @return last error string.
- */
-const char* sc_log_errstr(void);
-
-/**
- * Call once from each thread, it will copy the name passed into a thread
- * local buffer. Max size is 31 characters.
- *
- * @param name  Thread name
- */
-void sc_log_set_thread_name(const char* name);
-
-/**
- * Thread-safe.
- *
- * Valid values are 'DEBUG', 'INFO', 'WARN', 'ERROR', 'OFF'
- * @param level_str  level
- * @return           '0' on success, negative value on error
- */
-int sc_log_set_level(const char *level_str);
-
-/**
- * Thread-safe.
- *
- * @param enable 'true' to enable, 'false' will disable
- * @return        '0' on success, negative value on error
- */
-int sc_log_set_stdout(bool enable);
-
-/**
- * Thread-safe.
- *
- * Log file will be rotated. Logger will start writing into 'current_file',
- * when it grows larger than 'SC_LOG_FILE_SIZE', logger will rename
- * 'current_file' as 'prev_file' and create a new empty file at 'current_file'
- * again. So, latest logs will always be in the 'current_file'.
- *
- * e.g sc_log_set_file("/tmp/log.0.txt", "/tmp/log-latest.txt");
- *
- * To disable logging into file :
- *
- * sc_log_set_file(NULL, NULL);
- *
- * @param prev_file     file path for previous log file, 'NULL' to disable
- * @param current_file  file path for latest log file, 'NULL' to disable
- * @return
- */
-int sc_log_set_file(const char *prev_file, const char *current_file);
-
-/**
- * Thread-safe.
- * Logs can be reported to callback as well.
- *
- * @param cb  callback.
- * @param arg user arg.
- * @return    '0' on success, negative value on error
- */
-int sc_log_set_callback(sc_log_callback cb, void *arg);
-
 // Internal function
 int sc_log_log(enum sc_log_level level, const char *fmt, ...);
 
-/**
- * Max file size to rotate, should not be more than 4 GB.
- */
+// Max file size to rotate, should not be more than 4 GB.
 #define SC_LOG_FILE_SIZE (2 * 1024 * 1024)
 
-/**
- * Define SC_LOG_PRINT_FILE_NAME if you want to print file name and line number
- * in the log line.
- */
+// Define SC_LOG_PRINT_FILE_NAME to print file name and line no in the log line.
 #ifdef SC_LOG_PRINT_FILE_NAME
-
-#define sc_log_ap(fmt, ...)                                                \
-        "(%s:%d) " fmt, strrchr("/" __FILE__, '/') + 1, __LINE__,         \
-                __VA_ARGS__
+    #define sc_log_ap(fmt, ...)                                                \
+        "(%s:%d) " fmt, strrchr("/" __FILE__, '/') + 1, __LINE__, __VA_ARGS__
 #else
     #define sc_log_ap(fmt, ...) fmt, __VA_ARGS__
 #endif
 
 /**
- * Printf-style format
- * e.g
- *    sc_log_error("Errno : %d, reason : %s", errno, strerror(errno));
+ * sc_log_init() call once in your application before using log functions.
+ * sc_log_term() call once to clean up, you must not use logger after this call.
+ * These functions are not thread-safe, should be called from a single thread.
+ *
+ * @return '0' on success, negative value on error, errno will be set.
  */
+int sc_log_init(void);
+int sc_log_term(void);
+
+/**
+ * Call once from each thread if you want to set thread name.
+ * @param name  Thread name
+ */
+void sc_log_set_thread_name(const char *name);
+
+/**
+ * @param level_str  One of "DEBUG", "INFO", "WARN", "ERROR", "OFF"
+ * @return           '0' on success, negative value on invalid level string
+ */
+int sc_log_set_level(const char *level_str);
+
+/**
+ * @param enable 'true' to enable, 'false' to disable logging to stdout.
+ */
+void sc_log_set_stdout(bool enable);
+
+/**
+ * Log files will be rotated. Latest logs will always be in the 'current_file'.
+ * e.g sc_log_set_file("/tmp/log.0.txt", "/tmp/log-latest.txt");
+ *     To disable logging into file : sc_log_set_file(NULL, NULL);
+ *
+ * @param prev_file     file path for previous log file, 'NULL' to disable
+ * @param current_file  file path for latest log file, 'NULL' to disable
+ * @return              0 on success, -1 on error, errno will be set.
+ */
+int sc_log_set_file(const char *prev_file, const char *current_file);
+
+/**
+ * @param arg user arg to callback.
+ * @param cb  log callback.
+ */
+void sc_log_set_callback(void *arg,
+                         int (*cb)(void *arg, enum sc_log_level level,
+                                   const char *fmt, va_list va));
+
+// e.g : sc_log_error("Errno : %d, reason : %s", errno, strerror(errno));
 #define sc_log_debug(...) (sc_log_log(SC_LOG_DEBUG, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_info(...)  (sc_log_log(SC_LOG_INFO, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_warn(...)  (sc_log_log(SC_LOG_WARN, sc_log_ap(__VA_ARGS__, "")))

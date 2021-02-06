@@ -91,12 +91,11 @@ struct sc_uri
  *
  *
  * @param str uri string
- * @return    uri struct pointer
+ * @return    uri, NULL on error
  */
 struct sc_uri *sc_uri_create(const char *str);
 
 /**
- * Destroy uri
  * @param uri uri
  */
 void sc_uri_destroy(struct sc_uri *uri);

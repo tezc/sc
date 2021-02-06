@@ -39,6 +39,7 @@ struct sc_list
     ((type *) ((char *) (ptr) -offsetof(type, elem)))
 
 /**
+ * Call once to initialize.
  * @param list list
  */
 void sc_list_init(struct sc_list *list);
@@ -50,7 +51,7 @@ void sc_list_clear(struct sc_list *list);
 
 /**
  * @param list list
- * @return     'true' if empty, false otherwise
+ * @return     'true' if empty
  */
 bool sc_list_is_empty(struct sc_list *list);
 
@@ -140,7 +141,6 @@ void sc_list_add_before(struct sc_list *list, struct sc_list *next,
 void sc_list_del(struct sc_list *list, struct sc_list *elem);
 
 /**
- *
  * struct container {
  *      struct sc_list others;
  * };
@@ -152,14 +152,12 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  * sc_list_foreach(list, it) {
  *       container = sc_list_entry(it, struct container, others);
  * }
- *
  */
 #define sc_list_foreach(list, elem)                                            \
     for ((elem) = (list)->next; (elem) != (list); (elem) = (elem)->next)
 
 /**
- *  It is safe to delete items from the list while using
- *  this iterator.
+ *  It is safe to delete items from the list while using this iterator.
  *
  * struct container {
  *      struct sc_list others;
@@ -173,7 +171,6 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  *       container = sc_list_entry(it, struct container, others);
  *       sc_list_del(list, &container->others);
  * }
- *
  */
 #define sc_list_foreach_safe(list, n, elem)                                    \
     for ((elem) = (list)->next, (n) = (elem)->next; (elem) != (list);          \
@@ -193,7 +190,6 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  * sc_list_foreach(list, it) {
  *       container = sc_list_entry(it, struct container, others);
  * }
- *
  */
 
 #define sc_list_foreach_r(list, elem)                                          \
@@ -218,7 +214,6 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  *       container = sc_list_entry(it, struct container, others);
  *       sc_list_del(list, &container->others);
  * }
- *
  */
 #define sc_list_foreach_safe_r(list, n, elem)                                  \
     for ((elem) = (list)->prev, (n) = (elem)->prev; (elem) != (list);          \

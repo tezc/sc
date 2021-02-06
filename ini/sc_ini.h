@@ -29,10 +29,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-/**
- * Adjust max line length here. If a line is larger than this, it will be
- * truncated silently.
- */
+// Set max line length. If a line is longer, it will be truncated silently.
 #define SC_INI_MAX_LINE_LEN 1024
 
 /**

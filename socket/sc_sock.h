@@ -107,7 +107,7 @@ void sc_sock_init(struct sc_sock *sock, int type, bool blocking, int family);
  *
  * @param sock sock
  * @return     '0' on success, negative number on failure.
- *              call sc_sock_err() for error string.
+ *              call sc_sock_error() for error string.
  */
 int sc_sock_term(struct sc_sock *sock);
 
@@ -116,7 +116,7 @@ int sc_sock_term(struct sc_sock *sock);
  * @param host host
  * @param port port
  * @return    '0' on success, negative number on failure.
- *             call sc_sock_err() for error string.
+ *             call sc_sock_error() for error string.
  */
 int sc_sock_listen(struct sc_sock *sock, const char *host, const char *port);
 
@@ -124,7 +124,7 @@ int sc_sock_listen(struct sc_sock *sock, const char *host, const char *port);
  * @param sock sock
  * @param in   sock struct pointer the incoming connection
  * @return    '0' on success, negative number on failure.
- *             call sc_sock_err() for error string.
+ *             call sc_sock_error() for error string.
  */
 int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in);
 
@@ -135,7 +135,7 @@ int sc_sock_accept(struct sc_sock *sock, struct sc_sock *in);
  * @param source_addr  source addr (outgoing addr)
  * @param source_port  source port (outgoing port)
  * @return            '0' on success, negative number on failure.
- *                     call sc_sock_err() for error string.
+ *                     call sc_sock_error() for error string.
  */
 int sc_sock_connect(struct sc_sock *sock, const char *dest_addr,
                     const char *dest_port, const char *source_addr,
@@ -149,7 +149,7 @@ int sc_sock_connect(struct sc_sock *sock, const char *dest_addr,
  * @param sock     sock
  * @param blocking blocking
  * @return         '0' on success, negative number on failure.
- *                 call sc_sock_err() for error string.
+ *                 call sc_sock_error() for error string.
  */
 int sc_sock_set_blocking(struct sc_sock *sock, bool blocking);
 
@@ -157,7 +157,7 @@ int sc_sock_set_blocking(struct sc_sock *sock, bool blocking);
  * @param sock sock
  * @param ms   timeout milliseconds
  * @return     '0' on success, negative number on failure.
- *             call sc_sock_err() for error string.
+ *             call sc_sock_error() for error string.
  */
 int sc_sock_set_rcvtimeo(struct sc_sock *sock, int ms);
 
@@ -165,7 +165,7 @@ int sc_sock_set_rcvtimeo(struct sc_sock *sock, int ms);
  * @param sock sock
  * @param ms   timeout milliseconds
  * @return     '0' on success, negative number on failure.
- *             call sc_sock_err() for error string.
+ *             call sc_sock_error() for error string.
  */
 int sc_sock_set_sndtimeo(struct sc_sock *sock, int ms);
 
@@ -175,7 +175,7 @@ int sc_sock_set_sndtimeo(struct sc_sock *sock, int ms);
  *
  * @param sock sock
  * @return     '0' on success, negative number on failure.
- *             call sc_sock_err() for error string.
+ *             call sc_sock_error() for error string.
  */
 int sc_sock_finish_connect(struct sc_sock *sock);
 

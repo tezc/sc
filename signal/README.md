@@ -27,7 +27,7 @@ int main()
     char tmp[1];
     int fds[2];
 
-    sc_signal_init();
+    sc_signal_init();  // Call once in your application
 
     pipe(fds);
 

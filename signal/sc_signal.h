@@ -50,9 +50,8 @@
  */
 extern volatile sig_atomic_t sc_signal_log_fd;
 
-/**
- * Internal variable to handle twice shutdown signal.
- */
+
+// Internal variable to handle twice shutdown signal.
 extern volatile sig_atomic_t sc_signal_will_shutdown;
 
 /**

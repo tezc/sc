@@ -64,20 +64,18 @@ struct sc_mmap
  * @param m           mmap
  * @param name        file name
  * @param file_flags  flags for open(), e.g : O_RDWR | O_CREAT
- * @param prot        prot flags, PROT_READ / PROT_WRITE
- * @param map_flags   mmap flags, e.g : MAP_SHARED
+ * @param prot        prot flags,       e.g : PROT_READ | PROT_WRITE
+ * @param map_flags   mmap flags,       e.g : MAP_SHARED
  * @param offset      offset
  * @param len         len
- * @return            '0' on success, '-1' on failure, call sc_mmap_err() for
- *                    error string.
+ * @return            '0' on success, negative on failure,
+ *                    call sc_mmap_err() for error string.
  */
 int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
                  int map_flags, size_t offset, size_t len);
-
 /**
  * @param m mmap
- * @return       '0' on success, '-1' on error, call sc_mmap_err() for
- *               error string.
+ * @return       '0' on success, '-1' on error, call sc_mmap_err() for details.
  */
 int sc_mmap_term(struct sc_mmap* m);
 
@@ -85,8 +83,8 @@ int sc_mmap_term(struct sc_mmap* m);
  * @param m      mmap
  * @param offset offset
  * @param len    len
- * @return       '0' on success, '-1' on error, call sc_mmap_err() for
- *               error string.
+ * @return      '0' on success, negative on failure,
+ *              call sc_mmap_err() for error string.
  */
 int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len);
 
@@ -94,8 +92,8 @@ int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len);
  * @param m       mmap
  * @param offset  offset
  * @param len     len
- * @return       '0' on success, '-1' on error, call sc_mmap_err() for
- *               error string.
+ * @return        '0' on success, negative on failure,
+ *                call sc_mmap_err() for error string.
  */
 int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len);
 
@@ -103,16 +101,14 @@ int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len);
  * @param m       mmap
  * @param offset  offset
  * @param len     len
- * @return       '0' on success, '-1' on error, call sc_mmap_err() for
- *               error string.
+ * @return        '0' on success, negative on failure,
+ *                call sc_mmap_err() for error string.
  */
 int sc_mmap_munlock(struct sc_mmap* m, size_t offset, size_t len);
 
 /**
- * Error string of the last error, call after if any mmap function returns '-1'.
- *
  * @param m mmap
- * @return  error string.
+ * @return  last error string.
  */
 const char *sc_mmap_err(struct sc_mmap *m);
 

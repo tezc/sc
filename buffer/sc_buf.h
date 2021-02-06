@@ -62,7 +62,7 @@ struct sc_buf
 /**
  * Create buffer
  *
- * @param buf buffer
+ * @param buf buf
  * @param cap initial capacity
  * @return    'false' on out of memory.
  */
@@ -70,7 +70,8 @@ bool sc_buf_init(struct sc_buf *buf, uint32_t cap);
 
 /**
  * Destroy buffer
- * @param buf  buffer
+ *
+ * @param buf buf
  */
 void sc_buf_term(struct sc_buf *buf);
 
@@ -84,7 +85,7 @@ void sc_buf_term(struct sc_buf *buf);
  *             'sc_buf_term' will not try to 'free()' buffer.
  *             if set 'SC_BUF_DATA', buffer wpos will be 'len'.
  *             flags can be combined : SC_BUF_REF | SC_BUF_DATA
- * @return
+ * @return     buf
  */
 struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags);
 
@@ -92,20 +93,20 @@ struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags);
  * Set limit of the buffer, when buffer reaches limit, it will set buffer's
  * 'out of memory' flag. Default is UINT32_MAX.
  *
- * @param buf   buffer
+ * @param buf   buf
  * @param limit limit
  */
 void sc_buf_limit(struct sc_buf *buf, uint32_t limit);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @param pos pos
- * @return    buffer address at 'pos'
+ * @return    buf address at 'pos'
  */
 void *sc_buf_at(struct sc_buf *buf, uint32_t pos);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @return    current capacity.
  */
 uint32_t sc_buf_cap(struct sc_buf *buf);
@@ -113,7 +114,7 @@ uint32_t sc_buf_cap(struct sc_buf *buf);
 /**
  * Reserve space
  *
- * @param buf buffer
+ * @param buf buf
  * @param len len
  * @return    'false' on out of memory or hits the 'limit'.
  *            'out memory flag' will be set to check it later.
@@ -121,36 +122,33 @@ uint32_t sc_buf_cap(struct sc_buf *buf);
 bool sc_buf_reserve(struct sc_buf *buf, uint32_t len);
 
 /**
- * @param buf buffer
- * @return    'true' if buffer is valid. Buffer can be invalid either on
- *            allocation failure or when you try to read data more than buffer
- *            has.
+ * @param buf buf
+ * @return    'true' if buffer is valid. Buffer becomes invalid on out of
+ *            memory, on buffer overflow or on buffer underflow.
  */
 bool sc_buf_valid(struct sc_buf *buf);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @return    current remaining space to write
  */
 uint32_t sc_buf_quota(struct sc_buf *buf);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @return    current byte count in the buffer
  */
 uint32_t sc_buf_size(struct sc_buf *buf);
 
 /**
  * Set read and write position to '0', clear error flag.
- * @param buf buffer
+ * @param buf buf
  */
 void sc_buf_clear(struct sc_buf *buf);
 
 /**
- * Compact buffer, e.g if bytes in buffer at [3, 20],
- * it will be moved to [0, 17]
- *
- * @param buf buffer
+ * Compact buf, e.g if bytes in buffer at [3, 20], it will be moved to [0, 17].
+ * @param buf buf
  */
 void sc_buf_compact(struct sc_buf *buf);
 
@@ -158,7 +156,7 @@ void sc_buf_compact(struct sc_buf *buf);
  * Advance read position, useful when you pass underlying array to another
  * function which operates on void*. e.g socket write() call.
  *
- * @param buf buffer
+ * @param buf buf
  * @param len len
  */
 void sc_buf_mark_read(struct sc_buf *buf, uint32_t len);
@@ -167,31 +165,31 @@ void sc_buf_mark_read(struct sc_buf *buf, uint32_t len);
  * Advance read position, useful when you pass underlying array to another
  * function which operates on void*. e.g socket read() call.
  *
- * @param buf buffer
+ * @param buf buf
  * @param len len
  */
 void sc_buf_mark_write(struct sc_buf *buf, uint32_t len);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @return    current read position
  */
 uint32_t sc_buf_rpos(struct sc_buf *buf);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @return    new read position
  */
 void sc_buf_set_rpos(struct sc_buf *buf, uint32_t pos);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @return    current write position
  */
 uint32_t sc_buf_wpos(struct sc_buf *buf);
 
 /**
- * @param buf buffer
+ * @param buf buf
  * @return    new write position
  */
 void sc_buf_set_wpos(struct sc_buf *buf, uint32_t pos);
@@ -207,7 +205,7 @@ void *sc_buf_rbuf(struct sc_buf *buf);
 /**
  * Get address of write position. Useful for e.g : read(fd, sc_buf_wbuf(buf) ..)
  *
- * @param buf buffer
+ * @param buf buf
  * @return    write address
  */
 void *sc_buf_wbuf(struct sc_buf *buf);

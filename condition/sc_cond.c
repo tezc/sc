@@ -26,25 +26,11 @@
 #include "sc_cond.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #pragma warning(disable : 4996)
-
-static void sc_cond_errstr(struct sc_cond *cond)
-{
-    int rc;
-    DWORD err = GetLastError();
-    LPSTR errstr = 0;
-
-    rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
-                                FORMAT_MESSAGE_FROM_SYSTEM,
-                        NULL, err, 0, (LPSTR) &errstr, 0, NULL);
-    if (rc != 0) {
-        strncpy(cond->err, errstr, sizeof(cond->err) - 1);
-        LocalFree(errstr);
-    }
-}
 
 int sc_cond_init(struct sc_cond *cond)
 {
@@ -138,24 +124,22 @@ cleanup_mutex:
 cleanup_attr:
     pthread_mutexattr_destroy(&attr);
 error:
-    strncpy(cond->err, strerror(rc), sizeof(cond->err) - 1);
+    errno = rc;
     return -1;
 }
 
 int sc_cond_term(struct sc_cond *cond)
 {
-    int rv, rc = 0;
+    int rc;
 
-    rv = pthread_mutex_destroy(&cond->mtx);
-    if (rv != 0) {
-        rc = -1;
-        strncpy(cond->err, strerror(rv), sizeof(cond->err) - 1);
+    rc = pthread_mutex_destroy(&cond->mtx);
+    if (rc != 0) {
+        errno = rc;
     }
 
-    rv = pthread_cond_destroy(&cond->cond);
-    if (rv != 0) {
-        rc = -1;
-        strncpy(cond->err, strerror(rv), sizeof(cond->err) - 1);
+    rc = pthread_cond_destroy(&cond->cond);
+    if (rc != 0 && errno != 0) {
+        errno = rc;
     }
 
     return rc;
@@ -185,6 +169,7 @@ void *sc_cond_wait(struct sc_cond *cond)
     pthread_mutex_lock(&cond->mtx);
 
     while (cond->done == false) {
+        // This won't fail as long as we pass correct params.
         rc = pthread_cond_wait(&cond->cond, &cond->mtx);
         assert(rc == 0);
     }
@@ -200,7 +185,3 @@ void *sc_cond_wait(struct sc_cond *cond)
 
 #endif
 
-const char *sc_cond_err(struct sc_cond *cond)
-{
-    return cond->err;
-}

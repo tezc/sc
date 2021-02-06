@@ -30,7 +30,6 @@
 #include <errno.h>
 #include <time.h>
 
-
 #ifndef thread_local
     #if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_THREADS__
         #define thread_local _Thread_local
@@ -45,6 +44,7 @@
 #endif
 
 thread_local char sc_name[32] = "Thread";
+
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -100,14 +100,14 @@ int sc_log_mutex_init(struct sc_log_mutex *mtx)
 
     rc = pthread_mutexattr_init(&attr);
     if (rc != 0) {
-        return -1;
+        return rc;
     }
 
     pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
     rc = pthread_mutex_init(&mtx->mtx, &attr);
     pthread_mutexattr_destroy(&attr);
 
-    return rc == 0 ? 0 : -1;
+    return rc;
 }
 
 void sc_log_mutex_term(struct sc_log_mutex *mtx)
@@ -138,9 +138,9 @@ struct sc_log
     enum sc_log_level level;
 
     bool to_stdout;
-    sc_log_callback cb;
+
     void *arg;
-    char err[64];
+    int (*cb)(void *, enum sc_log_level, const char *, va_list);
 };
 
 struct sc_log sc_log;
@@ -156,7 +156,7 @@ int sc_log_init(void)
 
     rc = sc_log_mutex_init(&sc_log.mtx);
     if (rc != 0) {
-        strncpy(sc_log.err, "Mutex init failed.", sizeof(sc_log.err) - 1);
+        errno = rc;
     }
 
     return rc;
@@ -170,18 +170,12 @@ int sc_log_term(void)
         rc = fclose(sc_log.fp);
         if (rc != 0) {
             rc = -1;
-            strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
         }
     }
 
     sc_log_mutex_term(&sc_log.mtx);
 
     return rc;
-}
-
-const char *sc_log_errstr(void)
-{
-    return sc_log.err;
 }
 
 void sc_log_set_thread_name(const char *name)
@@ -221,18 +215,16 @@ int sc_log_set_level(const char *str)
     return -1;
 }
 
-int sc_log_set_stdout(bool enable)
+void sc_log_set_stdout(bool enable)
 {
     sc_log_mutex_lock(&sc_log.mtx);
     sc_log.to_stdout = enable;
     sc_log_mutex_unlock(&sc_log.mtx);
-
-    return 0;
 }
 
 int sc_log_set_file(const char *prev_file, const char *current_file)
 {
-    int rc = 0;
+    int rc = 0, saved_errno = 0;
     long size;
     FILE *fp = NULL;
 
@@ -262,24 +254,25 @@ int sc_log_set_file(const char *prev_file, const char *current_file)
 
 error:
     rc = -1;
-    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
+    saved_errno = errno;
+
     if (fp != NULL) {
         fclose(fp);
     }
 out:
     sc_log_mutex_unlock(&sc_log.mtx);
+    errno = saved_errno;
 
     return rc;
 }
 
-int sc_log_set_callback(sc_log_callback cb, void *arg)
+void sc_log_set_callback(void *arg, int (*cb)(void *, enum sc_log_level,
+                                              const char *, va_list))
 {
     sc_log_mutex_lock(&sc_log.mtx);
-    sc_log.cb = cb;
     sc_log.arg = arg;
+    sc_log.cb = cb;
     sc_log_mutex_unlock(&sc_log.mtx);
-
-    return 0;
 }
 
 static int sc_log_print_header(FILE *fp, enum sc_log_level level)
@@ -289,21 +282,17 @@ static int sc_log_print_header(FILE *fp, enum sc_log_level level)
     struct tm *tm = localtime(&t);
 
     if (tm == NULL) {
-        goto error;
+        return -1;
     }
 
     rc = fprintf(fp, "[%d-%02d-%02d %02d:%02d:%02d][%-5s][%s] ",
                  tm->tm_year + 1900, tm->tm_mon + 1, tm->tm_mday, tm->tm_hour,
                  tm->tm_min, tm->tm_sec, sc_log_levels[level].str, sc_name);
     if (rc < 0) {
-        goto error;
+        return -1;
     }
 
     return 0;
-
-error:
-    strncpy(sc_log.err, strerror(errno), sizeof(sc_log.err) - 1);
-    return -1;
 }
 
 static int sc_log_stdout(enum sc_log_level level, const char *fmt, va_list va)
@@ -317,7 +306,6 @@ static int sc_log_stdout(enum sc_log_level level, const char *fmt, va_list va)
 
     rc = vfprintf(stdout, fmt, va);
     if (rc < 0) {
-        snprintf(sc_log.err, sizeof(sc_log.err), "vfprintf failure \n");
         return -1;
     }
 
@@ -335,7 +323,6 @@ static int sc_log_file(enum sc_log_level level, const char *fmt, va_list va)
 
     size = vfprintf(sc_log.fp, fmt, va);
     if (size < 0) {
-        snprintf(sc_log.err, sizeof(sc_log.err) - 1, "vfprintf failure \n");
         return -1;
     }
 
@@ -347,9 +334,6 @@ static int sc_log_file(enum sc_log_level level, const char *fmt, va_list va)
 
         sc_log.fp = fopen(sc_log.current_file, "w+");
         if (sc_log.fp == NULL) {
-            snprintf(sc_log.err, sizeof(sc_log.err) - 1,
-                     "fopen() failed for [%s], (%s)\n", sc_log.current_file,
-                     strerror(errno));
             return -1;
         }
 

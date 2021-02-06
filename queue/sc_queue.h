@@ -39,9 +39,7 @@
     #define sc_queue_free    free
 #endif
 
-/**
- * Internals, do not use
- */
+// Internals
 struct sc_queue
 {
     size_t cap;
@@ -93,14 +91,13 @@ bool sc_queue_expand(void *q, size_t elem_size);
 
 /**
  *   @param q     queue
- *   @param count initial capacity, '0' is a valid value if you don't want to
- *                allocate memory immediately.
+ *   @param count initial capacity, '0' is accepted.
+ *   @return      'true' on success, 'false' on out of memory.
  */
 #define sc_queue_create(q, count) sc_queue_init(&(q), sizeof(*(q)), count)
 
 /**
- *   Deallocate underlying memory.
- *
+ *   Destroy queue
  *   @param q queue
  */
 #define sc_queue_destroy(q) sc_queue_term((&(q)))
@@ -127,7 +124,6 @@ bool sc_queue_expand(void *q, size_t elem_size);
 
 /**
  * Clear the queue without deallocating underlying memory.
- *
  * @param q queue
  */
 #define sc_queue_clear(q)                                                      \
@@ -149,17 +145,17 @@ bool sc_queue_expand(void *q, size_t elem_size);
 #define sc_queue_last(q) (sc_queue_meta(q)->last)
 
 /**
- * @return index of the next element after i, if there is no element after i
+ * @return index of the next element after i, if i is the last element,
  *            result is undefined.
  */
 #define sc_queue_next(q, i) (((i) + 1) & (sc_queue_meta(q)->cap - 1))
 
 /**
- * Returns element at index 'i', so regular loops are possible :
+ *   Returns element at index 'i', so regular loops are possible :
  *
- *      for (size_t i = 0; i < sc_queue_size(q); i++) {
- *           printf("%d" \n, sc_queue_at(q, i));
- *      }
+ *   for (size_t i = 0; i < sc_queue_size(q); i++) {
+ *        printf("%d" \n, sc_queue_at(q, i));
+ *   }
  *
  *   @param q queue
  *   @return element at index i
@@ -169,15 +165,13 @@ bool sc_queue_expand(void *q, size_t elem_size);
 
 /**
  *   @param q queue
- *   @return  first element without removing from the queue.
- *            If queue is empty, result is undefined
+ *   @return  peek first element, if queue is empty, result is undefined
  */
 #define sc_queue_peek_first(q) ((q)[sc_queue_meta(q)->first])
 
 /**
  *   @param q queue
- *   @return  last element without removing from the queue.
- *            If queue is empty, result is undefined
+ *   @return  peek last element, if queue is empty, result is undefined
  */
 #define sc_queue_peek_last(q)                                                  \
     (q)[(sc_queue_meta(q)->last - 1) & (sc_queue_meta(q)->cap - 1)]
@@ -195,7 +189,7 @@ bool sc_queue_expand(void *q, size_t elem_size);
 /**
  * @param q queue
  * @return  delete the last element from the queue and return its value.
- *            If queue is empty, result is undefined.
+ *          If queue is empty, result is undefined.
  */
 #define sc_queue_del_last(q) ((q)[sc_queue_dec_last((q))])
 

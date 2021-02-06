@@ -20,7 +20,7 @@ void test1(void)
     int count = 0;
 
     sc_log_init();
-    sc_log_set_callback(callback, &count);
+    sc_log_set_callback(&count, callback);
     assert(sc_log_set_level("errrorr") == -1);
     sc_log_debug("test \n");
     assert(count == 0);
@@ -88,7 +88,8 @@ void test1(void)
 
 #ifdef SC_HAVE_WRAP
 
-#include <pthread.h>
+    #include <errno.h>
+    #include <pthread.h>
 
 int callback2(void *arg, enum sc_log_level level, const char *fmt, va_list va)
 {
@@ -224,7 +225,7 @@ void fail_test(void)
 
     sc_log_set_stdout(true);
     sc_log_set_file("tmp.txt", "tmp2.txt");
-    sc_log_set_callback(callback2, NULL);
+    sc_log_set_callback(NULL, callback2);
 
     fprintf_count = 0;
     vfprintf_count = 0;
@@ -242,7 +243,6 @@ void fail_test(void)
     sc_log_set_stdout(true);
     fprintf_ret = -1;
     assert(sc_log_info("test") == -1);
-    assert(*sc_log_errstr() != '\0');
     fprintf_ret = 0;
     assert(sc_log_info("test") == 0);
 
@@ -314,8 +314,7 @@ void example(void)
 {
     const char* my_app_name = "my app";
 
-    //sc_log_init() is not thread-safe, it must be called by a single thread.
-    sc_log_init();
+    sc_log_init(); // Call once when your app starts.
 
     //Default log-level is 'info' and default destination is 'stdout'
     sc_log_info("Hello world!\n");
@@ -327,14 +326,12 @@ void example(void)
     sc_log_info("to stdout and file!\n");
 
     //Enable callback
-    sc_log_set_callback(log_callback, (void*) my_app_name);
+    sc_log_set_callback((void*) my_app_name, log_callback);
 
     //stdout, file and callback will get the log line
     sc_log_info("to all!\n");
-    sc_log_info("to all!\n");
 
-    //sc_log_term(); is not thread-safe, it must be called by a single thread.
-    sc_log_term();
+    sc_log_term(); // Call once on shutdown.
 }
 
 int main(int argc, char *argv[])

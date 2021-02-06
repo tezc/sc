@@ -18,30 +18,24 @@ int main(int argc, char *argv[])
 {
     const char* my_app_name = "my app";
 
-    //sc_log_init(); is not thread-safe, it must be called by a single thread.
-    sc_log_init();
-
-    //This will set a thread local buffer
-    sc_log_set_thread_name("my app thread");
+    sc_log_init(); // Call once when your app starts.
 
     //Default log-level is 'info' and default destination is 'stdout'
-    sc_log_info("Hello world! \n");
+    sc_log_info("Hello world!\n");
 
     //Enable logging to file.
     sc_log_set_file("log.0.txt", "log-latest.txt");
 
     //stdout and file will get the log line
-    sc_log_info("to stdout and file! \n");
+    sc_log_info("to stdout and file!\n");
 
     //Enable callback
-    sc_log_set_callback(log_callback, (void*) my_app_name);
+    sc_log_set_callback((void*) my_app_name, log_callback);
 
     //stdout, file and callback will get the log line
-    sc_log_info("to all! \n");
-    sc_log_info("to all! \n");
+    sc_log_info("to all!\n");
 
-    //sc_log_term(); is not thread-safe, it must be called by a single thread.
-    sc_log_term();
+    sc_log_term(); // Call once on shutdown.
 
     return 0;
 }
