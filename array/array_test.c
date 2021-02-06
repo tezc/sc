@@ -157,6 +157,28 @@ void bounds_test()
     assert(total == 0);
 
     sc_array_destroy(arr);
+
+    sc_array_create(arr, 0);
+    sc_array_add(arr, 0);
+    sc_array_add(arr, 1);
+    sc_array_add(arr, 2);
+    sc_array_add(arr, 4);
+    sc_array_add(arr, 3);
+
+    sc_array_del(arr, 3);
+    for (int i = 0 ; i < sc_array_size(arr); i++) {
+        assert(i == arr[i]);
+    }
+
+    sc_array_add(arr, 3);
+    sc_array_add(arr, 4);
+
+    sc_array_del(arr, 3);
+    for (int i = 0 ; i < sc_array_size(arr); i++) {
+        assert(i == arr[i]);
+    }
+
+    sc_array_destroy(arr);
 }
 
 #ifdef SC_HAVE_WRAP
