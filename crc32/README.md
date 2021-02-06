@@ -2,14 +2,17 @@
 
 - Same code from : https://stackoverflow.com/a/17646775
 - Fixed some alignment issues, replaced asm code with compiler intrinsics
+- This is Crc32<b>c</b> algorithm, not Crc32
 
 - Compile time switch to hardware version if supported  
   (crc32c instruction on x64), fallback to software version if not available
-- See CmakeLists.txt, it checks "-msse4.2" flag. Stackoverflow answer has  
-  runtime dispatch between hardware and software versions if you'd like that.
+- You should compile with "-msse4.2" flag and define HAVE_CRC32C to use hardware  
+  version
+- Stackoverflow answer has runtime dispatch between hardware and software  
+  versions if you'd like that.
 
 
-- This is Crc32<b>c</b> algorithm, not Crc32
+
 
 ```cmake
 ## Cmake

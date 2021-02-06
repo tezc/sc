@@ -1,6 +1,6 @@
 # Option
 
-- A basic alternative to getopt with a lot less features.
+- A basic alternative to getopt but quite limited compared to it.
 - Long or short version of options are supported. Values are accepted only with  
   '=' sign.
   - --address=127.0.0.1

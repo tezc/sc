@@ -2,8 +2,7 @@
 
 #### Overview
 
-- Thread wrapper for Unixes and Windows
-
+- Thread wrapper for Posix and Windows
 
 ##### Usage
 

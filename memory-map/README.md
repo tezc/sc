@@ -2,7 +2,7 @@
 
 ### Mmap wrapper 
 
-- Basic mmap wrapper for Unix and Windows.
+- Basic mmap wrapper for Posix and Windows.
 
 ```c
 

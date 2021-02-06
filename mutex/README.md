@@ -2,7 +2,7 @@
 
 ### Mutex wrapper 
 
-- Basic mutex wrapper for Unixes and Windows.
+- Basic mutex wrapper for Posix and Windows.
 
 ```c
 
