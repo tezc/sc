@@ -20,6 +20,10 @@
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
+ *
+ * Based on : https://github.com/benhoyt/inih
+ * SPDX-License-Identifier: BSD-3-Clause
+ * Copyright (C) 2009-2020, Ben Hoyt
  */
 
 #include "sc_ini.h"
@@ -82,7 +86,7 @@ static char *trim_bom(char *str)
     return str;
 }
 
-int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
+int sc_ini_parse(void *arg, sc_ini_on_item cb, void *arg1,
                  char *(*next_line)(void *, char *, size_t))
 {
     int rc = 0, line = 0;
@@ -101,8 +105,7 @@ int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
         }
 
         if (head > buf && *key) {
-            // Multi-line case. This line is another value to previous key.
-            rc = on_item(arg, line, section, key, head);
+            rc = cb(arg, line, section, key, head);
         } else if (*head == '[') {
             if ((end = strchr(head, ']')) == NULL) {
                 return line;
@@ -119,7 +122,7 @@ int sc_ini_parse(void *arg, sc_ini_on_item on_item, void *arg1,
             *end = '\0';
             trim_space(head);
             strncpy(key, head, sizeof(key) - 1);
-            rc = on_item(arg, line, section, head, trim_space(end + 1));
+            rc = cb(arg, line, section, head, trim_space(end + 1));
         }
 
         if (rc != 0) {
@@ -149,7 +152,7 @@ static char *string_next_line(void *p, char *buf, size_t size)
         t = str + strlen(str);
     }
 
-    diff = (size_t) (t - str);
+    diff = (size_t)(t - str);
     len = diff < size ? diff : size;
     memcpy(buf, str, len);
     buf[len] = '\0';
@@ -159,7 +162,7 @@ static char *string_next_line(void *p, char *buf, size_t size)
     return buf;
 }
 
-int sc_ini_parse_file(void *arg, sc_ini_on_item on_item, const char *filename)
+int sc_ini_parse_file(void *arg, sc_ini_on_item cb, const char *filename)
 {
     int rc;
     FILE *file;
@@ -169,7 +172,7 @@ int sc_ini_parse_file(void *arg, sc_ini_on_item on_item, const char *filename)
         return -1;
     }
 
-    rc = sc_ini_parse(arg, on_item, file, file_next_line);
+    rc = sc_ini_parse(arg, cb, file, file_next_line);
     if (rc == 0) {
         rc = ferror(file) != 0 ? -1 : 0;
     }
@@ -179,9 +182,9 @@ int sc_ini_parse_file(void *arg, sc_ini_on_item on_item, const char *filename)
     return rc;
 }
 
-int sc_ini_parse_string(void *arg, sc_ini_on_item on_item, const char *str)
+int sc_ini_parse_string(void *arg, sc_ini_on_item cb, const char *str)
 {
     char *ptr = (char *) str;
 
-    return sc_ini_parse(arg, on_item, &ptr, string_next_line);
+    return sc_ini_parse(arg, cb, &ptr, string_next_line);
 }
