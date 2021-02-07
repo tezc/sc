@@ -363,6 +363,27 @@ void test1()
     sc_sock_term(&sock);
 }
 
+void test_poll_mass(void)
+{
+    struct sc_sock_poll poll;
+    struct sc_sock_pipe pipe[1000];
+
+    assert(sc_sock_poll_init(&poll) == 0);
+
+    for (int i = 0; i < 1000; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
+    }
+
+    for (int i = 0; i < 1000; i++) {
+        sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
+        sc_sock_pipe_term(&pipe[i]);
+    }
+
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+}
+
 void test_pipe(void)
 {
     char buf[5];
@@ -377,6 +398,39 @@ void test_pipe(void)
 }
 
 #ifdef SC_HAVE_WRAP
+
+bool fail_malloc = false;
+void *__real_malloc(size_t n);
+void *__wrap_malloc(size_t n)
+{
+    if (fail_malloc) {
+        return NULL;
+    }
+
+    return __real_malloc(n);
+}
+
+bool fail_realloc = false;
+void *__real_realloc(void *p, size_t size);
+void *__wrap_realloc(void *p, size_t n)
+{
+    if (fail_realloc) {
+        return NULL;
+    }
+
+    return __real_realloc(p, n);
+}
+
+bool fail_epollcreate1 = false;
+int __real_epoll_create1 (int flags);
+int __wrap_epoll_create1 (int flags)
+{
+    if (fail_epollcreate1) {
+        return -1;
+    }
+
+    return __real_epoll_create1(flags);
+}
 
 bool fail_close = false;
 int __real_close(int fd);
@@ -400,6 +454,141 @@ int __wrap_pipe(int __pipedes[2])
     return __real_pipe(__pipedes);
 }
 
+void poll_fail_test()
+{
+    bool fail;
+    int i;
+    struct sc_sock_poll poll;
+    struct sc_sock_pipe pipe[1000];
+
+    fail_malloc = true;
+    assert(sc_sock_poll_init(&poll) == -1);
+    fail_malloc = false;
+
+    fail_epollcreate1 = true;
+    assert(sc_sock_poll_init(&poll) == -1);
+    fail_epollcreate1 = false;
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    fail = false;
+    fail_realloc = true;
+    for (i = 0; i < 1000; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
+        if (fail) {
+            break;
+        }
+    }
+    assert(fail);
+    for (int j = 0; j <= i; j++) {
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[j]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+    fail_realloc = false;
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    fail = false;
+    fail_realloc = true;
+    for (i = 0; i < 1000; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
+        if (fail) {
+            break;
+        }
+    }
+    assert(fail);
+    for (int j = 0; j <= i; j++) {
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[j]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+    fail_realloc = false;
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    fail = false;
+    fail_realloc = true;
+    for (i = 0; i < 1000; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_WRITE, NULL);
+        if (fail) {
+            break;
+        }
+    }
+    assert(fail);
+    for (int j = 0; j <= i; j++) {
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[j]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+    fail_realloc = false;
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    fail = false;
+    fail_realloc = true;
+    for (i = 0; i < 1000; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
+        if (fail) {
+            break;
+        }
+    }
+    assert(fail);
+    for (int j = 0; j <= i; j++) {
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[j]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+    fail_realloc = false;
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    fail = false;
+    fail_realloc = true;
+    for (i = 0; i < 1000; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
+        if (fail) {
+            break;
+        }
+    }
+    assert(fail);
+    for (int j = 0; j <= i; j++) {
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[j]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+    fail_realloc = false;
+
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    fail = false;
+    fail_realloc = true;
+    for (i = 0; i < 1000; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
+        if (fail) {
+            break;
+        }
+        assert(sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL) == 0);
+    }
+    assert(fail);
+    for (int j = 0; j <= i; j++) {
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_poll_del(&poll, &pipe[j].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[j]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+    fail_realloc = false;
+}
+
 void pipe_fail_test()
 {
     struct sc_sock_pipe pipe;
@@ -415,6 +604,11 @@ void pipe_fail_test()
 }
 
 #else
+void poll_fail_test()
+{
+
+}
+
 void pipe_fail_test()
 {
 }
@@ -616,8 +810,10 @@ int main()
 #endif
     test_pipe();
     pipe_fail_test();
+    poll_fail_test();
     test_poll();
     test_err();
+    test_poll_mass();
 
 #if defined(_WIN32) || defined(_WIN64)
     rc = WSACleanup();

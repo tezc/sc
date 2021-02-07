@@ -80,7 +80,7 @@ bool sc_is_pow2(size_t num);
 size_t sc_to_pow2(size_t size);
 
 /**
- * Bytes to human readable form, e.g 10240 bytes  to 10 KB.
+ * Bytes to human readable form, e.g 1024 bytes  to "1 KB".
  *
  * @param buf  buf to write output
  * @param len  buf len
@@ -90,7 +90,7 @@ size_t sc_to_pow2(size_t size);
 char *sc_bytes_to_size(char *buf, size_t len, uint64_t val);
 
 /**
- * Human readable string to bytes, e.g 10 KB to 10240 bytes.
+ * Human readable string to bytes, e.g "1 KB" to 1024 bytes.
  *
  * @param buf buf to write output
  * @return    positive value on success, '-1' on error

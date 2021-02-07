@@ -1,6 +1,7 @@
 #include "sc_uri.h"
 
 #include <assert.h>
+#include <errno.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
@@ -8,7 +9,8 @@
 void test1(void)
 {
     struct sc_uri *uri;
-    const char* f = "foo://user:password@example.com:8042/over/there?name=ferret#nose";
+    const char *f =
+            "foo://user:password@example.com:8042/over/there?name=ferret#nose";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -27,7 +29,8 @@ void test1(void)
 void test2(void)
 {
     struct sc_uri *uri;
-    const char* f = "https://john.doe@www.example.com:123/forum/questions/?tag=networking&order=newest#top";
+    const char *f = "https://john.doe@www.example.com:123/forum/questions/"
+                    "?tag=networking&order=newest#top";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -46,7 +49,7 @@ void test2(void)
 void test3(void)
 {
     struct sc_uri *uri;
-    const char* f = "ldap://[2001:db8::7]/c=GB?objectClass?one";
+    const char *f = "ldap://[2001:db8::7]/c=GB?objectClass?one";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -65,7 +68,7 @@ void test3(void)
 void test4(void)
 {
     struct sc_uri *uri;
-    const char* f = "mailto:John.Doe@example.com";
+    const char *f = "mailto:John.Doe@example.com";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -84,7 +87,7 @@ void test4(void)
 void test5(void)
 {
     struct sc_uri *uri;
-    const char* f = "news:comp.infosystems.www.servers.unix";
+    const char *f = "news:comp.infosystems.www.servers.unix";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -103,7 +106,7 @@ void test5(void)
 void test6(void)
 {
     struct sc_uri *uri;
-    const char* f = "tel:+1-816-555-1212";
+    const char *f = "tel:+1-816-555-1212";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -122,7 +125,7 @@ void test6(void)
 void test7(void)
 {
     struct sc_uri *uri;
-    const char* f = "telnet://192.0.2.16:80/";
+    const char *f = "telnet://192.0.2.16:80/";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -141,7 +144,7 @@ void test7(void)
 void test8(void)
 {
     struct sc_uri *uri;
-    const char* f = "urn:oasis:names:specification:docbook:dtd:xml:4.1.2";
+    const char *f = "urn:oasis:names:specification:docbook:dtd:xml:4.1.2";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -150,7 +153,8 @@ void test8(void)
     assert(strcmp(uri->userinfo, "") == 0);
     assert(strcmp(uri->host, "") == 0);
     assert(strcmp(uri->port, "") == 0);
-    assert(strcmp(uri->path, "oasis:names:specification:docbook:dtd:xml:4.1.2") == 0);
+    assert(strcmp(uri->path,
+                  "oasis:names:specification:docbook:dtd:xml:4.1.2") == 0);
     assert(strcmp(uri->query, "") == 0);
     assert(strcmp(uri->fragment, "") == 0);
 
@@ -160,7 +164,7 @@ void test8(void)
 void test9(void)
 {
     struct sc_uri *uri;
-    const char* f = "foo://info.example.com?fred";
+    const char *f = "foo://info.example.com?fred";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -179,7 +183,7 @@ void test9(void)
 void test10(void)
 {
     struct sc_uri *uri;
-    const char* f = "tcp://127.0.0.1:9090";
+    const char *f = "tcp://127.0.0.1:9090";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -215,7 +219,7 @@ void test11(void)
 void test12(void)
 {
     struct sc_uri *uri;
-    const char* f = "foo://user:password@example.com:1/over/there?x#3";
+    const char *f = "foo://user:password@example.com:1/over/there?x#3";
 
     uri = sc_uri_create(f);
     assert(uri != NULL);
@@ -234,8 +238,8 @@ void test12(void)
 void test13(void)
 {
     struct sc_uri *uri;
-    const char* f = "foo://user:password@example.com:-1/over/there?x#3";
-    const char* f2 = "foo://user:password@example.com:100000/over/there?x#3";
+    const char *f = "foo://user:password@example.com:-1/over/there?x#3";
+    const char *f2 = "foo://user:password@example.com:100000/over/there?x#3";
 
     uri = sc_uri_create(f);
     assert(uri == NULL);
@@ -257,8 +261,23 @@ void *__wrap_malloc(size_t n)
     return __real_malloc(n);
 }
 
-bool fail_snprintf;
+int fail_strtoul;
+unsigned long int __real_strtoul(const char *nptr, char **endptr, int base);
+unsigned long int __wrap_strtoul(const char *nptr, char **endptr, int base)
+{
+    if (fail_strtoul == 2) {
+        return 100000;
+    }
 
+    if (fail_strtoul == 1) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    return __real_strtoul(nptr, endptr, base);
+}
+
+bool fail_snprintf;
 int __wrap_snprintf(char *str, size_t size, const char *format, ...)
 {
     int rc;
@@ -316,11 +335,16 @@ void fail_test()
     fail_sprintf = true;
     assert(sc_uri_create("tcp://127.0.0.1") == NULL);
     fail_snprintf = false;
+
+    fail_strtoul = 1;
+    assert(sc_uri_create("tcp://127.0.0.1:9000") == NULL);
+    fail_strtoul = 2;
+    assert(sc_uri_create("tcp://127.0.0.1:9000") == NULL);
+    fail_strtoul = 0;
 }
 #else
 void fail_test()
 {
-
 }
 #endif
 
