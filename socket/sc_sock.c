@@ -1240,6 +1240,8 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
                      enum sc_sock_ev events, void *data)
 {
+    (void) data;
+
     int rc, count = 0;
     struct kevent ev[2];
     int mask = fdt->op & events;
