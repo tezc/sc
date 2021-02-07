@@ -369,17 +369,53 @@ void test_poll_mass(void)
     struct sc_sock_pipe pipe[100];
 
     assert(sc_sock_poll_init(&poll) == 0);
-
     for (int i = 0; i < 100; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
-        sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
+        assert(sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL) == 0);
     }
-
     for (int i = 0; i < 100; i++) {
-        sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
-        sc_sock_pipe_term(&pipe[i]);
+        assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[i]) == 0);
     }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
 
+    assert(sc_sock_poll_init(&poll) == 0);
+    for (int i = 0; i < 100; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        assert(sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL) == 0);
+    }
+    for (int i = 0; i < 100; i++) {
+        assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[i]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    for (int i = 0; i < 100; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        assert(sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL) == 0);
+    }
+    for (int i = 0; i < 100; i++) {
+        assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[i]) == 0);
+    }
+    assert(poll.count == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    for (int i = 0; i < 100; i++) {
+        assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
+        assert(sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_WRITE, NULL) == 0);
+    }
+    for (int i = 0; i < 100; i++) {
+        assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_WRITE, NULL) == 0);
+        assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL) == 0);
+        assert(sc_sock_pipe_term(&pipe[i]) == 0);
+    }
     assert(poll.count == 0);
     assert(sc_sock_poll_term(&poll) == 0);
 }
