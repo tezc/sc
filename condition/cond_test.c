@@ -5,7 +5,8 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 
-    #include <windows.h>
+#include <windows.h>
+#define sleep(x) Sleep(1000 * (x))
 
 struct sc_thread
 {
@@ -17,8 +18,8 @@ struct sc_thread
 
 #else
 
-#include <pthread.h>
 #include <unistd.h>
+#include <pthread.h>
 
 struct sc_thread
 {
@@ -149,9 +150,32 @@ void *thread1_fn(void *arg)
     return NULL;
 }
 
+void *thread1a_fn(void *arg)
+{
+    char *data;
+    struct sc_cond *cond = arg;
+
+    sleep(2);
+
+    data = sc_cond_wait(cond);
+    assert(strcmp(data, "finish") == 0);
+
+    return NULL;
+}
+
 void *thread2_fn(void *arg)
 {
     struct sc_cond *cond = arg;
+    sc_cond_signal(cond, "finish");
+    return NULL;
+}
+
+void *thread2a_fn(void *arg)
+{
+    struct sc_cond *cond = arg;
+
+    sleep(2);
+
     sc_cond_signal(cond, "finish");
     return NULL;
 }
@@ -260,16 +284,30 @@ void test1()
     struct sc_thread thread2;
 
     assert(sc_cond_init(&cond) == 0);
-
     sc_thread_init(&thread1);
     sc_thread_init(&thread2);
-
     assert(sc_thread_start(&thread1, thread1_fn, &cond) == 0);
     assert(sc_thread_start(&thread2, thread2_fn, &cond) == 0);
-
     assert(sc_thread_term(&thread1) == 0);
     assert(sc_thread_term(&thread2) == 0);
+    assert(sc_cond_term(&cond) == 0);
 
+    assert(sc_cond_init(&cond) == 0);
+    sc_thread_init(&thread1);
+    sc_thread_init(&thread2);
+    assert(sc_thread_start(&thread1, thread1a_fn, &cond) == 0);
+    assert(sc_thread_start(&thread2, thread2_fn, &cond) == 0);
+    assert(sc_thread_term(&thread1) == 0);
+    assert(sc_thread_term(&thread2) == 0);
+    assert(sc_cond_term(&cond) == 0);
+
+    assert(sc_cond_init(&cond) == 0);
+    sc_thread_init(&thread1);
+    sc_thread_init(&thread2);
+    assert(sc_thread_start(&thread1, thread1_fn, &cond) == 0);
+    assert(sc_thread_start(&thread2, thread2a_fn, &cond) == 0);
+    assert(sc_thread_term(&thread1) == 0);
+    assert(sc_thread_term(&thread2) == 0);
     assert(sc_cond_term(&cond) == 0);
 }
 

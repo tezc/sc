@@ -4,9 +4,11 @@
 #include "sc.h"
 
 #include <assert.h>
+#include <math.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+
 
 void test1()
 {
@@ -14,9 +16,18 @@ void test1()
     char *t;
     char buf[32];
 
+    const uint64_t kb = (uint64_t) 1024;
+    const uint64_t mb = (uint64_t) 1024 * 1024;
+    const uint64_t gb = (uint64_t) 1024 * 1024 * 1024;
+    const uint64_t tb = (uint64_t) 1024 * 1024 * 1024 * 1024;
+    const uint64_t pb = (uint64_t) 1024 * 1024 * 1024 * 1024 * 1024;
+    const uint64_t eb = (uint64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
+
     assert(sc_min(199, 299) == 199);
     assert(sc_max(199, 299) == 299);
     assert(sc_is_pow2(0) == false);
+    assert(sc_is_pow2(1) == true);
+    assert(sc_is_pow2(3) == false);
 
     x = sc_to_pow2(0);
     assert(x == 1);
@@ -30,23 +41,35 @@ void test1()
 
     x = sc_size_to_bytes("1");
     assert(x == 1);
+    x = sc_size_to_bytes("313");
+    assert(x == 313);
     x = sc_size_to_bytes("1b");
     assert(x == 1);
 
     x = sc_size_to_bytes("1k");
-    assert(x == 1 * 1024);
+    assert(x == kb);
     x = sc_size_to_bytes("1kb");
-    assert(x == 1 * 1024);
+    assert(x == kb);
 
     x = sc_size_to_bytes("1m");
-    assert(x == 1 * 1024 * 1024);
+    assert(x == mb);
     x = sc_size_to_bytes("1mb");
-    assert(x == 1 * 1024 * 1024);
+    assert(x == mb);
 
     x = sc_size_to_bytes("1g");
-    assert(x == 1 * 1024 * 1024 * 1024);
+    assert(x == gb);
     x = sc_size_to_bytes("1gb");
-    assert(x == 1 * 1024 * 1024 * 1024);
+    assert(x == gb);
+
+    x = sc_size_to_bytes("1t");
+    assert(x == tb);
+    x = sc_size_to_bytes("1tb");
+    assert(x == tb);
+
+    x = sc_size_to_bytes("1e");
+    assert(x == eb);
+    x = sc_size_to_bytes("1eb");
+    assert(x == eb);
 
     x = sc_size_to_bytes("1gx");
     assert(x == -1);
@@ -57,17 +80,32 @@ void test1()
     x = sc_size_to_bytes("1xgx");
     assert(x == -1);
 
-
     x = sc_size_to_bytes("1xb");
     assert(x == -1);
 
     x = sc_size_to_bytes("1p");
-    assert(x == UINT64_C(1 * 1024 * 1024 * 1024 * 1024));
+    assert(x == pb);
     x = sc_size_to_bytes("1pb");
-    assert(x == UINT64_C(1 * 1024 * 1024 * 1024 * 1024));
+    assert(x == pb);
+
+    x = sc_size_to_bytes("22eb");
+    assert(x == -1);
+    x = sc_size_to_bytes("31024pb");
+    assert(x == -1);
+    x = sc_size_to_bytes("31024111tb");
+    assert(x == -1);
+    x = sc_size_to_bytes("31024111111gb");
+    assert(x == -1);
+    x = sc_size_to_bytes("31024111111111mb");
+    assert(x == -1);
+    x = sc_size_to_bytes("31024111111111111kb");
+    assert(x == -1);
+
+    t = sc_bytes_to_size(buf, sizeof(buf), 313);
+    assert(strcmp(t, "313 B") == 0);
 
     t = sc_bytes_to_size(buf, sizeof(buf), 1024);
-    assert(strcmp(t, "1024.00 B") == 0);
+    assert(strcmp(t, "1.00 KB") == 0);
 
     t = sc_bytes_to_size(buf, sizeof(buf), 2 * 1024);
     assert(strcmp(t, "2.00 KB") == 0);
@@ -86,6 +124,9 @@ void test1()
     t = sc_bytes_to_size(buf, sizeof(buf),
                               (uint64_t) 2 * 1024 * 1024 * 1024 * 1024 * 1024);
     assert(strcmp(t, "2.00 PB") == 0);
+
+    t = sc_bytes_to_size(buf, sizeof(buf), UINT64_MAX);
+    assert(strcmp(t, "16.00 EB") == 0);
 }
 
 void test_rand()
@@ -147,6 +188,11 @@ void fail_test()
 
     fail_snprintf = true;
     t = sc_bytes_to_size(buf, sizeof(buf), 2 * 1024);
+    assert(t == NULL);
+    fail_snprintf = false;
+
+    fail_snprintf = true;
+    t = sc_bytes_to_size(buf, sizeof(buf), 313);
     assert(t == NULL);
     fail_snprintf = false;
 }

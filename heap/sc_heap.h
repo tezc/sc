@@ -30,7 +30,7 @@
 #include <stdint.h>
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "sc_config.h"
+    #include "config.h"
 #else
     #define sc_heap_malloc  malloc
     #define sc_heap_realloc realloc

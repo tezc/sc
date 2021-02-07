@@ -32,7 +32,7 @@
 #include <string.h>
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "sc_config.h"
+    #include "config.h"
 #else
     #define sc_buf_malloc  malloc
     #define sc_buf_realloc realloc

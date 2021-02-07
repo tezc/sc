@@ -33,7 +33,7 @@
 #include <stdlib.h>
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "sc_config.h"
+    #include "config.h"
 #else
     #define sc_array_realloc realloc
     #define sc_array_free    free

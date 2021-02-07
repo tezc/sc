@@ -29,7 +29,7 @@ CI runs on Linux, MacOS, FreeBSD and Windows with gcc, clang and msvc.
 | **[queue](queue)**             | Generic queue which can be used as dequeue/stack/list as well                              |
 | **[sc](sc)**                   | Utility functions                                                                          |
 | **[signal](signal)**           | Signal handler & signal safe snprintf (handling CTRL+C, printing backtrace on crash etc)   |
-| **[socket](socket)**           | Pipe, TCP sockets, Epoll/Kqueue/WSAPoll for Posix and Windows                              |
+| **[socket](socket)**           | Pipe / tcp sockets(also unix domain sockets) /Epoll/Kqueue/WSAPoll for Posix and Windows   |
 | **[string](string)**           | Length prefixed, null terminated C strings.                                                |
 | **[thread](thread)**           | Thread wrapper for Posix and Windows.                                                      |
 | **[time](time)**               | Time and sleep functions for Posix and Windows                                             |

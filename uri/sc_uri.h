@@ -25,7 +25,7 @@
 #define SC_URI_H
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "sc_config.h"
+    #include "config.h"
 #else
     #define sc_uri_malloc malloc
     #define sc_uri_free   free

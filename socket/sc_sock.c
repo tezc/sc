@@ -754,6 +754,8 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
     BOOL nodelay = 1;
 
     p->fdt.type = type;
+    p->fdt.op = SC_SOCK_NONE;
+    p->fdt.index = -1;
     p->fds[0] = INVALID_SOCKET;
     p->fds[1] = INVALID_SOCKET;
 
@@ -1339,10 +1341,11 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
     return 0;
 }
 
-static int sc_sock_poll_expand(struct sc_sock_poll *p)
+static int sc_sock_poll_expand(struct sc_sock_poll* p)
 {
     int cap, rc = 0;
-    void *ev = NULL, **data = NULL;
+    void** data = NULL;
+    struct pollfd* ev = NULL;
 
     if (p->count == p->cap) {
         if (p->cap >= INT32_MAX / 2) {
@@ -1350,7 +1353,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
         }
 
         cap = p->cap * 2;
-        ev = sc_sock_realloc(p->events, cap * sizeof(*p->events));
+        ev = sc_sock_realloc(p->events, cap * sizeof(*ev));
         if (ev == NULL) {
             goto error;
         }
@@ -1360,13 +1363,14 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
             goto error;
         }
 
-        for (size_t i = p->cap; i < cap; i++) {
-            p->events[i].fd = SC_INVALID;
+        p->events = ev;
+        p->data = data;
+
+        for (int i = p->cap; i < cap; i++) {
+             p->events[i].fd = SC_INVALID;
         }
 
         p->cap = cap;
-        p->events = ev;
-        p->data = data;
     }
 
     return rc;

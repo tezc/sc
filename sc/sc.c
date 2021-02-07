@@ -40,8 +40,6 @@
     #error unknown size_t bits
 #endif
 
-#include <memory.h>
-
 void sc_rand_init(struct sc_rand *r, const unsigned char *init)
 {
     unsigned char t;
@@ -102,17 +100,25 @@ size_t sc_to_pow2(size_t size)
 
 char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
 {
-    int i, size;
-    uint64_t bytes = 1;
-    const char *suffix[] = {"B", "KB", "MB", "GB", "TB", "PB"};
-    const size_t length = sizeof(suffix) / sizeof(suffix[0]);
+    const char *suffix[] = {"KB", "MB", "GB", "TB", "PB", "EB"};
+    int n = 0, wr;
+    uint64_t count = val;
 
-    for (i = 0; bytes * 1024 < val && i < length; i++) {
-        bytes *= 1024;
+    if (val < 1024) {
+        wr = snprintf(buf, len, "%d B", (int) val);
+        if (wr <= 0 || wr >= len) {
+            return NULL;
+        }
+        return buf;
     }
 
-    size = snprintf(buf, len, "%.02lf %s", (((double) val) / bytes), suffix[i]);
-    if (size <= 0 || size >= len) {
+    for (int i = 40; i >= 0 && val > 0xfffccccccccccccUL >> i; i -= 10) {
+        n++;
+        count >>= 10;
+    }
+
+    wr = snprintf(buf, len, "%.02lf %s", (double) count / 1024, suffix[n]);
+    if (wr <= 0 || wr >= len) {
         return NULL;
     }
 
@@ -121,6 +127,13 @@ char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
 
 int64_t sc_size_to_bytes(const char *buf)
 {
+    const int64_t kb = (int64_t) 1024;
+    const int64_t mb = (int64_t) 1024 * 1024;
+    const int64_t gb = (int64_t) 1024 * 1024 * 1024;
+    const int64_t tb = (int64_t) 1024 * 1024 * 1024 * 1024;
+    const int64_t pb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024;
+    const int64_t eb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
+
     int count;
     int64_t val;
     char *parse_end;
@@ -152,16 +165,22 @@ int64_t sc_size_to_bytes(const char *buf)
     case 'b':
         break;
     case 'k':
-        val *= 1024;
+        val = (val > INT64_MAX / kb) ? -1 : val * kb;
         break;
     case 'm':
-        val *= 1024 * 1024;
+        val = (val > INT64_MAX / mb) ? -1 : val * mb;
         break;
     case 'g':
-        val *= 1024 * 1024 * 1024;
+        val = (val > INT64_MAX / gb) ? -1 : val * gb;
+        break;
+    case 't':
+        val = (val > INT64_MAX / tb) ? -1 : val * tb;
         break;
     case 'p':
-        val *= 1024 * 1024 * 1024 * 1024ull;
+        val = (val > INT64_MAX / pb) ? -1 : val * pb;
+        break;
+    case 'e':
+        val = (val > INT64_MAX / eb) ? -1 : val * eb;
         break;
     default:
         return -1;

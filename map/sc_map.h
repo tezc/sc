@@ -32,7 +32,7 @@
 #include <stdlib.h>
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "sc_config.h"
+    #include "config.h"
 #else
     #define sc_map_calloc calloc
     #define sc_map_free   free
