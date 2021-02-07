@@ -378,6 +378,71 @@ void test5()
     sc_str_replace(&s1, " ", "");
     assert(strcmp(s1, "elem1,elem2,elem3") == 0);
     sc_str_destroy(s1);
+
+    s1 = sc_str_create("elem1,elem2,elem3");
+    sc_str_replace(&s1, "elem", "item");
+    assert(strcmp(s1, "item1,item2,item3") == 0);
+    sc_str_destroy(s1);
+}
+
+void test6()
+{
+    char* s1;
+    char *save = NULL;
+    const char *token;
+    bool b;
+
+    s1 = sc_str_create(NULL);
+    assert(s1 == NULL);
+    sc_str_destroy(s1);
+
+    s1 = sc_str_create_len(NULL, 100);
+    assert(s1 == NULL);
+    sc_str_destroy(s1);
+
+    s1 = NULL;
+    b = sc_str_set(&s1, "test");
+    assert(b);
+    assert(strcmp(s1, "test") == 0);
+    sc_str_destroy(s1);
+
+    s1 = NULL;
+    b = sc_str_set_fmt(&s1, "test");
+    assert(b);
+    assert(strcmp(s1, "test") == 0);
+    sc_str_destroy(s1);
+
+    s1 = NULL;
+    b = sc_str_append(&s1, "test");
+    assert(b);
+    assert(strcmp(s1, "test") == 0);
+    sc_str_destroy(s1);
+
+    s1 = NULL;
+    b = sc_str_trim(&s1, "*");
+    assert(b);
+    assert(s1 == NULL);
+    sc_str_destroy(s1);
+
+    s1 = NULL;
+    b = sc_str_substring(&s1, 0, 0);
+    assert(!b);
+    assert(s1 == NULL);
+    sc_str_destroy(s1);
+
+    s1 = NULL;
+    b = sc_str_replace(&s1, "s", "a");
+    assert(b);
+    assert(s1 == NULL);
+    sc_str_destroy(s1);
+
+    s1 = NULL;
+    while ((token = sc_str_token_begin(s1, &save, ";")) != NULL) {
+        assert(true);
+    }
+
+    sc_str_token_end(s1, &save);
+    sc_str_destroy(s1);
 }
 
 
@@ -391,5 +456,6 @@ int main()
     test3();
     test4();
     test5();
+    test6();
     return 0;
 }

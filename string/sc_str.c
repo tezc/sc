@@ -25,10 +25,10 @@
 #include "sc_str.h"
 
 #include <assert.h>
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * String with 'length' at the start of the allocated memory
@@ -50,18 +50,16 @@ struct sc_str
     ((struct sc_str *) ((char *) (str) -offsetof(struct sc_str, buf)))
 
 #define sc_str_bytes(n) ((n) + sizeof(struct sc_str) + 1)
+
 #ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX (UINT32_MAX - sizeof(struct sc_str) - 1)
+    #define SC_SIZE_MAX (UINT32_MAX - sizeof(struct sc_str) - 1)
 #endif
 
 char *sc_str_create(const char *str)
 {
     size_t size;
 
-    assert(str != NULL);
-
-    size = strlen(str);
-    if (size > SC_SIZE_MAX) {
+    if (str == NULL || (size = strlen(str)) > SC_SIZE_MAX) {
         return NULL;
     }
 
@@ -72,7 +70,9 @@ char *sc_str_create_len(const char *str, uint32_t len)
 {
     struct sc_str *copy;
 
-    assert(str != NULL);
+    if (str == NULL) {
+        return NULL;
+    }
 
     copy = sc_str_malloc(sc_str_bytes(len));
     if (copy == NULL) {
@@ -194,9 +194,16 @@ bool sc_str_set_fmt(char **str, const char *fmt, ...)
 
 bool sc_str_append(char **str, const char *param)
 {
-    struct sc_str *meta = sc_str_meta(*str);
-    size_t len = strlen(param);
-    size_t alloc = sc_str_bytes(meta->len + len);
+    size_t len, alloc;
+    struct sc_str *meta;
+
+    if (*str == NULL) {
+        return (*str = sc_str_create(param)) != NULL;
+    }
+
+    meta = sc_str_meta(*str);
+    len = strlen(param);
+    alloc = sc_str_bytes(meta->len + len);
 
     if (alloc > SC_SIZE_MAX || (meta = sc_str_realloc(meta, alloc)) == NULL) {
         return false;
@@ -212,9 +219,6 @@ bool sc_str_append(char **str, const char *param)
 
 bool sc_str_cmp(const char *str, const char *other)
 {
-    assert(str != NULL);
-    assert(other != NULL);
-
     struct sc_str *s1 = sc_str_meta(str);
     struct sc_str *s2 = sc_str_meta(other);
 
@@ -235,6 +239,10 @@ const char *sc_str_token_begin(char *str, char **save, const char *delim)
 {
     char *it = str;
 
+    if (str == NULL) {
+        return NULL;
+    }
+
     if (*save != NULL) {
         it = *save;
         swap(str, it);
@@ -252,8 +260,13 @@ const char *sc_str_token_begin(char *str, char **save, const char *delim)
 
 void sc_str_token_end(char *str, char **save)
 {
-    char *end = str + sc_str_meta(str)->len;
+    char *end;
 
+    if (str == NULL) {
+        return;
+    }
+
+    end = str + sc_str_meta(str)->len;
     if (*end == '\0') {
         return;
     }
@@ -263,9 +276,16 @@ void sc_str_token_end(char *str, char **save)
 
 bool sc_str_trim(char **str, const char *list)
 {
-    size_t len = strlen(*str);
-    char *start = *str + strspn(*str, list);
-    char *end = (*str) + len;
+    size_t len;
+    char *start, *end;
+
+    if (*str == NULL) {
+        return true;
+    }
+
+    len = strlen(*str);
+    start = *str + strspn(*str, list);
+    end = (*str) + len;
 
     while (end > start) {
         end--;
@@ -276,7 +296,7 @@ bool sc_str_trim(char **str, const char *list)
     }
 
     if (start != *str || end != (*str) + len) {
-        start = sc_str_create_len(start, (uint32_t) (end - start));
+        start = sc_str_create_len(start, (uint32_t)(end - start));
         if (start == NULL) {
             return false;
         }
@@ -291,8 +311,13 @@ bool sc_str_trim(char **str, const char *list)
 bool sc_str_substring(char **str, uint32_t start, uint32_t end)
 {
     char *c;
-    struct sc_str *meta = sc_str_meta(*str);
+    struct sc_str *meta;
 
+    if (*str == NULL) {
+        return false;
+    }
+
+    meta = sc_str_meta(*str);
     if (start > meta->len || end > meta->len || start > end) {
         return false;
     }
@@ -311,7 +336,10 @@ bool sc_str_substring(char **str, uint32_t start, uint32_t end)
 bool sc_str_replace(char **str, const char *replace, const char *with)
 {
     assert(replace != NULL && with != NULL);
-    assert(str != NULL && *str != NULL);
+
+    if (*str == NULL) {
+        return true;
+    }
 
     size_t replace_len = strlen(replace);
     size_t with_len = strlen(with);
@@ -328,7 +356,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
         return false;
     }
 
-    diff = (int64_t)with_len - (int64_t)replace_len;
+    diff = (int64_t) with_len - (int64_t) replace_len;
 
     // Fast path, same size replacement.
     if (diff == 0) {

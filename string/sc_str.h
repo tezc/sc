@@ -50,15 +50,15 @@
  */
 
 /**
- * @param str '\0' terminated C string, must not be NULL.
- * @return    length prefixed string. NULL on out of memory.
+ * @param str '\0' terminated C string, can be NULL.
+ * @return    length prefixed string. NULL on out of memory or if 'str' is NULL.
  */
 char *sc_str_create(const char *str);
 
 /**
- * @param str string bytes, no need for '\0' termination, must not be NULL.
+ * @param str string bytes, no need for '\0' termination.
  * @param len length of the 'str'.
- * @return    length prefixed string. NULL on out of memory.
+ * @return    length prefixed string. NULL on out of memory or if 'str' is NULL.
  */
 char *sc_str_create_len(const char *str, uint32_t len);
 
@@ -78,7 +78,7 @@ char *sc_str_create_va(const char *fmt, va_list va);
 
 /**
  * Deallocate length prefixed string.
- * @param str length prefixed string. NULL values are accepted.
+ * @param str length prefixed string. str may be NULL.
  */
 void sc_str_destroy(char *str);
 
@@ -90,37 +90,37 @@ int64_t sc_str_len(const char *str);
 
 /**
  * @param str length prefixed string. NULL values are accepted.
- * @return    length of the duplicate. NULL on out of memory.
+ * @return    duplicate string. NULL on out of memory or if 'str' is NULL.
  */
 char *sc_str_dup(const char *str);
 
 /**
- * @param str    Pointer to length prefixed string.
+ * @param str    Pointer to length prefixed string, '*str' may change.
  * @param param  New value to set.
- * @return    'true' on success, '*str' may change. 'false' on out of memory.
+ * @return      'true' on success, 'false' on out of memory or if '*str' is NULL
  */
 bool sc_str_set(char **str, const char *param);
 
 /**
- * @param str pointer to length prefixed string.
+ * @param str pointer to length prefixed string, '*str' may change.
  * @param fmt format
  * @param ... arguments
- * @return    'true' on success, '*str' may change. 'false' on out of memory.
+ * @return    'true' on success, 'false' on out of memory
  */
 bool sc_str_set_fmt(char **str, const char *fmt, ...);
 
 /**
- * @param str  pointer to length prefixed string.
+ * @param str  pointer to length prefixed string, '*str' may change.
  * @param text text to append.
- * @return    'true' on success, '*str' may change. 'false' on out of memory.
+ * @return    'true' on success, 'false' on out of memory or if '*str' is NULL.
  */
 bool sc_str_append(char **str, const char *text);
 
 /**
- * @param str pointer to length prefixed string. (char**).
+ * @param str pointer to length prefixed string. (char**).'*str' may change.
  * @param fmt format
  * @param ... arguments
- * @return    'true' on success, '*str' may change. 'false' on out of memory.
+ * @return    'true' on success, 'false' on out of memory or if '*str' is NULL.
  */
 #define sc_str_append_fmt(str, fmt, ...)                                       \
     sc_str_set_fmt(str, "%s" fmt, *str, __VA_ARGS__)
@@ -135,26 +135,26 @@ bool sc_str_append(char **str, const char *text);
 bool sc_str_cmp(const char *str, const char *other);
 
 /**
- * @param str  length prefixed string, must not be NULL.
+ * @param str  length prefixed string, '*str' may change
  * @param list character list to trim.
- * @return    'true' on success, '*str' may change. 'false' on out of memory.
+ * @return    'true' on success or if '*str' is NULL. 'false' on out of memory
  */
 bool sc_str_trim(char **str, const char *list);
 
 /**
- * @param str   length prefixed string, must not be NULL.
+ * @param str   length prefixed string, *str' may change.
  * @param start start index.
  * @param end   end index.
- * @return      'false' on out of range or on out of memory.
- *              'true' on success, '*str' may change.
+ * @return      'false' on out of range, on out of memory or if '*str' is NULL.
+ *              'true' on success.
  */
 bool sc_str_substring(char **str, uint32_t start, uint32_t end);
 
 /**
- * @param str  length prefixed string, must not be NULL.
+ * @param str  length prefixed string, '*str' may change.
  * @param rep  string to be replaced
  * @param with string to replace with
- * @return    'true' on success, '*str' may change. 'false' on out of memory.
+ * @return    'true' on success or if '*str' is NULL.  'false' on out of memory
  */
 bool sc_str_replace(char **str, const char *rep, const char *with);
 
