@@ -459,7 +459,7 @@ void poll_fail_test()
     bool fail;
     int i;
     struct sc_sock_poll poll;
-    struct sc_sock_pipe pipe[1000];
+    struct sc_sock_pipe pipe[200] ;
 
     fail_malloc = true;
     assert(sc_sock_poll_init(&poll) == -1);

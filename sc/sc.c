@@ -112,7 +112,7 @@ char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
         return buf;
     }
 
-    for (int i = 40; i >= 0 && val > 0xfffccccccccccccL >> i; i -= 10) {
+    for (int i = 40; i >= 0 && val > 0xfffccccccccccccUL >> i; i -= 10) {
         n++;
         count >>= 10;
     }
@@ -127,12 +127,12 @@ char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
 
 int64_t sc_size_to_bytes(const char *buf)
 {
-    const uint64_t kb = (uint64_t) 1024;
-    const uint64_t mb = (uint64_t) 1024 * 1024;
-    const uint64_t gb = (uint64_t) 1024 * 1024 * 1024;
-    const uint64_t tb = (uint64_t) 1024 * 1024 * 1024 * 1024;
-    const uint64_t pb = (uint64_t) 1024 * 1024 * 1024 * 1024 * 1024;
-    const uint64_t eb = (uint64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
+    const int64_t kb = (int64_t) 1024;
+    const int64_t mb = (int64_t) 1024 * 1024;
+    const int64_t gb = (int64_t) 1024 * 1024 * 1024;
+    const int64_t tb = (int64_t) 1024 * 1024 * 1024 * 1024;
+    const int64_t pb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024;
+    const int64_t eb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
 
     int count;
     int64_t val;

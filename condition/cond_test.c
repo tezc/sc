@@ -5,7 +5,8 @@
 
 #if defined(_WIN32) || defined(_WIN64)
 
-    #include <windows.h>
+#include <windows.h>
+#define sleep(x) Sleep(1000 * (x))
 
 struct sc_thread
 {
@@ -17,8 +18,8 @@ struct sc_thread
 
 #else
 
-#include <pthread.h>
 #include <unistd.h>
+#include <pthread.h>
 
 struct sc_thread
 {
