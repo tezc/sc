@@ -33,11 +33,12 @@ void *__wrap_realloc(void *p, size_t n)
     return __real_realloc(p, n);
 }
 
-bool fail_strlen = false;
+int fail_strlen = INT32_MAX;
 size_t __real_strlen(const char* str);
 size_t __wrap_strlen(const char* str)
 {
-    if (fail_strlen) {
+    fail_strlen--;
+    if (fail_strlen == 0) {
         return UINT32_MAX;
     }
 
@@ -142,7 +143,6 @@ void test1()
     assert(strcmp(s1, "test") == 0);
     fail_vsnprintf = false;
 
-
     fail_vsnprintf_at = 2;
     s2 = malloc(2000 + 2);
     memset(s2, 'c', 2000 + 1);
@@ -152,6 +152,10 @@ void test1()
     fail_vsnprintf_at = -1;
     free(s2);
     sc_str_destroy(s1);
+
+    fail_vsnprintf = true;
+    assert(!sc_str_set_fmt(&s1, "test%d", 3));
+    fail_vsnprintf = false;
 
     fail_malloc = false;
     fail_realloc = false;
@@ -191,9 +195,11 @@ void test2()
     assert(strcmp(c, "test----") == 0);
     sc_str_replace(&c, "--", "0");
     assert(strcmp(c, "test00") == 0);
-    fail_strlen = true;
+    fail_strlen = 1;
     assert(sc_str_replace(&c, "*", "2") == false);
-    fail_strlen = false;
+    fail_strlen = 2;
+    assert(sc_str_replace(&c, "*", "2") == false);
+    fail_strlen = INT32_MAX;
     sc_str_destroy(c);
 }
 
@@ -387,7 +393,7 @@ void test5()
 
 void test6()
 {
-    char* s1;
+    char* s1, *s2;
     char *save = NULL;
     const char *token;
     bool b;
@@ -438,11 +444,20 @@ void test6()
 
     s1 = NULL;
     while ((token = sc_str_token_begin(s1, &save, ";")) != NULL) {
+        (void) token;
         assert(true);
     }
 
     sc_str_token_end(s1, &save);
     sc_str_destroy(s1);
+
+    s1 = sc_str_create("de1");
+    s2 = sc_str_create("de2");
+    assert(!sc_str_cmp(s1, s2));
+    sc_str_set(&s1, "dee2");
+    assert(!sc_str_cmp(s1, s2));
+    sc_str_destroy(s1);
+    sc_str_destroy(s2);
 }
 
 
