@@ -366,16 +366,16 @@ void test1()
 void test_poll_mass(void)
 {
     struct sc_sock_poll poll;
-    struct sc_sock_pipe pipe[1000];
+    struct sc_sock_pipe pipe[100];
 
     assert(sc_sock_poll_init(&poll) == 0);
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
         sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
     }
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
         sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
         sc_sock_pipe_term(&pipe[i]);
     }
@@ -472,7 +472,7 @@ void poll_fail_test()
     assert(sc_sock_poll_init(&poll) == 0);
     fail = false;
     fail_realloc = true;
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 200; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
         fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ, NULL);
         if (fail) {
@@ -491,7 +491,7 @@ void poll_fail_test()
     assert(sc_sock_poll_init(&poll) == 0);
     fail = false;
     fail_realloc = true;
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 200; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
         fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
         if (fail) {
@@ -510,7 +510,7 @@ void poll_fail_test()
     assert(sc_sock_poll_init(&poll) == 0);
     fail = false;
     fail_realloc = true;
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 200; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
         fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_WRITE, NULL);
         if (fail) {
@@ -529,7 +529,7 @@ void poll_fail_test()
     assert(sc_sock_poll_init(&poll) == 0);
     fail = false;
     fail_realloc = true;
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 200; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
         fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
         if (fail) {
@@ -549,7 +549,7 @@ void poll_fail_test()
     assert(sc_sock_poll_init(&poll) == 0);
     fail = false;
     fail_realloc = true;
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 200; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
         fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
         if (fail) {
@@ -570,7 +570,7 @@ void poll_fail_test()
     assert(sc_sock_poll_init(&poll) == 0);
     fail = false;
     fail_realloc = true;
-    for (i = 0; i < 1000; i++) {
+    for (i = 0; i < 200; i++) {
         assert(sc_sock_pipe_init(&pipe[i], 0) == 0);
         fail = sc_sock_poll_add(&poll, &pipe[i].fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
         if (fail) {
