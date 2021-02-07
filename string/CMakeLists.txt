@@ -8,7 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 add_executable(sc_str str_example.c sc_str.h sc_str.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -pedantic -Werror -D_GNU_SOURCE")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -pedantic -Werror")
 endif ()
 
 

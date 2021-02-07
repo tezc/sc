@@ -214,7 +214,7 @@ void test3()
 
     assert(count == 4);
     assert(strcmp(str, tokens) == 0);
-    assert(sc_str_len(str) == strlen(tokens));
+    assert(sc_str_len(str) == (int64_t) strlen(tokens));
 
     count = 0;
     save = NULL;
@@ -226,7 +226,7 @@ void test3()
 
     assert(count == 4);
     assert(strcmp(str, tokens) == 0);
-    assert(sc_str_len(str) == strlen(tokens));
+    assert(sc_str_len(str) == (int64_t) strlen(tokens));
 
     count = 0;
     save = NULL;
@@ -241,7 +241,7 @@ void test3()
 
     assert(count == 4);
     assert(strcmp(str, tokens) == 0);
-    assert(sc_str_len(str) == strlen(tokens));
+    assert(sc_str_len(str) == (int64_t) strlen(tokens));
     sc_str_destroy(str);
 
 
@@ -350,7 +350,7 @@ void test5()
     sc_str_replace(&s1, "-", "");
     sc_str_replace(&s1, " ", "");
     assert(strcmp(s1, "longerlonger") == 0);
-    assert(sc_str_len(s1) == strlen("longerlonger"));
+    assert(sc_str_len(s1) == (int64_t) strlen("longerlonger"));
     assert(sc_str_replace(&s1, "as", "r"));
     assert(strcmp(s1, "longerlonger") == 0);
     assert(sc_str_replace(&s1, "r", "R"));
@@ -381,7 +381,7 @@ void test5()
 }
 
 
-int main(int argc, char *argv[])
+int main()
 {
 
 #ifdef SC_HAVE_WRAP

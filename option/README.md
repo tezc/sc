@@ -1,4 +1,4 @@
-# Option
+### Option
 
 - A basic alternative to getopt but quite limited compared to it.
 - Long or short version of options are supported. Values are accepted only with  

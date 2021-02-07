@@ -163,7 +163,7 @@ void test1(void)
     sc_queue_destroy(p);
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     fail_test();
     example();

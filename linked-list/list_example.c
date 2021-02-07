@@ -1,10 +1,9 @@
 #include "sc_list.h"
 
 #include <stdio.h>
-#include <string.h>
 
 
-int main(int argc, char *argv[])
+int main()
 {
     struct user
     {
@@ -12,11 +11,11 @@ int main(int argc, char *argv[])
         struct sc_list next;
     };
 
-    struct user users[] = {{"first"},
-                           {"second"},
-                           {"third"},
-                           {"fourth"},
-                           {"fifth"}};
+    struct user users[] = {{"first", {0}},
+                           {"second", {0}},
+                           {"third", {0}},
+                           {"fourth", {0}},
+                           {"fifth", {0}}};
 
     struct sc_list list;
 

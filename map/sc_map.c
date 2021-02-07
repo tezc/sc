@@ -30,12 +30,14 @@
 #define sc_map_impl_of_scalar(name, K, V, cmp, hash_fn)                        \
     bool sc_map_cmp_##name(struct sc_map_item_##name *t, K key, uint32_t hash) \
     {                                                                          \
+        (void) hash;                                                           \
         return cmp(t->key, key);                                               \
     }                                                                          \
                                                                                \
     void sc_map_assign_##name(struct sc_map_item_##name *t, K key, V value,    \
                               uint32_t hash)                                   \
     {                                                                          \
+        (void) hash;                                                           \
         t->key = key;                                                          \
         t->value = value;                                                      \
     }                                                                          \
@@ -328,13 +330,13 @@ uint32_t murmurhash(const char *key)
     }
 
     switch (len & 7u) {
-    case 7: h ^= (uint64_t) p[6] << 48ul;
-    case 6: h ^= (uint64_t) p[5] << 40ul;
-    case 5: h ^= (uint64_t) p[4] << 32ul;
-    case 4: h ^= (uint64_t) p[3] << 24ul;
-    case 3: h ^= (uint64_t) p[2] << 16ul;
-    case 2: h ^= (uint64_t) p[1] << 8ul;
-    case 1: h ^= (uint64_t) p[0];
+    case 7: h ^= (uint64_t) p[6] << 48ul; // fall through
+    case 6: h ^= (uint64_t) p[5] << 40ul; // fall through
+    case 5: h ^= (uint64_t) p[4] << 32ul; // fall through
+    case 4: h ^= (uint64_t) p[3] << 24ul; // fall through
+    case 3: h ^= (uint64_t) p[2] << 16ul; // fall through
+    case 2: h ^= (uint64_t) p[1] << 8ul;  // fall through
+    case 1: h ^= (uint64_t) p[0];         // fall through
         h *= m;
     default:
         break;

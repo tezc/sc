@@ -108,7 +108,7 @@ void test4(void)
 }
 #endif
 
-int main(int argc, char *argv[])
+int main()
 {
     test1();
     test2();

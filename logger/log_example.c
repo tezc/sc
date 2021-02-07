@@ -14,7 +14,7 @@ int log_callback(void *arg, enum sc_log_level level,
     return 0;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     const char* my_app_name = "my app";
 

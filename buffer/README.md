@@ -1,6 +1,6 @@
-# Buffer
+### Buffer
 
-#### Overview
+### Overview
 
 - Buffer implementation for serializing data/protocol implementation.
 - Works with binary data, 8/16/32/64 bit integers, double and strings.  
@@ -12,7 +12,7 @@
   endian systems, integer put/get is bswap(byte swap) + MOV.
 - Max capacity is 4GB. Max string size is a little less than 2 GB
 
-##### Usage
+### Usage
 
 ```c
 #include "sc_buf.h"

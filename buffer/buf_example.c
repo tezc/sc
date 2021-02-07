@@ -33,6 +33,7 @@ void error_check()
         exit(EXIT_FAILURE);
     }
 
+    printf("%u %u \n", val, val2);
     sc_buf_term(&buf);
 }
 

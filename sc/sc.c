@@ -106,7 +106,7 @@ char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
 
     if (val < 1024) {
         wr = snprintf(buf, len, "%d B", (int) val);
-        if (wr <= 0 || wr >= len) {
+        if (wr <= 0 || (size_t) wr >= len) {
             return NULL;
         }
         return buf;
@@ -118,7 +118,7 @@ char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
     }
 
     wr = snprintf(buf, len, "%.02lf %s", (double) count / 1024, suffix[n]);
-    if (wr <= 0 || wr >= len) {
+    if (wr <= 0 || (size_t) wr >= len) {
         return NULL;
     }
 

@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <stdio.h>
 
-int main(int argc, char *argv[])
+int main()
 {
     int rc;
     struct sc_mmap mmap;

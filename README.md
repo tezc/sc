@@ -1,10 +1,10 @@
 ### Overview
 
-Common data structures and utilities for C.  
+Common data structures utilities for C.  
 
 Each folder is independent and contains a header and a source file.  
 There is no build for libraries, just copy *.h *.c files into your project.  
-Each folder also contains a readme and an example.  
+Each folder also contains readme and an example.  
 
 CI runs on Linux, MacOS, FreeBSD and Windows with gcc, clang and msvc.
 

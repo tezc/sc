@@ -148,7 +148,8 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *  @param elem elem
  */
 #define sc_array_foreach(arr, elem)                                            \
-    for (int _k = 1, _i = 0; _k && _i != sc_array_size(arr); _k = !_k, _i++)   \
+    for (size_t _k = 1, _i = 0; _k && _i != sc_array_size(arr);                \
+         _k = !_k, _i++)                                                       \
         for ((elem) = (arr)[_i]; _k; _k = !_k)
 
 /**

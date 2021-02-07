@@ -55,6 +55,7 @@ void test2()
 
 void sig_handler(int signum)
 {
+    (void) signum;
 }
 
 void test3x(int signal)
@@ -237,7 +238,7 @@ void test8()
 }
 #endif
 
-int main(int argc, char **argv)
+int main()
 {
     test1();
     test2();

@@ -62,6 +62,9 @@ uint64_t ids[1000];
 
 void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
 {
+    (void) timeout;
+    (void) type;
+
     static int idx = 0;
 
     uint64_t id = (uintptr_t) data;
@@ -287,7 +290,7 @@ void fail_test(void)
 }
 #endif
 
-int main(int argc, char *argv[])
+int main()
 {
     fail_test();
     test1();

@@ -1,4 +1,4 @@
-# Length prefixed string
+### Length prefixed string
 
 Length prefixed C strings, length is at the start of the allocated memory
 
@@ -11,14 +11,14 @@ Length prefixed C strings, length is at the start of the allocated memory
     User can keep pointer to first character, so it's like C style strings with
     additional functionality.
 
-##### Pros
+### Pros
 - User gets a null terminated `char*`, so it still works with c style string  
   functions, e.g printf, strcmp.
-- This implementation is mostly about having a fast length access to strings.  
+- This implementation is mostly about avoiding strlen() cost.  
   Provides a few more functions to make easier create/append/trim/substring  
   operations.
 
-##### Cons
+### Cons
 - 4 bytes fixed overhead per string and max string size is ~4gb.
 - When you create/set/append a string, new memory is allocated. If you are  
   modifying strings a lot, consider using buffer-like implementation for that if  

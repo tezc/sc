@@ -1,13 +1,13 @@
-# URI Parser
+### URI Parser
 
-#### Overview
+### Overview
 
-- URI parser but not a full featured one.
+- URI parser but not a full featured one. It just splits parts of an url.
 - Internally, it does a single allocation but each part is represented as null  
   ended string, so it plays nicely with C string functions.
 
 
-##### Usage
+### Usage
 
 
 ```c

@@ -107,7 +107,7 @@ char *sc_str_create_va(const char *fmt, va_list va)
 
     str->len = (uint32_t) rc;
 
-    if (rc < sizeof(tmp)) {
+    if (rc < (int) sizeof(tmp)) {
         memcpy(str->buf, tmp, str->len + 1);
     } else {
         va_copy(args, va);

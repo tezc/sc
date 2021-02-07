@@ -1,6 +1,6 @@
-# Socket and networking for Linux, BSDs, MacOS and Windows
+### Socket and networking for Linux, BSDs, MacOS and Windows
 
-#### Overview
+### Overview
 
 - Includes three implementations :
 
@@ -17,7 +17,7 @@
 - Works for blocking and nonblocking sockets.
 
 
-##### Usage
+### Usage
 
 This is not an "easy to use" implementation. It just provides wrappers to   
 provide portability between operating systems. So, you're expected to know what  

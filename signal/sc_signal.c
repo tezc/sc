@@ -91,7 +91,7 @@ int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
                 len = strlen(str);
                 break;
             case 'l':
-                pos += (*(pos + 1) == 'l') ? 2 : 1;
+                pos += (*(pos + 1) == 'l') ? 2 : 1; // fall through
             case 'd':
             case 'u':
                 len = 0;
@@ -438,7 +438,7 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     sc_signal_log(fd, buf, sizeof(buf),
                   "\n----------------- CRASH REPORT ---------------- \n");
 
-    #ifdef HAVE_BACKTRACE
+#ifdef HAVE_BACKTRACE
     void *caller = sc_instruction((ucontext_t *) context);
     int trace_size;
     void *trace[100];
@@ -447,7 +447,9 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
 
     trace_size = backtrace(trace, 100);
     backtrace_symbols_fd(trace, trace_size, fd);
-    #endif
+#else
+    (void) context;
+#endif
     sc_signal_log(fd, buf, sizeof(buf),
                   "\n--------------- CRASH REPORT END -------------- \n");
 
@@ -459,9 +461,9 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     act.sa_handler = SIG_DFL;
     sigaction(sig, &act, NULL);
 
-    #ifndef SC_SIGNAL_TEST
+#ifndef SC_SIGNAL_TEST
     kill(getpid(), sig);
-    #endif
+#endif
 }
 
 int sc_signal_init()

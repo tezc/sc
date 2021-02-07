@@ -14,6 +14,8 @@ const char *example_ini = "# My configuration"
 int callback(void *arg, int line, const char *section, const char *key,
              const char *value)
 {
+    (void) arg;
+
     printf("Line : %d, Section : %s, Key : %s, Value : %s \n", line, section,
            key, value);
 
@@ -44,7 +46,7 @@ void string_example(void)
     assert(rc == 0);
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     string_example();
     file_example();

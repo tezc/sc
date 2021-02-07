@@ -8,7 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 add_executable(sc_thread thread_example.c sc_thread.h sc_thread.c)
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread -Wall -pedantic -Werror")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pthread -Wextra -Wall -pedantic -Werror")
 endif ()
 
 

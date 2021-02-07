@@ -1,4 +1,4 @@
-# Linked List
+### Linked List
 
 ### Overview
 
@@ -7,18 +7,16 @@
 - Add/remove from head/tail is possible so it can be used as list, stack,  
   queue, dequeue etc.
 
-#### Usage
+### Usage
 
 
 ```c
-
 #include "sc_list.h"
 
 #include <stdio.h>
-#include <string.h>
 
 
-int main(int argc, char *argv[])
+int main()
 {
     struct user
     {
@@ -26,11 +24,11 @@ int main(int argc, char *argv[])
         struct sc_list next;
     };
 
-    struct user users[] = {{"first"},
-                           {"second"},
-                           {"third"},
-                           {"fourth"},
-                           {"fifth"}};
+    struct user users[] = {{"first", {0}},
+                           {"second", {0}},
+                           {"third", {0}},
+                           {"fourth", {0}},
+                           {"fifth", {0}}};
 
     struct sc_list list;
 
@@ -50,6 +48,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-
-
 ```

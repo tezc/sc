@@ -43,7 +43,7 @@ void example_int_to_str()
     sc_map_term_64s(&map);
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     example_str();
     example_int_to_str();

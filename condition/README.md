@@ -1,6 +1,6 @@
-# Condition
+### Condition
 
-#### Overview
+### Overview
 
 - Condition wrapper.
 - Provides passing data between signal and wait threads.
@@ -10,7 +10,7 @@
   wait(), it won't be blocked, it will return immediately with the user  
   provided data.
 
-##### Usage
+### Usage
 
 ```c
 #include "sc_cond.h"

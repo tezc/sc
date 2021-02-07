@@ -12,16 +12,16 @@
 
 void test1()
 {
-    uint64_t x;
+    int64_t x;
     char *t;
     char buf[32];
 
-    const uint64_t kb = (uint64_t) 1024;
-    const uint64_t mb = (uint64_t) 1024 * 1024;
-    const uint64_t gb = (uint64_t) 1024 * 1024 * 1024;
-    const uint64_t tb = (uint64_t) 1024 * 1024 * 1024 * 1024;
-    const uint64_t pb = (uint64_t) 1024 * 1024 * 1024 * 1024 * 1024;
-    const uint64_t eb = (uint64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
+    const int64_t kb = (int64_t) 1024;
+    const int64_t mb = (int64_t) 1024 * 1024;
+    const int64_t gb = (int64_t) 1024 * 1024 * 1024;
+    const int64_t tb = (int64_t) 1024 * 1024 * 1024 * 1024;
+    const int64_t pb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024;
+    const int64_t eb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
 
     assert(sc_min(199, 299) == 199);
     assert(sc_max(199, 299) == 299);

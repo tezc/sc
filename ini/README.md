@@ -1,12 +1,12 @@
-# INI parser
+### INI parser
 
 ### Overview
 
 - Ini file parser
 
-#### Features
+### Features
 
-##### Comment example
+### Comment example
 ```ini
 #Comment
 ;Another comment
@@ -17,7 +17,7 @@ hostname = github.com #Line comments start with space. Either " ;" or " #"
 ```
 
 
-##### No section
+### No section
 Possible to use without sections
 
 ```ini
@@ -31,7 +31,7 @@ key3 = value3  #Comment z
 - Item 3 : ""(Section), "key3"(Key), "value3"(Value)
 ```
 
-##### Multi-value
+### Multi-value
 Values without keys in the next line will be reported as if belongs to previous   
 key. Those values should be indented at least with a single space character.
 
@@ -51,7 +51,7 @@ hostname = github.com
 - Item 3 : "Network"(Section), "hostname"(Key), "github.org"(Value)
 ```
 
-#### Usage
+### Usage
 
 
 ```c

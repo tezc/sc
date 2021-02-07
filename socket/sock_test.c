@@ -150,6 +150,8 @@ int sc_thread_term(struct sc_thread *thread)
 
 void *server_ip4(void *arg)
 {
+    (void) arg;
+
     char buf[5];
     char tmp[128];
     struct sc_sock sock, accepted;
@@ -171,6 +173,8 @@ void *server_ip4(void *arg)
 
 void *client_ip4(void *arg)
 {
+    (void) arg;
+
     int rc;
     char tmp[128];
     struct sc_sock sock;
@@ -217,6 +221,7 @@ void test_ip4()
 
 void *server_ip6(void *arg)
 {
+    (void) arg;
     char buf[5];
     char tmp[128];
     struct sc_sock sock, accepted;
@@ -237,6 +242,7 @@ void *server_ip6(void *arg)
 
 void *client_ip6(void *arg)
 {
+    (void) arg;
     int rc;
     struct sc_sock sock;
 
@@ -275,6 +281,7 @@ void test_ip6()
 
 void *server_unix(void *arg)
 {
+    (void) arg;
     char buf[5];
     char tmp[128];
     struct sc_sock sock, accepted;
@@ -300,6 +307,7 @@ void *server_unix(void *arg)
 
 void *client_unix(void *arg)
 {
+    (void) arg;
     int rc;
     struct sc_sock sock;
 
@@ -661,12 +669,12 @@ void pipe_fail_test()
 
 void *server(void *arg)
 {
+    (void) arg;
     int write_triggered = 2;
     int rc, received = 0;
     struct sc_sock server;
     struct sc_sock accepted;
     struct sc_sock_poll poll;
-
 
     assert(sc_sock_poll_init(&poll) == 0);
     assert(*sc_sock_poll_err(&poll) == '\0');
@@ -752,6 +760,8 @@ void *server(void *arg)
 
 void *client(void *arg)
 {
+    (void) arg;
+
     int rc;
     struct sc_sock sock;
 

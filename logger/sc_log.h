@@ -41,7 +41,7 @@ enum sc_log_level
 };
 
 // clang-format off
-const static struct sc_log_level_pair
+static const struct sc_log_level_pair
 {
     const enum sc_log_level id;
     const char *str;

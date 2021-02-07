@@ -1,6 +1,6 @@
-# Signal handling
+### Signal handling
 
-#### Overview
+### Overview
 
 - Signal handling to handle shutdown and fatal signals.
 - Also provides signal safe snprintf/vsnprintf.
@@ -13,7 +13,7 @@
 - If log fd is set, it will print logs to your log file.
 
 
-##### Usage
+### Usage
 
 
 ```c
@@ -42,7 +42,7 @@ int main()
 }
 ```
 
-# Backtrace on fatal signals
+### Backtrace on fatal signals
 
 If 'HAVE_BACKTRACE' is defined, it will print backtrace on fatal signals. To  
 detect if system has backtrace() function on CMAKE : 

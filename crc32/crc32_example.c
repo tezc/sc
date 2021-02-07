@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-int main(int argc, char *argv[])
+int main()
 {
     uint32_t crc;
     const uint8_t buf[100] = {0};

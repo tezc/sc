@@ -72,7 +72,7 @@ static void sc_perf_set(struct sc_perf_item *items, size_t size)
             PERF_FORMAT_TOTAL_TIME_ENABLED | PERF_FORMAT_TOTAL_TIME_RUNNING;
     int fd;
 
-    for (int i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         struct perf_event_attr p = {.size = sizeof(struct perf_event_attr),
                                      .read_format = flags,
                                      .type = items[i].event.type,
@@ -105,7 +105,7 @@ static void sc_read(struct sc_perf_item *items, size_t size)
         uint64_t time_running;
     } fmt;
 
-    for (int i = 0; i < size; i++) {
+    for (size_t i = 0; i < size; i++) {
         double n = 1.0;
 
         sc_perf_assert(read(items[i].fd, &fmt, sizeof(fmt)) == sizeof(fmt));
@@ -126,7 +126,7 @@ static void sc_perf_clear(void)
     running = 0;
     initialized = 0;
 
-    for (int i = 0; i < ITEMS_SIZE; i++) {
+    for (size_t i = 0; i < ITEMS_SIZE; i++) {
         sc_perf_items[i].event = sc_perf_hw[i];
         sc_perf_items[i].value = 0;
         sc_perf_items[i].active = 0;
@@ -182,7 +182,7 @@ void sc_perf_end(void)
     sc_perf_pause();
     sc_read(sc_perf_items, ITEMS_SIZE);
 
-    for (int i = 0; i < ITEMS_SIZE; i++) {
+    for (size_t i = 0; i < ITEMS_SIZE; i++) {
         close(sc_perf_items[i].fd);
     }
 
@@ -191,7 +191,7 @@ void sc_perf_end(void)
     printf("| %-25s | %-18.2f | %s  \n", "time (seconds)",
            ((double) total / 1e9), "(100,00%)");
 
-    for (int i = 0; i < ITEMS_SIZE; i++) {
+    for (size_t i = 0; i < ITEMS_SIZE; i++) {
         printf("| %-25s | %-18.2f | (%.2f%%)  \n", sc_perf_items[i].event.name,
                sc_perf_items[i].value, sc_perf_items[i].active * 100);
     }

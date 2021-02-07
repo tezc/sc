@@ -13,6 +13,9 @@
 int cb(void *arg, int line, const char *section, const char *key,
        const char *value)
 {
+    (void) arg;
+    (void) line;
+
     printf("%s %s %s \n", section, key, value);
     return 0;
 }
@@ -30,6 +33,9 @@ void test1()
 int cb2(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
+    (void) arg;
+    (void) line;
+
     assert(strcmp(section, "section") == 0);
     assert(strcmp(key, "key") == 0);
     assert(strcmp(value, "value") == 0);
@@ -53,6 +59,8 @@ void test2()
 int cb3(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
+    (void) line;
+
     assert(strcmp(section, "") == 0);
     assert(strcmp(key, "key") == 0);
     assert(strcmp(value, "value") == 0);
@@ -81,6 +89,8 @@ int cb4(void *arg, int line, const char *section, const char *key,
 {
     char tmp[16];
     int count = *(int *) arg;
+
+    (void) line;
 
     assert(strcmp(section, "section") == 0);
     assert(strcmp(key, "key") == 0);
@@ -114,6 +124,8 @@ int cb5(int line, void *arg, const char *section, const char *key,
 {
     char tmp[16];
     int count = *(int *) arg;
+
+    (void) line;
 
     assert(strcmp(section, "section") == 0);
     assert(strcmp(key, "key") == 0);
@@ -156,6 +168,12 @@ void test5()
 int cb6(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
+    (void) arg;
+    (void) line;
+    (void) section;
+    (void) key;
+    (void) value;
+
     return -1;
 }
 
@@ -178,6 +196,8 @@ void test6()
 int cb7(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
+    (void) line;
+
     char tmp[16];
     int count = *(int *) arg;
     if (count == 1) {
@@ -214,6 +234,7 @@ void test7()
 int cb8(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
+    (void) line;
     char tmp[16];
     int count = *(int *) arg;
 
@@ -291,6 +312,9 @@ void test8()
 int cb9(void *arg, int line, const char *section, const char *key,
         const char *value)
 {
+    (void) arg;
+    (void) line;
+
     assert(strcmp(section, "section[test") == 0);
     assert(strcmp(key, "key;;") == 0);
     assert(strcmp(value, "value;;") == 0);
@@ -328,6 +352,9 @@ void test10()
 int cb11(void *arg, int line, const char *section, const char *key,
          const char *value)
 {
+    (void) arg;
+    (void) line;
+
     assert(strcmp(section, "section") == 0);
     assert(strcmp(key, "key#") == 0);
     assert(strcmp(value, "") == 0);
@@ -355,6 +382,9 @@ void test11()
 int cb12(void *arg, int line, const char *section, const char *key,
          const char *value)
 {
+    (void) arg;
+    (void) line;
+
     assert(strcmp(section, "") == 0);
     assert(strcmp(key, "") == 0);
     assert(strcmp(value, "") == 0);
@@ -382,6 +412,7 @@ void test12()
 int cb13(void *arg, int line, const char *section, const char *key,
          const char *value)
 {
+    (void) line;
     char tmp[16];
     int count = *(int *) arg;
 
@@ -422,6 +453,8 @@ const char *example_ini = "# My configuration"
 int callback(void *arg, int line, const char *section, const char *key,
              const char *value)
 {
+    (void) arg;
+
     printf("Line : %d, Section : %s, Key : %s, Value : %s \n", line, section,
            key, value);
 
@@ -458,7 +491,7 @@ void example(void)
     file_example();
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     example();
     test1();

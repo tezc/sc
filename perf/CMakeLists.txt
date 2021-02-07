@@ -7,6 +7,6 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     add_executable(sc_perf perf_example.c sc_perf.h sc_perf.c)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pedantic -Werror")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pedantic -Werror -Wextra -Wall")
 endif ()
 

@@ -1,4 +1,4 @@
-# CRC32c function
+### CRC32c function
 
 - Same code from : https://stackoverflow.com/a/17646775
 - Fixed some alignment issues, replaced asm code with compiler intrinsics

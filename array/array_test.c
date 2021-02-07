@@ -21,7 +21,7 @@ int example()
     printf("Capacity %zu \n", sc_array_cap(p));
     printf("Element count %zu \n", sc_array_size(p));
 
-    for (int i = 0; i < sc_array_size(p); i++) {
+    for (size_t i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);
     }
 
@@ -67,14 +67,14 @@ static void test1(void)
 
     sc_array_sort(arr, compare);
 
-    for (int i = 0; i < sc_array_size(arr); i++) {
+    for (size_t i = 0; i < sc_array_size(arr); i++) {
         total += arr[i];
     }
 
     assert(total == 10);
 
-    for (int i = 0; i < sc_array_size(arr); i++) {
-        assert(arr[i] == i);
+    for (size_t i = 0; i < sc_array_size(arr); i++) {
+        assert(arr[i] == (int) i);
     }
 
     sc_array_destroy(arr);
@@ -166,16 +166,16 @@ void bounds_test()
     sc_array_add(arr, 3);
 
     sc_array_del(arr, 3);
-    for (int i = 0 ; i < sc_array_size(arr); i++) {
-        assert(i == arr[i]);
+    for (size_t i = 0 ; i < sc_array_size(arr); i++) {
+        assert((int) i == arr[i]);
     }
 
     sc_array_add(arr, 3);
     sc_array_add(arr, 4);
 
     sc_array_del(arr, 3);
-    for (int i = 0 ; i < sc_array_size(arr); i++) {
-        assert(i == arr[i]);
+    for (size_t i = 0 ; i < sc_array_size(arr); i++) {
+        assert((int) i == arr[i]);
     }
 
     sc_array_destroy(arr);
@@ -210,7 +210,7 @@ void fail_test()
     size_t count = SC_SIZE_MAX / sizeof(*arr);
     bool success = false;
 
-    for (int i = 0; i < count + 5; i++) {
+    for (size_t i = 0; i < count + 5; i++) {
         success = sc_array_add(arr, i);
     }
 
@@ -257,14 +257,14 @@ void fail_test()
 
     sc_array_sort(arr, compare);
 
-    for (int i = 0; i < sc_array_size(arr); i++) {
+    for (size_t i = 0; i < sc_array_size(arr); i++) {
         total += arr[i];
     }
 
     assert(total == 10);
 
-    for (int i = 0; i < sc_array_size(arr); i++) {
-        assert(arr[i] == i);
+    for (size_t i = 0; i < sc_array_size(arr); i++) {
+        assert(arr[i] == (int) i);
     }
 
     total = 0;
@@ -294,6 +294,9 @@ void fail_test(void)
 
 int main(int argc, char *argv[])
 {
+    (void) argc;
+    (void) argv;
+
     example();
     test1();
     test2();

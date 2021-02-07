@@ -1,4 +1,4 @@
-# Logger
+### Logger
 
 ### Overview
 
@@ -7,7 +7,7 @@
 - Log files are rotated.
 - Thread-safe.
 
-#### Usage
+### Usage
 
 
 ```c

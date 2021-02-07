@@ -32,14 +32,14 @@ void example_int()
     sc_array_add(p, 1);
     sc_array_add(p, 2);
 
-    for (int i = 0; i < sc_array_size(p); i++) {
+    for (size_t i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);
     }
 
     sc_array_destroy(p);
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     example_int();
     example_str();

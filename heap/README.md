@@ -1,10 +1,10 @@
-# Heap
+### Heap
 
 ### Overview
 
 - Min-heap implementation, it can be used as Max-heap/priority queue as well.
 
-#### Usage
+### Usage
 
 
 ```c

@@ -262,7 +262,6 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 void fail_test()
 {
     int tmp;
-    uint32_t len;
     unsigned char* p;
     struct sc_buf buf;
 

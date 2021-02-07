@@ -197,7 +197,7 @@ void fail_test()
 }
 #endif
 
-int main(int argc, char *argv[])
+int main()
 {
     test1();
     fail_test();

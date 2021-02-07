@@ -8,7 +8,7 @@ void* fn(void* arg)
     return arg;
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     struct sc_thread thread;
 

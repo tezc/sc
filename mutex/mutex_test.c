@@ -65,7 +65,7 @@ int __wrap_pthread_mutex_init(pthread_mutex_t *__mutex,
 
 #endif
 
-int main(int argc, char *argv[])
+int main()
 {
     struct sc_mutex mutex;
 #ifdef SC_HAVE_WRAP

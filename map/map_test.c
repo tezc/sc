@@ -32,7 +32,7 @@ static char *str_random(size_t size)
     uint32_t index;
     char *dest = malloc(size + 1);
 
-    for (int i = 0; i < size; ++i) {
+    for (size_t i = 0; i < size; ++i) {
         index = (uint32_t)((double) rand() / RAND_MAX * (sizeof(ch) - 1));
         dest[i] = ch[index];
     }
@@ -179,11 +179,11 @@ void test2()
     uint32_t keys[128];
     uint32_t values[128];
     uint32_t key, value;
-    int random;
+    uint32_t random;
 
     for (int i = 0; i < 128; i++) {
 retry:
-        random = rand();
+        random = (uint32_t) rand();
         for (int j = 0; j < i; j++) {
             if (keys[j] == random) {
                 goto retry;
@@ -258,11 +258,11 @@ void test3()
     uint64_t keys[128];
     uint64_t values[128];
     uint64_t key, value;
-    int random;
+    uint32_t random;
 
     for (int i = 0; i < 128; i++) {
 retry:
-        random = rand();
+        random = (uint32_t) rand();
         for (int j = 0; j < i; j++) {
             if (keys[j] == random) {
                 goto retry;
@@ -541,7 +541,7 @@ void fail_test()
     fail_calloc = false;
     assert(sc_map_put_32(&map, 44444, 44444));
 
-    for (int i = 0; i < SC_SIZE_MAX; i++) {
+    for (size_t i = 0; i < SC_SIZE_MAX; i++) {
         success = sc_map_put_32(&map, i, i);
     }
     assert(!success);
@@ -555,7 +555,7 @@ void fail_test(void)
 }
 #endif
 
-int main(int argc, char *argv[])
+int main()
 {
     example();
     fail_test();

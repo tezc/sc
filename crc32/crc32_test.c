@@ -4,6 +4,9 @@
 
 int main(int argc, char *argv[])
 {
+    (void) argc;
+    (void) argv;
+    
     uint32_t crc1, crc2, crc3;
     uint8_t buf[128] = {1, 1, 2, 3};
     uint8_t buf2[4096 * 8] = {2 , 5, 6 ,5};

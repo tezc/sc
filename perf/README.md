@@ -1,4 +1,4 @@
-# Perf benchmark
+### Perf benchmark
 
 ### Overview
 
@@ -14,7 +14,7 @@
   counters and some counters can use specific registers only. 
 - Golang version : https://github.com/tezc/goperf
 
-#### Usage
+### Usage
 
 ```c
 

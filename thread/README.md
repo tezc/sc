@@ -1,10 +1,10 @@
-# Thread
+### Thread
 
-#### Overview
+### Overview
 
 - Thread wrapper for Posix and Windows
 
-##### Usage
+### Usage
 
 
 ```c

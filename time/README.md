@@ -1,10 +1,10 @@
-# Time functions
+### Time functions
 
-#### Overview
+### Overview
 
 - Time and sleep functions for Posix and Windows
 
-##### Usage
+### Usage
 
 
 ```c

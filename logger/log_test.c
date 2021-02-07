@@ -11,6 +11,10 @@
 
 int callback(void *arg, enum sc_log_level level, const char *fmt, va_list va)
 {
+    (void) level;
+    (void) fmt;
+    (void) va;
+
     *(int *) arg = *(int *) arg + 1;
     return 0;
 }
@@ -93,6 +97,9 @@ void test1(void)
 
 int callback2(void *arg, enum sc_log_level level, const char *fmt, va_list va)
 {
+    (void) arg;
+    (void) level;
+
     vfprintf(stdout, fmt, va);
     vfprintf(stdout, fmt, va);
 
@@ -334,7 +341,7 @@ void example(void)
     sc_log_term(); // Call once on shutdown.
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     sc_log_set_thread_name("My thread");
 

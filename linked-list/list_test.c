@@ -141,7 +141,7 @@ static void test1(void)
     }
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     test1();
 

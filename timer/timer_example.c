@@ -12,6 +12,8 @@ void sleep_ms(uint64_t milliseconds);
 
 void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
 {
+    (void) type;
+
     struct sc_timer *timer = arg;
     char *timer_name = data;
 
@@ -20,7 +22,7 @@ void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
     sc_timer_add(timer, 1000, 1, "timer1");
 }
 
-int main(int argc, char *argv[])
+int main()
 {
     uint64_t next_timeout;
     struct sc_timer timer;

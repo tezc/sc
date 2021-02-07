@@ -1,4 +1,4 @@
-# Hashmap
+### Hashmap
 
 ### Overview
 
@@ -35,7 +35,7 @@ pairs with linear probing play well with cache lines and hardware prefetcher.
 If you want to use structs anyway, you need to change the code a little bit.
 
 
-#### Usage
+### Usage
 
 
 ```c

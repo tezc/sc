@@ -1,12 +1,12 @@
-# Generic array
+### Generic array
 
-#### Overview
+### Overview
 
 - Type generic array/vector.
 - Index access is possible (e.g float* arr; 'printf("%f", arr[i]')).
 
 
-##### Usage
+### Usage
 
 
 ```c
@@ -44,7 +44,7 @@ void example_int()
     sc_array_add(p, 1);
     sc_array_add(p, 2);
 
-    for (int i = 0; i < sc_array_size(p); i++) {
+    for (size_t i = 0; i < sc_array_size(p); i++) {
         printf("Elem = %d \n", p[i]);
     }
 

@@ -22,6 +22,8 @@
  * SOFTWARE.
  */
 
+#define _XOPEN_SOURCE 700
+
 #include "sc_sock.h"
 
 #include <assert.h>
@@ -84,6 +86,7 @@ int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
     #include <netinet/tcp.h>
     #include <sys/un.h>
     #include <unistd.h>
+    #include <sys/time.h>
 
     #define sc_close(n)    close(n)
     #define sc_unlink(n)   unlink(n)

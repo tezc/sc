@@ -60,7 +60,7 @@ void test1(void)
     for (int i = 0; i < 1000; i++) {
         assert(sc_heap_add(&heap, i, (void *) (uintptr_t) i) == true);
         assert(sc_heap_pop(&heap, &key, &data) == true);
-        assert(key == (uintptr_t) data);
+        assert(key == (intptr_t) data);
     }
 
     int64_t arr[] = {1, 0, 4, 5, 7, 9, 8, 6, 3, 2};
@@ -73,7 +73,7 @@ void test1(void)
     for (int i = 0; i < 10; i++) {
         assert(sc_heap_pop(&heap, &key, &data) == true);
         assert(key == i);
-        assert((uintptr_t) data == i * 2);
+        assert((intptr_t) data == i * 2);
     }
 
     sc_heap_term(&heap);
@@ -91,8 +91,8 @@ void test2(void)
     for (int i = 0; i < 1000; i++) {
         assert(sc_heap_add(&heap, i, (void *) (uintptr_t) i) == true);
         assert(sc_heap_pop(&heap, &key, &data) == true);
-        assert(key == (uintptr_t) data);
-        assert(key == (uintptr_t) i);
+        assert(key == (intptr_t) data);
+        assert(key == (intptr_t) i);
     }
 
     for (int i = 0; i < 10; i++) {
@@ -103,7 +103,7 @@ void test2(void)
     for (int i = 0; i < 10; i++) {
         assert(sc_heap_pop(&heap, &key, &data) == true);
         assert(-key == 9 - i);
-        assert((uintptr_t) data == (9 - i) * 2);
+        assert((intptr_t) data == (9 - i) * 2);
     }
 
     sc_heap_term(&heap);
@@ -192,7 +192,7 @@ void fail_test(void)
     size_t count = SC_SIZE_MAX / sizeof(struct sc_heap_data);
     bool success = false;
 
-    for (int i = 0; i < count + 5; i++) {
+    for (size_t i = 0; i < count + 5; i++) {
         success = sc_heap_add(&heap, i, (void *) (uintptr_t) i);
     }
 
@@ -222,7 +222,7 @@ void fail_test()
 }
 #endif
 
-int main(int argc, char *argv[])
+int main()
 {
     example();
     fail_test();

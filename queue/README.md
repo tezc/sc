@@ -1,13 +1,13 @@
-# Generic queue
+### Generic queue
 
-#### Overview
+### Overview
 
 - Type generic queue which grows when you add elements.
 - Add/remove from head/tail is possible so it can be used as list, stack,  
   queue, dequeue etc.
 
 
-##### Usage
+### Usage
 
 
 ```c
@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 }
 ```
 
-##### Note
+### Note
 
 Queue pointer is not stable, it may change if it expands the memory. If you  
 pass the queue to another function which can add items, do it by passing  

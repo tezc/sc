@@ -52,7 +52,7 @@ bool sc_timer_init(struct sc_timer *timer, uint64_t timestamp)
         return false;
     }
 
-    for (size_t i = 0; i < cap; i++) {
+    for (uint32_t i = 0; i < cap; i++) {
         timer->list[i].timeout = UINT64_MAX;
         timer->list[i].data = NULL;
     }
@@ -72,7 +72,7 @@ void sc_timer_clear(struct sc_timer *timer)
     timer->count = 0;
     timer->head = 0;
 
-    for (size_t i = 0; i < cap; i++) {
+    for (uint32_t i = 0; i < cap; i++) {
         timer->list[i].timeout = UINT64_MAX;
         timer->list[i].data = NULL;
     }
@@ -94,7 +94,7 @@ static bool expand(struct sc_timer *timer)
         return false;
     }
 
-    for (size_t i = 0; i < cap; i++) {
+    for (uint32_t i = 0; i < cap; i++) {
         alloc[i].timeout = UINT64_MAX;
         alloc[i].data = NULL;
     }
