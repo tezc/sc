@@ -872,7 +872,6 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
 
     rc = pipe(p->fds);
     if (rc != 0) {
-        fprintf(stderr, "pipe() : %s ", strerror(errno));
         sc_sock_pipe_set_err(p, "pipe() : %s ", strerror(errno));
         return -1;
     }

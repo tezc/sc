@@ -29,15 +29,14 @@
 #include <stdint.h>
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "sc_config.h"
+    #include "config.h"
 #else
-    #define sc_sock_malloc malloc
-    #define sc_sock_realloc realloc
-    #define sc_sock_free    free
+    #define sc_sock_malloc  malloc
+    #define sc_sock_realloc  realloc
+    #define sc_sock_free  free
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-
     #include <Ws2tcpip.h>
     #include <windows.h>
     #include <winsock2.h>
@@ -52,7 +51,6 @@ typedef int sc_sock_int;
 #endif
 
 #define SC_SOCK_BUF_SIZE 32768
-
 
 enum sc_sock_rc
 {
@@ -80,7 +78,7 @@ struct sc_sock_fd
 {
     sc_sock_int fd;
     enum sc_sock_ev op;
-    int type;           // user data
+    int type; // user data
     int index;
 };
 
@@ -286,11 +284,11 @@ int sc_sock_pipe_read(struct sc_sock_pipe *pipe, void *data, unsigned int len);
  * @param pipe pipe
  * @return     last error string
  */
-const char* sc_sock_pipe_err(struct sc_sock_pipe *pipe);
+const char *sc_sock_pipe_err(struct sc_sock_pipe *pipe);
 
 #if defined(__linux__)
-    #include <sys/epoll.h>
 
+    #include <sys/epoll.h>
 
 struct sc_sock_poll
 {
@@ -313,6 +311,7 @@ struct sc_sock_poll
     char err[128];
 };
 #else
+
     #if !defined(_WIN32)
         #include <sys/poll.h>
     #endif
@@ -421,6 +420,6 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *poll, int i);
  * @param poll poll
  * @return     last error string
  */
-const char* sc_sock_poll_err(struct sc_sock_poll *poll);
+const char *sc_sock_poll_err(struct sc_sock_poll *poll);
 
 #endif
