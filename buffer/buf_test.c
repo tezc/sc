@@ -10,6 +10,22 @@ void test1()
     const char* xstr;
     struct sc_buf buf, buf2;
 
+    sc_buf_init(&buf, 100);
+    sc_buf_init(&buf2, 100);
+    sc_buf_put_str(&buf, "s");
+    sc_buf_move(&buf2, &buf);
+    assert(sc_buf_size(&buf) == 0);
+    sc_buf_term(&buf);
+    sc_buf_term(&buf2);
+
+    sc_buf_init(&buf, 100);
+    sc_buf_init(&buf2, 3);
+    sc_buf_put_str(&buf, "s");
+    sc_buf_move(&buf2, &buf);
+    assert(sc_buf_size(&buf) != 0);
+    sc_buf_term(&buf);
+    sc_buf_term(&buf2);
+
     sc_buf_init(&buf2, 100);
     sc_buf_init(&buf, 100);
 
@@ -208,6 +224,7 @@ void test2()
     assert(sc_buf_valid(&buf) == false);
 
     sc_buf_term(&buf);
+
 }
 
 #ifdef SC_HAVE_WRAP
