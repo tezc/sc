@@ -516,6 +516,9 @@ void sc_mutex_lock(struct sc_mutex *mtx)
 
     // This won't fail as long as we pass correct param.
     rc = pthread_mutex_lock(&mtx->mtx);
+    if (rc != 0) {
+        printf("%s \n", strerror(rc));
+    }
     assert(rc == 0);
 }
 
