@@ -1,3 +1,4 @@
+name: ppc64le
 on:
   push:
     branches:

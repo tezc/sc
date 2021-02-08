@@ -1,3 +1,4 @@
+name: armv6
 on:
   push:
     branches:

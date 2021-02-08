@@ -1,3 +1,4 @@
+name: windows
 on:
   push:
     branches:
