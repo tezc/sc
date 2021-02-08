@@ -1496,9 +1496,8 @@ int main()
 
 #ifdef SC_HAVE_WRAP
     assert(sc_mutex_term(&mutex) == 0);
-#endif
-
     test_done = 1;
+#endif
 
     return 0;
 }
