@@ -518,6 +518,9 @@ void sc_mutex_lock(struct sc_mutex *mtx)
     rc = pthread_mutex_lock(&mtx->mtx);
     if (rc != 0) {
         printf("%s \n", strerror(rc));
+        fprintf(stderr, "%s \n", strerror(rc));
+        fflush(stderr);
+        fflush(stdout);
     }
     assert(rc == 0);
 }
