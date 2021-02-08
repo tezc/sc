@@ -352,7 +352,7 @@ void test_unix()
 void test1()
 {
     char tmp[5];
-    struct sc_sock sock;
+    struct sc_sock sock, client, in;
 
     sc_sock_init(&sock, 0, false, SC_SOCK_INET);
     assert(sc_sock_connect(&sock, "3127.0.0.1", "2131", NULL, NULL) != 0);
@@ -367,8 +367,20 @@ void test1()
     assert(sc_sock_connect(&sock, "d::1", "2131", "dsad", "50") != 0);
     assert(sc_sock_finish_connect(&sock) != 0);
     assert(sc_sock_connect(&sock, "dsadas", "2131", "::1", "50") != 0);
-
     sc_sock_term(&sock);
+
+    sc_sock_init(&sock, 0, false, SC_SOCK_INET);
+    assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == 0);
+
+    sc_sock_init(&client, 0, false, SC_SOCK_INET);
+    assert(sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL) == SC_SOCK_WANT_WRITE);
+    assert(sc_sock_accept(&sock, &in) == 0);
+    assert(sc_sock_finish_connect(&client) == 0);
+
+    assert(sc_sock_term(&sock) == 0);
+    assert(sc_sock_term(&client) == 0);
+    assert(sc_sock_term(&in) == 0);
+
 }
 
 void test_poll_mass(void)
