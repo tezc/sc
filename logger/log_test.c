@@ -88,6 +88,9 @@ void test1(void)
     fclose(fp);
 
     sc_log_term();
+
+    sc_log_init();
+    sc_log_term();
 }
 
 #ifdef SC_HAVE_WRAP

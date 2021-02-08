@@ -491,6 +491,56 @@ void example(void)
     file_example();
 }
 
+#ifdef SC_HAVE_WRAP
+
+int fail_ferror = 0;
+
+int __real_ferror (FILE *stream);
+int __wrap_ferror (FILE *stream)
+{
+    if (fail_ferror) {
+        return -1;
+    }
+
+    return __real_ferror(stream);
+}
+
+int cb_fail(void *arg, int line, const char *section, const char *key,
+       const char *value)
+{
+    (void) arg;
+    (void) line;
+
+    printf("%s %s %s \n", section, key, value);
+    return 0;
+}
+
+void test_fail()
+{
+    int rc;
+    FILE *fp;
+    static const char *ini = " ;Sample \n"
+                             " [section] \n"
+                             "key = value0 #;comment\n"
+                             "      value1 \n"
+                             "      value2 ";
+
+    fp = fopen("config.ini", "w+");
+    fwrite(ini, 1, strlen(ini), fp);
+    fclose(fp);
+
+    fail_ferror = true;
+    rc = sc_ini_parse_file(NULL, cb_fail, "config.ini");
+    assert(rc == -1);
+    fail_ferror = false;
+}
+#else
+void test_fail()
+{
+
+}
+#endif
+
 int main()
 {
     example();
@@ -507,6 +557,7 @@ int main()
     test11();
     test12();
     test13();
+    test_fail();
 
     return 0;
 }

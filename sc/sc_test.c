@@ -163,7 +163,7 @@ void test_rand()
 
 #ifdef SC_HAVE_WRAP
 
-bool fail_snprintf;
+int fail_snprintf;
 
 int __wrap_snprintf(char *str, size_t size, const char *format, ...)
 {
@@ -178,7 +178,7 @@ int __wrap_snprintf(char *str, size_t size, const char *format, ...)
         return rc;
     }
 
-    return -1;
+    return fail_snprintf;
 }
 
 void fail_test()
@@ -186,15 +186,25 @@ void fail_test()
     char* t;
     char buf[32];
 
-    fail_snprintf = true;
+    fail_snprintf = -1;
     t = sc_bytes_to_size(buf, sizeof(buf), 2 * 1024);
     assert(t == NULL);
-    fail_snprintf = false;
+    fail_snprintf = 0;
 
-    fail_snprintf = true;
+    fail_snprintf = -1;
     t = sc_bytes_to_size(buf, sizeof(buf), 313);
     assert(t == NULL);
-    fail_snprintf = false;
+    fail_snprintf = 0;
+
+    fail_snprintf = 10000;
+    t = sc_bytes_to_size(buf, sizeof(buf), 2 * 1024);
+    assert(t == NULL);
+    fail_snprintf = 0;
+
+    fail_snprintf = 10000;
+    t = sc_bytes_to_size(buf, sizeof(buf), 313);
+    assert(t == NULL);
+    fail_snprintf = 0;
 }
 
 #else
