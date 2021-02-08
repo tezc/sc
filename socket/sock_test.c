@@ -1042,6 +1042,13 @@ void sock_fail_test()
 
     sc_sock_init(&sock, 0, true, SC_SOCK_INET);
     fail_fcntl = 1;
+    assert(sc_sock_connect(&sock, "127.0.0.1", "8080", NULL, NULL) == -1);
+    assert(sc_sock_set_blocking(&sock, true) == -1);
+    fail_fcntl = INT32_MAX;
+    sc_sock_term(&sock);
+
+    sc_sock_init(&sock, 0, true, SC_SOCK_INET);
+    fail_fcntl = 1;
     assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == -1);
     assert(sc_sock_term(&sock) == 0);
     fail_fcntl = INT32_MAX;
