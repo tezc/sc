@@ -288,7 +288,7 @@ void test_64s()
 
 void test_str()
 {
-    const char* arr = "abcdefghijklmnoprstuvyz";
+    const char* arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyz";
     const char* val;
     struct sc_map_str map;
 
@@ -360,7 +360,7 @@ void test_str()
 
 void test_sv()
 {
-    const char* arr = "abcdefghijklmnoprstuvyz";
+    const char* arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyz";
     void* val;
     struct sc_map_sv map;
 
@@ -432,7 +432,7 @@ void test_sv()
 
 void test_s64()
 {
-    const char* arr = "abcdefghijklmnoprstuvyz";
+    const char* arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyz";
     uint64_t val;
     struct sc_map_s64 map;
 
