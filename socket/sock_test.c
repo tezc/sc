@@ -1,3 +1,4 @@
+#define _XOPEN_SOURCE 700
 
 #include "sc_sock.h"
 
@@ -466,6 +467,67 @@ void test_pipe(void)
 
 #ifdef SC_HAVE_WRAP
 
+struct sc_mutex
+{
+    pthread_mutex_t mtx;
+};
+
+struct sc_mutex mutex;
+
+int sc_mutex_init(struct sc_mutex *mtx)
+{
+    int rc, rv;
+    pthread_mutexattr_t attr;
+    pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+
+    mtx->mtx = mut;
+
+    // May fail on OOM
+    rc = pthread_mutexattr_init(&attr);
+    if (rc != 0) {
+        return -1;
+    }
+
+    // This won't fail as long as we pass correct params.
+    rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+    assert (rc == 0);
+
+    // May fail on OOM
+    rc = pthread_mutex_init(&mtx->mtx, &attr);
+
+    // This won't fail as long as we pass correct param.
+    rv = pthread_mutexattr_destroy(&attr);
+    assert(rv == 0);
+
+    return rc != 0 ? -1 : 0;
+}
+
+int sc_mutex_term(struct sc_mutex *mtx)
+{
+    int rc;
+
+    rc = pthread_mutex_destroy(&mtx->mtx);
+    return rc != 0 ? -1 : 0;
+}
+
+void sc_mutex_lock(struct sc_mutex *mtx)
+{
+    int rc;
+
+    // This won't fail as long as we pass correct param.
+    rc = pthread_mutex_lock(&mtx->mtx);
+    assert(rc == 0);
+}
+
+void sc_mutex_unlock(struct sc_mutex *mtx)
+{
+    int rc;
+
+    // This won't fail as long as we pass correct param.
+    rc = pthread_mutex_unlock(&mtx->mtx);
+    assert(rc == 0);
+}
+
 bool fail_malloc = false;
 void *__real_malloc(size_t n);
 void *__wrap_malloc(size_t n)
@@ -528,10 +590,13 @@ int __real_setsockopt(int fd, int level, int optname, const void *optval,
 int __wrap_setsockopt(int fd, int level, int optname, const void *optval,
                       socklen_t optlen)
 {
+    sc_mutex_lock(&mutex);
     if (--fail_setsockopt <= 0) {
+        sc_mutex_unlock(&mutex);
         return -1;
     }
 
+    sc_mutex_unlock(&mutex);
     return __real_setsockopt(fd, level, optname, optval, optlen);
 }
 
@@ -553,11 +618,14 @@ int __wrap_fcntl(int fd, int cmd, ...)
     (void) fd;
     (void) cmd;
 
+    sc_mutex_lock(&mutex);
     if (--fail_fcntl <= 0) {
+        sc_mutex_unlock(&mutex);
         return -1;
     }
 
     if (cmd == F_GETFL) {
+        sc_mutex_unlock(&mutex);
         return __real_fcntl(fd, F_GETFL, 0);
     }
 
@@ -565,10 +633,11 @@ int __wrap_fcntl(int fd, int cmd, ...)
         va_list va;
         va_start(va, cmd);
         int x = va_arg(va, int);
-
+        sc_mutex_unlock(&mutex);
         return __real_fcntl(fd, F_SETFL, x);
     }
 
+    sc_mutex_unlock(&mutex);
     return -1;
 }
 
@@ -589,10 +658,13 @@ const char *__real_inet_ntop(int af, const void *restrict cp,
 const char *__wrap_inet_ntop(int af, const void *restrict cp,
                              char *restrict buf, socklen_t len)
 {
+    sc_mutex_lock(&mutex);
     if (--fail_inet_ntop <= 0) {
+        sc_mutex_unlock(&mutex);
         return NULL;
     }
 
+    sc_mutex_unlock(&mutex);
     return __real_inet_ntop(af, cp, buf, len);
 }
 
@@ -1372,6 +1444,10 @@ void test_err()
 
 int main()
 {
+#ifdef SC_HAVE_WRAP
+    sc_mutex_init(&mutex);
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
     WSADATA data;
 
@@ -1403,5 +1479,10 @@ int main()
     rc = WSACleanup();
     assert(rc == 0);
 #endif
+
+#ifdef SC_HAVE_WRAP
+    sc_mutex_term(&mutex);
+#endif
+
     return 0;
 }
