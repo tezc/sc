@@ -26,7 +26,6 @@
 
 #include "sc_sock.h"
 
-#include <assert.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <stdarg.h>
@@ -34,10 +33,14 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifndef SC_SIZE_MAX
+    #define SC_SIZE_MAX INT32_MAX
+#endif
 
 #if defined(_WIN32) || defined(_WIN64)
     #include <Ws2tcpip.h>
     #include <afunix.h>
+    #include <assert.h>
 
     #pragma warning(disable : 4996)
     #define sc_close(n)    closesocket(n)
@@ -340,7 +343,7 @@ int sc_sock_finish_connect(struct sc_sock *sock)
 
 static int sc_sock_connect_unix(struct sc_sock *sock, const char *addr)
 {
-    int rc, err;
+    int rc;
     const size_t len = strlen(addr);
     struct sockaddr_un addr_un = {.sun_family = AF_UNIX};
 
@@ -352,10 +355,6 @@ static int sc_sock_connect_unix(struct sc_sock *sock, const char *addr)
 
     rc = connect(sock->fdt.fd, (struct sockaddr *) &addr_un, sizeof(addr_un));
     if (rc != 0) {
-        err = sc_sock_err();
-        if (!sock->blocking && ((err == SC_EINTR || err == SC_EINPROGRESS))) {
-            return 0;
-        }
         sc_sock_errstr(sock, 0);
     }
 
@@ -483,10 +482,6 @@ error_unix:
         goto end;
     }
 
-    if (p == NULL) {
-        goto error;
-    }
-
 error:
     sc_sock_errstr(sock, 0);
 error_gai:
@@ -502,14 +497,12 @@ int sc_sock_send(struct sc_sock *sock, char *buf, int len, int flags)
 {
     int n;
 
-    assert(len > 0);
-
     if (len <= 0) {
         return len;
     }
 
 retry:
-    n = send(sock->fdt.fd, buf, (size_t) len, flags);
+    n = (int) send(sock->fdt.fd, buf, (size_t) len, flags);
     if (n == SC_ERR) {
         int err = sc_sock_err();
         if (err == SC_EINTR) {
@@ -531,14 +524,12 @@ int sc_sock_recv(struct sc_sock *sock, char *buf, int len, int flags)
 {
     int n;
 
-    assert(len > 0);
-
     if (len <= 0) {
         return len;
     }
 
 retry:
-    n = recv(sock->fdt.fd, buf, (size_t) len, flags);
+    n = (int) recv(sock->fdt.fd, buf, (size_t) len, flags);
     if (n == 0) {
         return SC_SOCK_ERROR;
     } else if (n == SC_ERR) {
@@ -621,6 +612,7 @@ int sc_sock_listen(struct sc_sock *sock, const char *host, const char *port)
     rc = listen(sock->fdt.fd, 4096);
     if (rc != 0) {
         sc_sock_errstr(sock, 0);
+        sc_sock_close(sock);
     }
 
     return rc == 0 ? 0 : -1;
@@ -674,10 +666,6 @@ static const char *sc_sock_print_storage(struct sc_sock *sock,
     case AF_UNIX:
         addr_un = (struct sockaddr_un *) storage;
         snprintf(buf, len, "%s", addr_un->sun_path);
-        break;
-
-    default:
-        snprintf(buf, len, "Unknown family : %d \n", storage->ss_family);
         break;
     }
 
@@ -995,7 +983,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
     void *ev;
 
     if (p->count == p->cap) {
-        if (p->cap >= INT32_MAX / 2) {
+        if (p->cap >= SC_SIZE_MAX / 2) {
             goto error;
         }
 
@@ -1172,7 +1160,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
     void *ev;
 
     if (p->count == p->cap) {
-        if (p->cap >= INT32_MAX / 2) {
+        if (p->cap >= SC_SIZE_MAX / 2) {
             goto error;
         }
 
@@ -1353,7 +1341,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll* p)
     struct pollfd* ev = NULL;
 
     if (p->count == p->cap) {
-        if (p->cap >= INT32_MAX / 2) {
+        if (p->cap >= SC_SIZE_MAX / 2) {
             goto error;
         }
 

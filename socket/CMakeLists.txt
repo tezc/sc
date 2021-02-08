@@ -23,7 +23,7 @@ enable_testing()
 
 add_executable(${PROJECT_NAME}_test sock_test.c sc_sock.c)
 
-target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
+target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=300 -Dsc_fcntl=test_fcntl)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
@@ -33,7 +33,10 @@ if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
         target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=pipe
-        -Wl,--wrap=close,--wrap=malloc,--wrap=realloc,--wrap=epoll_create1)
+        -Wl,--wrap=close,--wrap=malloc,--wrap=realloc,--wrap=epoll_create1
+        -Wl,--wrap=setsockopt,--wrap=listen,--wrap=fcntl,--wrap=socket
+        -Wl,--wrap=inet_ntop,--wrap=send,--wrap=recv,--wrap=connect
+        -Wl,--wrap=write,--wrap=read,--wrap=epoll_ctl)
     endif ()
 endif ()
 
