@@ -23,7 +23,7 @@ enable_testing()
 
 add_executable(${PROJECT_NAME}_test sock_test.c sc_sock.c)
 
-target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=300)
+target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=300 -Dsc_fcntl=test_fcntl)
 
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
     if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR

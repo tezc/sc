@@ -472,6 +472,7 @@ struct sc_mutex
     pthread_mutex_t mtx;
 };
 
+int test_done = 0;
 struct sc_mutex mutex;
 
 int sc_mutex_init(struct sc_mutex *mtx)
@@ -623,6 +624,13 @@ int __wrap_fcntl(int fd, int cmd, ...)
 {
     (void) fd;
     (void) cmd;
+
+    if (test_done) {
+        va_list va;
+        va_start(va, cmd);
+        void* t = va_arg(va, void*);
+        return __real_fcntl(fd, cmd, t);
+    }
 
     sc_mutex_lock(&mutex);
     if (--fail_fcntl <= 0) {
@@ -1489,6 +1497,8 @@ int main()
 #ifdef SC_HAVE_WRAP
     assert(sc_mutex_term(&mutex) == 0);
 #endif
+
+    test_done = 1;
 
     return 0;
 }
