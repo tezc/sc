@@ -1451,7 +1451,7 @@ void test_err()
 int main()
 {
 #ifdef SC_HAVE_WRAP
-    sc_mutex_init(&mutex);
+    assert(sc_mutex_init(&mutex) == 0);
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -1487,7 +1487,7 @@ int main()
 #endif
 
 #ifdef SC_HAVE_WRAP
-    sc_mutex_term(&mutex);
+    assert(sc_mutex_term(&mutex) == 0);
 #endif
 
     return 0;
