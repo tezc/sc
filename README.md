@@ -1,13 +1,9 @@
 ### Overview
 
-Common data structures and utilities for C.  
+Common data structures and utilities for C. (C99)  
 
-Each folder is independent and contains a header and a source file.  
-There is no build for libraries, just copy *.h *.c files into your project.  
-Each folder also contains readme and an example.  
-
-CI runs on Linux, MacOS, FreeBSD and Windows with gcc, clang and msvc.
-
+Each folder is stand-alone and contains a single .h .c pair.  
+There is no build, copy paste files you want into your project.
 
 ### List
 
@@ -38,7 +34,6 @@ CI runs on Linux, MacOS, FreeBSD and Windows with gcc, clang and msvc.
 
 ### Test
 [![codecov](https://codecov.io/gh/tezc/sc/branch/master/graph/badge.svg?token=O8ZHQ0XZ30)](https://codecov.io/gh/tezc/sc)
-
 
 Although I use on Linux mostly, CI runs with
 
