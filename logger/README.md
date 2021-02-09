@@ -5,7 +5,7 @@
 - Log destination can be stdout, file and user callback.
 - You can pass logs to all destinations at the same time.
 - Log files are rotated.
-- Thread-safe.
+- Thread-safe, requires pthread.
 
 ### Usage
 

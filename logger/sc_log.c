@@ -43,8 +43,22 @@
     #endif
 #endif
 
-thread_local char sc_name[32] = "Thread";
+#if __STDC_VERSION__ >= 201112 && !defined __STDC_NO_ATOMIC__
+    #define SC_ATOMIC
+    #include <stdatomic.h>
 
+    #define sc_atomic _Atomic
+    #define sc_atomic_store(var, val)                                          \
+        (atomic_store_explicit(var, val, memory_order_relaxed))
+    #define sc_atomic_load(var)                                                \
+        (atomic_load_explicit(var, memory_order_relaxed))
+#else
+    #define sc_atomic
+    #define sc_atomic_store(var, val) ((*(var)) = (val))
+    #define sc_atomic_load(var)       (*(var))
+#endif
+
+thread_local char sc_name[32] = "Thread";
 
 #if defined(_WIN32) || defined(_WIN64)
 
@@ -135,7 +149,7 @@ struct sc_log
     size_t file_size;
 
     struct sc_log_mutex mtx;
-    enum sc_log_level level;
+    sc_atomic enum sc_log_level level;
 
     bool to_stdout;
 
@@ -151,7 +165,7 @@ int sc_log_init(void)
 
     sc_log = (struct sc_log){0};
 
-    sc_log.level = SC_LOG_INFO;
+    sc_atomic_store(&sc_log.level, SC_LOG_INFO);
     sc_log.to_stdout = true;
 
     rc = sc_log_mutex_init(&sc_log.mtx);
@@ -200,14 +214,17 @@ static int sc_strcasecmp(const char *a, const char *b)
 
 int sc_log_set_level(const char *str)
 {
-    size_t count = sizeof(sc_log_levels) / sizeof(struct sc_log_level_pair);
+    size_t count = sizeof(sc_log_levels) / sizeof(sc_log_levels[0]);
 
     for (size_t i = 0; i < count; i++) {
         if (sc_strcasecmp(str, sc_log_levels[i].str) == 0) {
+#ifdef SC_ATOMIC
+            sc_atomic_store(&sc_log.level, sc_log_levels[i].id);
+#else
             sc_log_mutex_lock(&sc_log.mtx);
             sc_log.level = sc_log_levels[i].id;
             sc_log_mutex_unlock(&sc_log.mtx);
-
+#endif
             return 0;
         }
     }
@@ -348,12 +365,25 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...)
     int rc = 0;
     va_list va;
 
+    // Use relaxed atomics to avoid locking cost, e.g DEBUG logs when
+    // level=INFO will get away without any synchronization on most platforms.
+#ifdef SC_ATOMIC
+    enum sc_log_level curr;
+
+    curr = sc_atomic_load(&sc_log.level);
+    if (level < curr) {
+        return 0;
+    }
+#endif
+
     sc_log_mutex_lock(&sc_log.mtx);
 
+#ifndef SC_ATOMIC
     if (level < sc_log.level) {
         sc_log_mutex_unlock(&sc_log.mtx);
         return 0;
     }
+#endif
 
     if (sc_log.to_stdout) {
         va_start(va, fmt);

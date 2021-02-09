@@ -1,6 +1,6 @@
 ### Overview
 
-Common data structures utilities for C.  
+Common data structures and utilities for C.  
 
 Each folder is independent and contains a header and a source file.  
 There is no build for libraries, just copy *.h *.c files into your project.  
@@ -37,6 +37,8 @@ CI runs on Linux, MacOS, FreeBSD and Windows with gcc, clang and msvc.
 | **[uri](uri)**                 | A basic uri parser                                                                         |
 
 ### Test
+[![codecov](https://codecov.io/gh/tezc/sc/branch/master/graph/badge.svg?token=O8ZHQ0XZ30)](https://codecov.io/gh/tezc/sc)
+
 
 Although I use on Linux mostly, CI runs with
 
@@ -61,7 +63,7 @@ cmake .. -DSANITIZER=address && make && make check
 mkdir build; cd build;
 cmake .. -DSANITIZER=undefined && make && make check
 
-#coverage
+#coverage, requires GCC.
 mkdir build; cd build;
 cmake .. -DCMAKE_BUILD_TYPE=Coverage; make; make coverage
 
