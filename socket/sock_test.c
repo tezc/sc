@@ -1,4 +1,6 @@
-#define _XOPEN_SOURCE 700
+#ifndef _XOPEN_SOURCE
+    #define _XOPEN_SOURCE 700
+#endif
 
 #include "sc_sock.h"
 

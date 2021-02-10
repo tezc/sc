@@ -21,7 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-#define _XOPEN_SOURCE 700
+#ifndef _XOPEN_SOURCE
+    #define _XOPEN_SOURCE 700
+#endif
 
 #include "sc_cond.h"
 
