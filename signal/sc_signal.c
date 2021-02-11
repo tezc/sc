@@ -22,7 +22,10 @@
  * SOFTWARE.
  */
 
-#define _GNU_SOURCE
+#ifndef _GNU_SOURCE
+    #define _GNU_SOURCE
+#endif
+
 #ifndef _XOPEN_SOURCE
     #define _XOPEN_SOURCE 700
 #endif
