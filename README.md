@@ -1,6 +1,6 @@
 ### Overview
 
-Common data structures and utilities for C. (C99)  
+Common libraries and data structures for C. (C99)  
 
 Each folder is stand-alone and contains a single .h .c pair.   
 There is no build, copy .h .c files you want.

@@ -7,7 +7,7 @@
 - Timers in the same hash slot are not ordered between each other. So, basically    
   this data structure trades accuracy for performance. Schedule a timer for  
   10000ms and another for 10001ms and you might see 10001ms timer expires  
-  just before 10000ms timer. Default tick is 16 ms, so, timers in the same 16ms 
+  just before 10000ms timer. Default tick is 16 ms, so, timers in the same 16ms  
   interval may expire out of order.
 
 
