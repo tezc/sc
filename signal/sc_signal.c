@@ -304,6 +304,7 @@ int sc_signal_init()
 
 // clang-format off
 #include <unistd.h>
+#include <errno.h>
 
 #ifdef HAVE_BACKTRACE
 #include <execinfo.h>
@@ -364,6 +365,7 @@ static void *sc_instruction(ucontext_t *uc)
 static void sc_signal_on_shutdown(int sig)
 {
     int rc;
+    int saved_errno = errno;
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDOUT_FILENO;
     char buf[4096], *sig_str = "Shutdown signal";
 
@@ -408,6 +410,8 @@ static void sc_signal_on_shutdown(int sig)
 #endif
         _Exit(0);
     }
+
+    errno = saved_errno;
 }
 
 static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
