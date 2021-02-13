@@ -5,7 +5,12 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_mutex mutex_example.c sc_mutex.h sc_mutex.c)
+add_library(
+  sc_mutex SHARED
+  sc_mutex.c
+  sc_mutex.h)
+
+target_include_directories(sc_mutex PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -pedantic -Werror -pthread")

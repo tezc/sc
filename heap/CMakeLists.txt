@@ -5,7 +5,12 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_heap heap_example.c sc_heap.h sc_heap.c)
+add_library(
+  sc_heap SHARED
+  sc_heap.c
+  sc_heap.h)
+
+target_include_directories(sc_heap PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -pedantic -Werror")

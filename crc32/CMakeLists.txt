@@ -5,7 +5,12 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_crc32 crc32_example.c sc_crc32.h sc_crc32.c)
+add_library(
+  sc_crc32 SHARED
+  sc_crc32.c
+  sc_crc32.h)
+
+target_include_directories(sc_crc32 PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -pedantic -Werror")

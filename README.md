@@ -64,3 +64,22 @@ cmake .. -DCMAKE_BUILD_TYPE=Coverage; make; make coverage
 
 </pre>
 
+### Using with cmake FetchContent
+```cmake
+FetchContent_Declare(
+  sc_lib
+  GIT_REPOSITORY https://github.com/rafaeldelboni/sc.git
+  GIT_TAG        master)
+
+FetchContent_MakeAvailable(sc_lib)
+
+add_executable(
+  myapp
+  myapp.c
+)
+
+target_link_libraries(
+  myapp
+  sc_str
+)
+```
