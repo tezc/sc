@@ -277,7 +277,7 @@ unsigned long int __wrap_strtoul(const char *nptr, char **endptr, int base)
     return __real_strtoul(nptr, endptr, base);
 }
 
-bool fail_snprintf;
+int fail_snprintf;
 int __wrap_snprintf(char *str, size_t size, const char *format, ...)
 {
     int rc;
@@ -291,10 +291,10 @@ int __wrap_snprintf(char *str, size_t size, const char *format, ...)
         return rc;
     }
 
-    return -1;
+    return fail_snprintf;
 }
 
-bool fail_sprintf;
+int fail_sprintf;
 int __wrap_sprintf(char *str, const char *format, ...)
 {
     int rc;
@@ -308,7 +308,7 @@ int __wrap_sprintf(char *str, const char *format, ...)
         return rc;
     }
 
-    return -1;
+    return fail_sprintf;
 }
 
 void fail_test()
@@ -328,13 +328,21 @@ void fail_test()
     assert(strcmp(uri->path, "/127.0.0.1") == 0);
     sc_uri_destroy(uri);
 
-    fail_snprintf = true;
+    fail_snprintf = -1;
     assert(sc_uri_create("tcp://127.0.0.1") == NULL);
-    fail_snprintf = false;
+    fail_snprintf = 0;
+    
+    fail_snprintf = 100000;
+    assert(sc_uri_create("tcp://127.0.0.1") == NULL);
+    fail_snprintf = 0;
 
-    fail_sprintf = true;
+    fail_sprintf = -1;
     assert(sc_uri_create("tcp://127.0.0.1") == NULL);
-    fail_snprintf = false;
+    fail_sprintf = 0;
+    
+    fail_sprintf = 1000000;
+    assert(sc_uri_create("tcp://127.0.0.1") == NULL);
+    fail_sprintf = 0;
 
     fail_strtoul = 1;
     assert(sc_uri_create("tcp://127.0.0.1:9000") == NULL);
