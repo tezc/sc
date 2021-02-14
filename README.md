@@ -75,6 +75,7 @@ FetchContent_Declare(
   sc_lib
   GIT_REPOSITORY https://github.com/tezc/sc.git
   GIT_TAG        master)
+SET(SC_BUILD_TEST OFF CACHE BOOL "Turn off sc_lib tests" FORCE)
 
 FetchContent_MakeAvailable(sc_lib)
 
