@@ -283,7 +283,7 @@ bool sc_str_trim(char **str, const char *list)
         return true;
     }
 
-    len = strlen(*str);
+    len = sc_str_meta(*str)->len;
     start = *str + strspn(*str, list);
     end = (*str) + len;
 
