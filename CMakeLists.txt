@@ -3,7 +3,11 @@ project(sc_lib C)
 include(CTest)
 include(CheckCCompilerFlag)
 
-enable_testing()
+option(sc_lib_BUILD_TESTS "Build tests" ON)
+
+if (sc_lib_BUILD_TESTS)
+  enable_testing()
+endif()
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
