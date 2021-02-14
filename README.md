@@ -68,7 +68,7 @@ cmake .. -DCMAKE_BUILD_TYPE=Coverage; make; make coverage
 ```cmake
 FetchContent_Declare(
   sc_lib
-  GIT_REPOSITORY https://github.com/rafaeldelboni/sc.git
+  GIT_REPOSITORY https://github.com/tezc/sc.git
   GIT_TAG        master)
 
 FetchContent_MakeAvailable(sc_lib)
