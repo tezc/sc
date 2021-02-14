@@ -25,6 +25,8 @@
 #ifndef SC_TIMER_H
 #define SC_TIMER_H
 
+#define SC_TIMER_VERSION "1.0.0"
+
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>

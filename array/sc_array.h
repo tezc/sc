@@ -32,6 +32,8 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+#define SC_ARRAY_VERSION "1.0.0"
+
 #ifdef SC_HAVE_CONFIG_H
     #include "config.h"
 #else
