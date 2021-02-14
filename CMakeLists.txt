@@ -3,11 +3,7 @@ project(sc_lib C)
 include(CTest)
 include(CheckCCompilerFlag)
 
-option(sc_lib_BUILD_TESTS "Build tests" ON)
-
-if (sc_lib_BUILD_TESTS)
-  enable_testing()
-endif()
+enable_testing()
 
 if (NOT CMAKE_BUILD_TYPE)
     set(CMAKE_BUILD_TYPE "Debug")
@@ -38,49 +34,56 @@ add_subdirectory(timer)
 add_subdirectory(thread)
 add_subdirectory(uri)
 
+set(SC_BUILD_TEST TRUE)
+if(NOT SC_BUILD_TEST)
+  message(STATUS "Turned off building tests because SC is a subproject.")
+  message(STATUS "Turned off coverage because SC is a subproject.")
+endif()
+
 # --------------------------------------------------------------------------- #
 # --------------------- Test Configuration Start ---------------------------- #
 # --------------------------------------------------------------------------- #
-
+if(SC_BUILD_TEST)
 # ----------------------- - Code Coverage Start ----------------------------- #
 
-if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
-    if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
-        add_compile_options(--coverage)
-        link_libraries(gcov)
-    else()
-        message(FATAL_ERROR "Only GCC is supported for coverage")
-    endif()
-endif ()
+  if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
+      if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
+          add_compile_options(--coverage)
+          link_libraries(gcov)
+      else()
+          message(FATAL_ERROR "Only GCC is supported for coverage")
+      endif()
+  endif ()
 
-add_custom_target(coverage)
-add_custom_command(
-        TARGET coverage
-        COMMAND lcov --capture --directory .
-        --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
-        COMMAND lcov --remove coverage.info '/usr/*' '*example*' '*test*'
-        --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
-        COMMAND lcov --list coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
-)
+  add_custom_target(coverage)
+  add_custom_command(
+          TARGET coverage
+          COMMAND lcov --capture --directory .
+          --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
+          COMMAND lcov --remove coverage.info '/usr/*' '*example*' '*test*'
+          --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
+          COMMAND lcov --list coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
+  )
 
 # -------------------------- Code Coverage End ------------------------------ #
 
-SET(MEMORYCHECK_COMMAND_OPTIONS
-        "-q --log-fd=2 --trace-children=yes --track-origins=yes       \
-         --leak-check=full --show-leak-kinds=all \
-         --error-exitcode=255")
+  SET(MEMORYCHECK_COMMAND_OPTIONS
+          "-q --log-fd=2 --trace-children=yes --track-origins=yes       \
+           --leak-check=full --show-leak-kinds=all \
+           --error-exitcode=255")
 
-add_custom_target(valgrind ${CMAKE_COMMAND}
-        -E env CTEST_OUTPUT_ON_FAILURE=1
-        ${CMAKE_CTEST_COMMAND} -C $<CONFIG>
-        --overwrite MemoryCheckCommandOptions=${MEMORYCHECK_COMMAND_OPTIONS}
-        --verbose -T memcheck WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  add_custom_target(valgrind ${CMAKE_COMMAND}
+          -E env CTEST_OUTPUT_ON_FAILURE=1
+          ${CMAKE_CTEST_COMMAND} -C $<CONFIG>
+          --overwrite MemoryCheckCommandOptions=${MEMORYCHECK_COMMAND_OPTIONS}
+          --verbose -T memcheck WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_custom_target(check ${CMAKE_COMMAND}
-        -E env CTEST_OUTPUT_ON_FAILURE=1
-        ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --verbose
-        WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+  add_custom_target(check ${CMAKE_COMMAND}
+          -E env CTEST_OUTPUT_ON_FAILURE=1
+          ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --verbose
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-add_dependencies(coverage check)
+  add_dependencies(coverage check)
 
+endif ()
 # ----------------------- Test Configuration End ---------------------------- #
