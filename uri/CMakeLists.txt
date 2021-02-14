@@ -5,7 +5,12 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_executable(sc_uri uri_example.c sc_uri.h sc_uri.c)
+add_library(
+  sc_uri SHARED
+  sc_uri.c
+  sc_uri.h)
+
+target_include_directories(sc_uri PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -pedantic -Werror -Wall -Wextra")
