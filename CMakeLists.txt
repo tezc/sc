@@ -11,6 +11,12 @@ endif ()
 
 message(STATUS "Build type ${CMAKE_BUILD_TYPE}")
 
+option(SC_BUILD_TEST "Build tests" ON)
+if(NOT SC_BUILD_TEST)
+  message(STATUS "Turned off building tests because SC is a subproject.")
+  message(STATUS "Turned off coverage because SC is a subproject.")
+endif()
+
 add_subdirectory(array)
 add_subdirectory(buffer)
 add_subdirectory(condition)
@@ -33,12 +39,6 @@ add_subdirectory(time)
 add_subdirectory(timer)
 add_subdirectory(thread)
 add_subdirectory(uri)
-
-set(SC_BUILD_TEST TRUE)
-if(NOT SC_BUILD_TEST)
-  message(STATUS "Turned off building tests because SC is a subproject.")
-  message(STATUS "Turned off coverage because SC is a subproject.")
-endif()
 
 # --------------------------------------------------------------------------- #
 # --------------------- Test Configuration Start ---------------------------- #
