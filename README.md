@@ -5,6 +5,8 @@ Common C libraries and data structures. (C99)
 Each folder is stand-alone and contains a single .h .c pair.   
 There is no build, copy .h .c files you want.
 
+Libraries are portable, see [test](#test) section for details.
+
 ### List
 
 | Library                        | Description                                                                                |
@@ -32,6 +34,17 @@ There is no build, copy .h .c files you want.
 | **[timer](timer)**             | Hashed timing wheel implementation with fast poll / cancel ops                             |
 | **[uri](uri)**                 | A basic uri parser                                                                         |
 
+### Details
+- Most libraries are around a few hundreds lines of code.
+- You don't have to build library, you can copy paste pieces you want. 
+  This is good because :
+  - You don't have to deal with library build process.
+  - You don't bloat your build, e.g you just want a logger and nothing else,   
+    then you just copy logger. 
+  - As a bonus, compilers generate better code when source is available.
+- All libraries report errors back to users (e.g out of memory).
+- If a library uses heap memory, you can plug your allocator.
+
 ### Test
 [![codecov](https://codecov.io/gh/tezc/sc/branch/master/graph/badge.svg?token=O8ZHQ0XZ30)](https://codecov.io/gh/tezc/sc)
 
@@ -58,7 +71,7 @@ cmake .. -DSANITIZER=address && make && make check
 mkdir build; cd build;
 cmake .. -DSANITIZER=undefined && make && make check
 
-#coverage, requires GCC.
+#coverage, requires GCC and lcov
 mkdir build; cd build;
 cmake .. -DCMAKE_BUILD_TYPE=Coverage; make; make coverage
 
