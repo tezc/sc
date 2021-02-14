@@ -7,8 +7,7 @@ There is no build, copy .h .c files you want.
 
 Libraries are portable, see [test](#test) section for details.  
 
-As a general rule, all libraries report errors back to users (e.g out of memory).  
-If a library uses heap memory, you can plug your allocator.
+As a general rule, all libraries report errors back to users (e.g out of memory).
 
 ### List
 
@@ -29,7 +28,7 @@ If a library uses heap memory, you can plug your allocator.
 | **[perf](perf)**               | Benchmark utility to get performance counters info via perf_event_open()                   | 
 | **[queue](queue)**             | Generic queue which can be used as dequeue/stack/list as well                              |
 | **[sc](sc)**                   | Utility functions                                                                          |
-| **[signal](signal)**           | Signal handler & signal safe snprintf (handling CTRL+C, printing backtrace on crash etc)   |
+| **[signal](signal)**           | Signal safe snprintf & Signal handler (handling CTRL+C, printing backtrace on crash etc)   |
 | **[socket](socket)**           | Pipe / tcp sockets(also unix domain sockets) /Epoll/Kqueue/WSAPoll for Posix and Windows   |
 | **[string](string)**           | Length prefixed, null terminated C strings.                                                |
 | **[thread](thread)**           | Thread wrapper for Posix and Windows.                                                      |
