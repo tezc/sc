@@ -27,6 +27,8 @@
 
 #include <stdint.h>
 
+#define SC_CRC32_VERSION "1.0.0"
+
 /**
  * Call once globally.
  */

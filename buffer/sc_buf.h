@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SC_BUF_VERSION "1.0.0"
+
 #ifdef SC_HAVE_CONFIG_H
     #include "config.h"
 #else

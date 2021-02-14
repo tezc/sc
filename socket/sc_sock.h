@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SC_SOCK_VERSION "1.0.0"
+
 #ifdef SC_HAVE_CONFIG_H
     #include "config.h"
 #else
@@ -89,6 +91,18 @@ struct sc_sock
     int family;
     char err[128];
 };
+
+/**
+ * Call once when your application starts.
+ * @return 0 on success, negative on failure.
+ */
+int sc_sock_startup();
+
+/**
+ * Call once before your application terminates
+ * @return 0 on success, negative on failure.
+ */
+int sc_sock_cleanup();
 
 /**
  * Initialize sock

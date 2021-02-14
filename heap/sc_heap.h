@@ -29,6 +29,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SC_HEAP_VERSION "1.0.0"
+
 #ifdef SC_HAVE_CONFIG_H
     #include "config.h"
 #else

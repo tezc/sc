@@ -25,6 +25,8 @@
 #ifndef SC_MUTEX_H
 #define SC_MUTEX_H
 
+#define SC_MUTEX_VERSION "1.0.0"
+
 #if defined(_WIN32) || defined(_WIN64)
     #include <windows.h>
 #else

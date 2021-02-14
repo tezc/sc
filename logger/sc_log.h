@@ -31,6 +31,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define SC_LOG_VERSION "1.0.0"
+
 enum sc_log_level
 {
     SC_LOG_DEBUG,

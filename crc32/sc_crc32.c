@@ -42,6 +42,7 @@
 #define CRC32_POLY 0x82f63b78
 
 #ifdef HAVE_CRC32C
+#include <memory.h>
 #include <x86intrin.h>
 
 /* Multiply a matrix times a vector over the Galois field of two elements,

@@ -1471,13 +1471,8 @@ int main()
     assert(sc_mutex_init(&mutex) == 0);
 #endif
 
-#if defined(_WIN32) || defined(_WIN64)
-    WSADATA data;
+    assert(sc_sock_startup() == 0);
 
-    int rc = WSAStartup(MAKEWORD(2, 2), &data);
-    assert(rc == 0);
-    assert(LOBYTE(data.wVersion) == 2 && HIBYTE(data.wVersion) == 2);
-#endif
     test1();
     test_ip4();
 
@@ -1498,10 +1493,7 @@ int main()
     test_err();
     test_poll_mass();
 
-#if defined(_WIN32) || defined(_WIN64)
-    rc = WSACleanup();
-    assert(rc == 0);
-#endif
+    assert(sc_sock_cleanup() == 0);
 
 #ifdef SC_HAVE_WRAP
     assert(sc_mutex_term(&mutex) == 0);

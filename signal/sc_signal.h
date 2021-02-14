@@ -29,6 +29,8 @@
 #include <stddef.h>
 #include <stdarg.h>
 
+#define SC_SIGNAL_VERSION "1.0.0"
+
 /**
  * Set shutdown fd here. When shutdown signal is received e.g SIGINT, SIGTERM.
  * Signal handler will write 1 byte to shutdown fd. So, your app can detect
