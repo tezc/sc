@@ -29,6 +29,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#define SC_MMAP_VERSION "1.0.0"
+
 #if defined(_WIN32)
 
 #include <windows.h>

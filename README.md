@@ -5,6 +5,11 @@ Common C libraries and data structures. (C99)
 Each folder is stand-alone and contains a single .h .c pair.   
 There is no build, copy .h .c files you want.
 
+Libraries are portable, see [test](#test) section for details.  
+
+As a general rule, all libraries report errors back to users (e.g out of memory).  
+If a library uses heap memory, you can plug your allocator.
+
 ### List
 
 | Library                        | Description                                                                                |
@@ -58,7 +63,7 @@ cmake .. -DSANITIZER=address && make && make check
 mkdir build; cd build;
 cmake .. -DSANITIZER=undefined && make && make check
 
-#coverage, requires GCC.
+#coverage, requires GCC and lcov
 mkdir build; cd build;
 cmake .. -DCMAKE_BUILD_TYPE=Coverage; make; make coverage
 

@@ -28,6 +28,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define SC_VERSION "1.0.0"
+
 #define sc_max(a, b) (((a) > (b)) ? (a) : (b))
 #define sc_min(a, b) (((a) > (b)) ? (b) : (a))
 
