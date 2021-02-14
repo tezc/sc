@@ -28,8 +28,6 @@ enable_testing()
 
 add_executable(${PROJECT_NAME}_test crc32_test.c sc_crc32.c)
 
-include(CheckCCompilerFlag)
-
 if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
     check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
     if (${HAVE_CRC32_HARDWARE})
