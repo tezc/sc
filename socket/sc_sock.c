@@ -83,15 +83,36 @@ int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
     return rc == 0 ? 0 : -1;
 }
 
+int sc_sock_startup()
+{
+    int rc;
+    WSADATA data;
+
+    rc = WSAStartup(MAKEWORD(2, 2), &data);
+    if (rc != 0 || (LOBYTE(data.wVersion) != 2 || HIBYTE(data.wVersion) != 2)) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int sc_sock_cleanup()
+{
+    int rc;
+
+    rc = WSACleanup();
+    return rc != 0 ? -1 : 0;
+}
+
 
 #else
     #include <arpa/inet.h>
     #include <netdb.h>
     #include <netinet/in.h>
     #include <netinet/tcp.h>
+    #include <sys/time.h>
     #include <sys/un.h>
     #include <unistd.h>
-    #include <sys/time.h>
 
     #define sc_close(n)    close(n)
     #define sc_unlink(n)   unlink(n)
@@ -100,6 +121,16 @@ int sc_sock_set_blocking(struct sc_sock *sock, bool blocking)
     #define SC_EAGAIN      EAGAIN
     #define SC_EINPROGRESS EINPROGRESS
     #define SC_EINTR       EINTR
+
+int sc_sock_startup()
+{
+    return 0;
+}
+
+int sc_sock_cleanup()
+{
+    return 0;
+}
 
 static int sc_sock_err()
 {
@@ -1336,11 +1367,11 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
     return 0;
 }
 
-static int sc_sock_poll_expand(struct sc_sock_poll* p)
+static int sc_sock_poll_expand(struct sc_sock_poll *p)
 {
     int cap, rc = 0;
-    void** data = NULL;
-    struct pollfd* ev = NULL;
+    void **data = NULL;
+    struct pollfd *ev = NULL;
 
     if (p->count == p->cap) {
         if (p->cap >= SC_SIZE_MAX / 2) {
@@ -1362,7 +1393,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll* p)
         p->data = data;
 
         for (int i = p->cap; i < cap; i++) {
-             p->events[i].fd = SC_INVALID;
+            p->events[i].fd = SC_INVALID;
         }
 
         p->cap = cap;
@@ -1483,14 +1514,14 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
     return events;
 }
 
-int sc_sock_poll_wait(struct sc_sock_poll* p, int timeout)
+int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
     int n, rc = p->cap;
 
     timeout = (timeout == -1) ? 16 : timeout;
 
     do {
-        n = WSAPoll(p->events, (ULONG)p->cap, timeout);
+        n = WSAPoll(p->events, (ULONG) p->cap, timeout);
     } while (n < 0 && errno == EINTR);
 
     if (n == SC_INVALID) {

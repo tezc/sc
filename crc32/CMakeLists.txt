@@ -28,6 +28,16 @@ enable_testing()
 
 add_executable(${PROJECT_NAME}_test crc32_test.c sc_crc32.c)
 
+include(CheckCCompilerFlag)
+
+if("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+    check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
+    if (${HAVE_CRC32_HARDWARE})
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -msse4.2)
+        target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
+    endif ()
+endif()
+
 if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
     "${CMAKE_C_COMPILER_ID}" STREQUAL "AppleClang" OR
     "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
