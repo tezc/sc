@@ -36,7 +36,7 @@ if(SC_BUILD_TEST)
           target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
           target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
           target_link_options(${PROJECT_NAME}_test PRIVATE
-                  -Wl,--wrap=fprintf,--wrap=vfprintf,--wrap=fopen,--wrap=localtime
+                  -Wl,--wrap=fprintf,--wrap=vfprintf,--wrap=fopen,--wrap=localtime_r
                   -Wl,--wrap=pthread_mutexattr_init,--wrap=pthread_mutex_init
                   -Wl,--wrap=fclose)
       endif ()

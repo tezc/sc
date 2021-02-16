@@ -170,12 +170,12 @@ int __wrap_fclose (FILE *__stream)
     return -1;
 }
 
-bool mock_localtime = false;
-extern struct tm *__real_localtime(const time_t *timer);
-struct tm *__wrap_localtime(const time_t *timer)
+bool mock_localtime_r = false;
+extern struct tm *__real_localtime_r(const time_t *timer, struct tm* res);
+struct tm *__wrap_localtime_r(const time_t *timer, struct tm* res)
 {
-    if (!mock_localtime) {
-        return __real_localtime(timer);
+    if (!mock_localtime_r) {
+        return __real_localtime_r(timer, res);
     }
 
     return NULL;
@@ -275,9 +275,9 @@ void fail_test(void)
     assert(sc_log_set_file("prev.txt", "current.txt") == -1);
     mock_fopen = false;
     assert(sc_log_set_file("prev.txt", "current.txt") == 0);
-    mock_localtime = true;
+    mock_localtime_r= true;
     assert(sc_log_error("test") == -1);
-    mock_localtime = false;
+    mock_localtime_r = false;
 
     mock_vfprintf = false;
     mock_fprintf = false;
@@ -299,7 +299,7 @@ void fail_test(void)
     mock_fclose = false;
     mock_fprintf = false;
     mock_vfprintf = false;
-    mock_localtime = false;
+    mock_localtime_r = false;
     mock_fopen = false;
 }
 #else
