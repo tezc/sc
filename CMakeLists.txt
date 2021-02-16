@@ -12,9 +12,14 @@ endif ()
 message(STATUS "Build type ${CMAKE_BUILD_TYPE}")
 
 option(SC_BUILD_TEST "Build tests" ON)
-if(NOT SC_BUILD_TEST)
+if (NOT SC_BUILD_TEST)
   message(STATUS "Turned off building tests because SC is a subproject.")
   message(STATUS "Turned off coverage because SC is a subproject.")
+endif()
+
+if (${CMAKE_BUILD_TYPE} MATCHES "Rel")
+    SET(SC_BUILD_TEST OFF CACHE BOOL "Turn off sc_lib tests" FORCE)
+    message(STATUS "Not building tests, SC tests are supported in Debug build only.")
 endif()
 
 add_subdirectory(array)

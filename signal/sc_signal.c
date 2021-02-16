@@ -510,12 +510,13 @@ int sc_signal_init()
 
 void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
 {
-    int written;
+    int written, rc;
     va_list args;
 
     va_start(args, fmt);
     written = sc_signal_vsnprintf(buf, len, fmt, args);
     va_end(args);
 
-    (void) write(fd, buf, (size_t) written);
+    rc = write(fd, buf, (size_t) written);
+    (void) rc;
 }
