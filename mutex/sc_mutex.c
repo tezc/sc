@@ -79,6 +79,7 @@ int sc_mutex_init(struct sc_mutex *mtx)
     // This won't fail as long as we pass correct param.
     rv = pthread_mutexattr_destroy(&attr);
     assert(rv == 0);
+    (void) rv;
 
     return rc != 0 ? -1 : 0;
 }
@@ -98,6 +99,7 @@ void sc_mutex_lock(struct sc_mutex *mtx)
     // This won't fail as long as we pass correct param.
     rc = pthread_mutex_lock(&mtx->mtx);
     assert(rc == 0);
+    (void) rc;
 }
 
 void sc_mutex_unlock(struct sc_mutex *mtx)
@@ -107,6 +109,7 @@ void sc_mutex_unlock(struct sc_mutex *mtx)
     // This won't fail as long as we pass correct param.
     rc = pthread_mutex_unlock(&mtx->mtx);
     assert(rc == 0);
+    (void) rc;
 }
 
 #endif

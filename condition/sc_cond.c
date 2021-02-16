@@ -159,6 +159,7 @@ void sc_cond_signal(struct sc_cond *cond, void *data)
     // This won't fail as long as we pass correct params.
     rc = pthread_cond_signal(&cond->cond);
     assert(rc == 0);
+    (void) rc;
 
     pthread_mutex_unlock(&cond->mtx);
 }
@@ -174,6 +175,7 @@ void *sc_cond_wait(struct sc_cond *cond)
         // This won't fail as long as we pass correct params.
         rc = pthread_cond_wait(&cond->cond, &cond->mtx);
         assert(rc == 0);
+        (void) rc;
     }
 
     data = cond->data;

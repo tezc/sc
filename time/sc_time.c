@@ -54,6 +54,7 @@ uint64_t sc_time_ms()
 
     rc = clock_gettime(CLOCK_REALTIME, &ts);
     assert(rc == 0);
+    (void) rc;
 
     return ts.tv_sec * 1000 + (uint64_t)(ts.tv_nsec / 10e6);
 #endif
@@ -76,6 +77,7 @@ uint64_t sc_time_ns()
 
     rc = clock_gettime(CLOCK_REALTIME, &ts);
     assert(rc == 0);
+    (void) rc;
 
     return ts.tv_sec * (uint64_t)1000000000 + ts.tv_nsec;
 #endif
@@ -101,6 +103,7 @@ uint64_t sc_time_mono_ms()
 
     rc = clock_gettime(CLOCK_MONOTONIC, &ts);
     assert(rc == 0);
+    (void) rc;
 
     return (uint64_t)((uint64_t) ts.tv_sec * 1000 +
                      (uint64_t) ts.tv_nsec / 1000000);
@@ -126,6 +129,7 @@ uint64_t sc_time_mono_ns()
 
     rc = clock_gettime(CLOCK_MONOTONIC, &ts);
     assert(rc == 0);
+    (void) rc;
 
     return ((uint64_t) ts.tv_sec * 1000000000 + (uint64_t) ts.tv_nsec);
 #endif

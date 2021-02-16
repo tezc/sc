@@ -115,7 +115,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 
     rc = pthread_attr_init(&attr);
     if (rc != 0) {
-        strncpy(thread->err, strerror(rc), sizeof(thread->err));
+        strncpy(thread->err, strerror(rc), sizeof(thread->err) - 1);
         return -1;
     }
 
@@ -124,7 +124,7 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 
     rc = pthread_create(&thread->id, &attr, fn, arg);
     if (rc != 0) {
-        strncpy(thread->err, strerror(rc), sizeof(thread->err));
+        strncpy(thread->err, strerror(rc), sizeof(thread->err) - 1);
     }
 
     // This may only fail with EINVAL.
@@ -144,7 +144,7 @@ int sc_thread_join(struct sc_thread *thread, void **ret)
 
     rc = pthread_join(thread->id, &val);
     if (rc != 0) {
-        strncpy(thread->err, strerror(rc), sizeof(thread->err));
+        strncpy(thread->err, strerror(rc), sizeof(thread->err) - 1);
     }
 
     thread->id = 0;
