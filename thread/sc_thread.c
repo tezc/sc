@@ -144,7 +144,7 @@ int sc_thread_join(struct sc_thread *thread, void **ret)
 
     rc = pthread_join(thread->id, &val);
     if (rc != 0) {
-        strncpy(thread->err, strerror(rc), sizeof(thread->err));
+        strncpy(thread->err, strerror(rc), sizeof(thread->err) - 1);
     }
 
     thread->id = 0;
