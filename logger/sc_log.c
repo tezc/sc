@@ -66,7 +66,7 @@ thread_local char sc_name[32] = "Thread";
 
     #pragma warning(disable : 4996)
     #define strcasecmp _stricmp
-
+    #define localtime_r(a, b) (localtime_s(b, a) == 0 ? b : NULL)
     #include <windows.h>
 
 struct sc_log_mutex
@@ -297,8 +297,11 @@ void sc_log_set_callback(void *arg, int (*cb)(void *, enum sc_log_level,
 static int sc_log_print_header(FILE *fp, enum sc_log_level level)
 {
     int rc;
-    time_t t = time(NULL);
-    struct tm *tm = localtime(&t);
+    time_t t;
+    struct tm result, *tm;
+
+    t = time(NULL);
+    tm = localtime_r(&t, &result);
 
     if (tm == NULL) {
         return -1;
