@@ -163,6 +163,8 @@ void test_rand()
 
 #ifdef SC_HAVE_WRAP
 
+#include <errno.h>
+
 int fail_snprintf;
 
 int __wrap_snprintf(char *str, size_t size, const char *format, ...)
@@ -181,9 +183,27 @@ int __wrap_snprintf(char *str, size_t size, const char *format, ...)
     return fail_snprintf;
 }
 
+int fail_strtoll;
+int fail_strtoll_errno;
+
+extern long long int __real_strtoll (const char *__restrict nptr,
+                                     char **__restrict endptr, int base);
+extern long long int __wrap_strtoll (const char *__restrict nptr,
+                                     char **__restrict endptr, int base)
+{
+    if (fail_strtoll) {
+        errno = fail_strtoll_errno;
+        *endptr = (char*) nptr;
+        return 0;
+    }
+
+    return __real_strtoll(nptr, endptr, base);
+}
+
 void fail_test()
 {
     char* t;
+    int64_t val;
     char buf[32];
 
     fail_snprintf = -1;
@@ -205,6 +225,17 @@ void fail_test()
     t = sc_bytes_to_size(buf, sizeof(buf), 313);
     assert(t == NULL);
     fail_snprintf = 0;
+
+    fail_strtoll = 1;
+    val = sc_size_to_bytes("10kb");
+    assert(val == -1);
+    fail_strtoll = 0;
+
+    fail_strtoll = 1;
+    fail_strtoll_errno = 100;
+    val = sc_size_to_bytes("10kb");
+    assert(val == -1);
+    fail_strtoll = 0;
 }
 
 #else
