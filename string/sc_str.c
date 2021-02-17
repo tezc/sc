@@ -205,7 +205,8 @@ bool sc_str_append(char **str, const char *param)
     len = strlen(param);
     alloc = sc_str_bytes(meta->len + len);
 
-    if (alloc > SC_SIZE_MAX || (meta = sc_str_realloc(meta, alloc)) == NULL) {
+    if (alloc > SC_SIZE_MAX - meta->len ||
+        (meta = sc_str_realloc(meta, alloc)) == NULL) {
         return false;
     }
 
