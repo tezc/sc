@@ -38,7 +38,9 @@ if(SC_BUILD_TEST)
           target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
           target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
           target_link_options(${PROJECT_NAME}_test PRIVATE
-                  -Wl,--wrap=open,--wrap=stat,--wrap=mmap,--wrap=mlock,--wrap=msync,--wrap=munlock,--wrap=munmap)
+                  -Wl,--wrap=open,--wrap=stat,--wrap=mmap,--wrap=mlock
+                  -Wl,--wrap=msync,--wrap=munlock,--wrap=munmap
+                  -Wl,--wrap=posix_fallocate)
       endif ()
   endif ()
 

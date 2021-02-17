@@ -134,17 +134,19 @@ int sc_cond_term(struct sc_cond *cond)
 {
     int rc;
 
+    errno = 0;
+
     rc = pthread_mutex_destroy(&cond->mtx);
     if (rc != 0) {
         errno = rc;
     }
 
     rc = pthread_cond_destroy(&cond->cond);
-    if (rc != 0 && errno != 0) {
+    if (rc != 0 && errno == 0) {
         errno = rc;
     }
 
-    return rc;
+    return errno;
 }
 
 void sc_cond_signal(struct sc_cond *cond, void *data)
