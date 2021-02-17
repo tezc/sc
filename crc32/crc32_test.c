@@ -24,4 +24,20 @@ int main(int argc, char *argv[])
     crc3 = sc_crc32(0, buf2, 4096 * 8);
 
     assert(crc2 == crc3);
+
+    crc1 = sc_crc32(100, buf, 8);
+    crc2 = sc_crc32(100, buf, 7);
+    assert(crc1 != crc2);
+
+    crc2 = sc_crc32(100, buf + 7, 7);
+    assert(crc1 != crc2);
+
+    crc2 = sc_crc32(100, buf + 8, 7);
+    assert(crc1 != crc2);
+
+    crc2 = sc_crc32(100, buf + 8, 8);
+    assert(crc1 != crc2);
+
+    crc2 = sc_crc32(100, buf + 8, 0);
+    assert(crc1 != crc2);
 }

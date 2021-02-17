@@ -117,6 +117,9 @@ void test4()
     rc = sc_ini_parse_string(&count, cb4, ini);
     assert(rc == 0);
     assert(count == 3);
+
+    rc = sc_ini_parse_string(&count, cb4, NULL);
+    assert(rc == 0);
 }
 
 int cb5(int line, void *arg, const char *section, const char *key,
@@ -305,6 +308,41 @@ void test8()
     assert(count == 3);
     remove("config.ini");
 
+    unsigned char boms[2] = {0xE3, 0xBB};
+    fp = fopen("config.ini", "w+");
+    fwrite(boms, 1, sizeof(boms), fp);
+    fclose(fp);
+    rc = sc_ini_parse_file(&count, cb8, "config.ini");
+    assert(rc != 0);
+    remove("config.ini");
+
+    unsigned char bom0[3] = {0xE3, 0xBB, 0xBF};
+    fp = fopen("config.ini", "w+");
+    fwrite(bom0, 1, sizeof(bom0), fp);
+    fwrite(ini3, 1, strlen(ini3), fp);
+    fclose(fp);
+    rc = sc_ini_parse_file(&count, cb8, "config.ini");
+    assert(rc != 0);
+    remove("config.ini");
+
+    unsigned char bom2[3] = {0xEF, 0xB3, 0xBF};
+    fp = fopen("config.ini", "w+");
+    fwrite(bom2, 1, sizeof(bom2), fp);
+    fwrite(ini3, 1, strlen(ini3), fp);
+    fclose(fp);
+    rc = sc_ini_parse_file(&count, cb8, "config.ini");
+    assert(rc != 0);
+    remove("config.ini");
+
+    unsigned char bom3[3] = {0xEF, 0xBB, 0xB3};
+    fp = fopen("config.ini", "w+");
+    fwrite(bom3, 1, sizeof(bom3), fp);
+    fwrite(ini3, 1, strlen(ini3), fp);
+    fclose(fp);
+    rc = sc_ini_parse_file(&count, cb8, "config.ini");
+    assert(rc != 0);
+    remove("config.ini");
+
     rc = sc_ini_parse_file(&count, cb8, "config.ini");
     assert(rc == -1);
 }
@@ -443,6 +481,91 @@ void test13()
     assert(count == 2);
 }
 
+int cb14(void *arg, int line, const char *section, const char *key,
+        const char *value)
+{
+    (void) arg;
+    (void) line;
+
+    assert(strcmp(section, "section") == 0);
+    assert(strcmp(key, "key") == 0);
+    assert(strcmp(value, "value") == 0);
+    return -1;
+}
+
+void test14()
+{
+    int rc;
+    int count = 0;
+
+    static const char *ini = "#Sample \n"
+                             "[section] \n"
+                             "key = value \n"
+                             "key : value ";
+
+    rc = sc_ini_parse_string(&count, cb14, ini);
+    assert(rc != 0);
+}
+
+int cb15(void *arg, int line, const char *section, const char *key,
+        const char *value)
+{
+    (void) line;
+    (void) arg;
+    (void) section;
+    (void) key;
+    (void) value;
+
+    return -1;
+}
+
+void test15()
+{
+    int rc;
+    int count = 0;
+    FILE *fp;
+
+    static const char *ini = " ;Sample \n"
+                             " [section] \n"
+                             "key = value0 #;comment\n"
+                             "      value1 \n"
+                             "      value2 ";
+
+    fp = fopen("config.ini", "w+");
+    fwrite(ini, 1, strlen(ini), fp);
+    fclose(fp);
+
+    rc = sc_ini_parse_file(&count, cb15, "config.ini");
+    assert(rc != 0);
+    remove("config.ini");
+}
+
+int cb16(void *arg, int line, const char *section, const char *key,
+         const char *value)
+{
+    (void) arg;
+    (void) line;
+    (void) section;
+    (void) key;
+    (void) value;
+
+    return 0;
+}
+
+void test16()
+{
+    int rc;
+
+    rc = sc_ini_parse_string(NULL, cb16, "key#  =  ;comment \n");
+    assert(rc == 0);
+    rc = sc_ini_parse_string(NULL, cb16, "key#  =  ;comment \n\n");
+    assert(rc == 0);
+    rc = sc_ini_parse_string(NULL, cb16, "key#  =  ;comment \nx=3\n");
+    assert(rc == 0);
+    rc = sc_ini_parse_string(NULL, cb16, "\n\0");
+    assert(rc == 0);
+}
+
 const char *example_ini = "# My configuration"
                           "[Network] \n"
                           "hostname = github.com \n"
@@ -557,6 +680,9 @@ int main()
     test11();
     test12();
     test13();
+    test14();
+    test15();
+    test16();
     test_fail();
 
     return 0;

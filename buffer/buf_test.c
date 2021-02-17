@@ -225,6 +225,22 @@ void test2()
 
     sc_buf_term(&buf);
 
+    sc_buf_init(&buf, 1000);
+    sc_buf_mark_write(&buf, 1000);
+    sc_buf_mark_read(&buf, 800);
+    sc_buf_reserve(&buf, 400);
+    sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 100);
+    sc_buf_get_str(&buf);
+    sc_buf_set_8(&buf, 100);
+    sc_buf_set_16(&buf, 100);
+    sc_buf_set_32(&buf, 100);
+    sc_buf_set_64(&buf, 100);
+    sc_buf_set_data(&buf, 19, "d", 1);
+    sc_buf_peek_data(&buf, 10, NULL, 0);
+    assert(!sc_buf_valid(&buf));
+    sc_buf_term(&buf);
 }
 
 #ifdef SC_HAVE_WRAP

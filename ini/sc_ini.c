@@ -40,12 +40,12 @@ static char *trim_space(char *str)
 {
     char *end;
 
-    while (isspace(*str)) {
+    while (isspace((unsigned char) *str)) {
         str++;
     }
 
     end = str + strlen(str) - 1;
-    while (end > str && isspace(*end)) {
+    while (end > str && isspace((unsigned char) *end)) {
         end--;
     }
 
@@ -76,7 +76,7 @@ static char *trim_comment(char *str)
 
 static char *trim_bom(char *str)
 {
-    if (str != NULL && strlen(str) >= 3) {
+    if (strlen(str) >= 3) {
         if ((uint8_t) str[0] == 0xEF && (uint8_t) str[1] == 0xBB &&
             (uint8_t) str[2] == 0xBF) {
             str += 3;

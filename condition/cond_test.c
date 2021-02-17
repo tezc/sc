@@ -265,10 +265,19 @@ void fail_test()
     assert(sc_cond_init(&cond) == 0);
     mock_conddestroy = true;
     assert(sc_cond_term(&cond) != 0);
+    mock_conddestroy = false;
 
     assert(sc_cond_init(&cond) == 0);
     mock_mutexdestroy = true;
     assert(sc_cond_term(&cond) != 0);
+    mock_mutexdestroy = false;
+
+    assert(sc_cond_init(&cond) == 0);
+    mock_mutexdestroy = true;
+    mock_conddestroy = true;
+    assert(sc_cond_term(&cond) != 0);
+    mock_mutexdestroy = false;
+    mock_conddestroy = false;
 }
 
 #else

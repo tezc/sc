@@ -55,10 +55,14 @@ void test1()
 }
 
 #ifdef SC_HAVE_WRAP
+    #include <errno.h>
+    #include <stdint.h>
+
 
 bool fail_open;
 extern int __real_open(const char *pathname, int flags, mode_t mode);
-int __wrap_open(const char *pathname, int flags, mode_t mode) {
+int __wrap_open(const char *pathname, int flags, mode_t mode)
+{
     if (fail_open) {
         return -1;
     }
@@ -68,7 +72,8 @@ int __wrap_open(const char *pathname, int flags, mode_t mode) {
 
 bool fail_stat;
 extern int __real_stat(const char *pathname, struct stat *statbuf);
-int __wrap_stat(const char *pathname, struct stat *statbuf) {
+int __wrap_stat(const char *pathname, struct stat *statbuf)
+{
     if (fail_stat) {
         return -1;
     }
@@ -77,20 +82,22 @@ int __wrap_stat(const char *pathname, struct stat *statbuf) {
 }
 
 bool fail_mmap;
-extern void *__real_mmap(void *addr, size_t length, int prot, int flags,
-                  int fd, off_t offset);
-void* __wrap_mmap(void *addr, size_t length, int prot, int flags,
-              int fd, off_t offset) {
+extern void *__real_mmap(void *addr, size_t length, int prot, int flags, int fd,
+                         off_t offset);
+void *__wrap_mmap(void *addr, size_t length, int prot, int flags, int fd,
+                  off_t offset)
+{
     if (fail_mmap) {
         return MAP_FAILED;
     }
 
-    return __real_mmap(addr, length, prot, flags ,fd, offset);
+    return __real_mmap(addr, length, prot, flags, fd, offset);
 }
 
 bool fail_mlock;
-extern int __real_mlock (const void *addr, size_t len);
-int __wrap_mlock (const void *addr, size_t len) {
+extern int __real_mlock(const void *addr, size_t len);
+int __wrap_mlock(const void *addr, size_t len)
+{
     if (fail_mlock) {
         return -1;
     }
@@ -99,8 +106,9 @@ int __wrap_mlock (const void *addr, size_t len) {
 }
 
 bool fail_munlock;
-extern int __real_munlock (const void *addr, size_t len);
-int __wrap_munlock (const void *addr, size_t len) {
+extern int __real_munlock(const void *addr, size_t len);
+int __wrap_munlock(const void *addr, size_t len)
+{
     if (fail_munlock) {
         return -1;
     }
@@ -109,8 +117,9 @@ int __wrap_munlock (const void *addr, size_t len) {
 }
 
 bool fail_msync;
-extern int __real_msync (void *addr, size_t len, int flags);
-int __wrap_msync (void *addr, size_t len, int flags) {
+extern int __real_msync(void *addr, size_t len, int flags);
+int __wrap_msync(void *addr, size_t len, int flags)
+{
     if (fail_msync) {
         return -1;
     }
@@ -119,13 +128,28 @@ int __wrap_msync (void *addr, size_t len, int flags) {
 }
 
 bool fail_munmap;
-extern int __real_munmap (void *addr, size_t len);
-int __wrap_munmap(void *addr, size_t len) {
+extern int __real_munmap(void *addr, size_t len);
+int __wrap_munmap(void *addr, size_t len)
+{
     if (fail_munmap) {
         return -1;
     }
 
     return __real_munmap(addr, len);
+}
+
+uint32_t fail_posix_fallocate = UINT32_MAX;
+int fail_posix_fallocate_errno = 0;
+extern int __real_posix_fallocate(int fd, off_t offset, off_t len);
+int __wrap_posix_fallocate(int fd, off_t offset, off_t len)
+{
+    fail_posix_fallocate--;
+    if (fail_posix_fallocate == 0) {
+        errno = fail_posix_fallocate_errno;
+        return fail_posix_fallocate_errno;
+    }
+
+    return __real_posix_fallocate(fd, offset, len);
 }
 
 void fail_test()
@@ -140,7 +164,7 @@ void fail_test()
     assert(sc_mmap_err(&mmap) != NULL);
     fail_open = false;
 
-    mmap = (struct sc_mmap) {0};
+    mmap = (struct sc_mmap){0};
     fail_stat = true;
     rc = sc_mmap_init(&mmap, "x.txt", O_RDWR | O_CREAT | O_TRUNC,
                       PROT_READ | PROT_WRITE, MAP_SHARED, 0, 4095);
@@ -148,7 +172,7 @@ void fail_test()
     assert(sc_mmap_err(&mmap) != NULL);
     fail_stat = false;
 
-    mmap = (struct sc_mmap) {0};
+    mmap = (struct sc_mmap){0};
     fail_mmap = true;
     rc = sc_mmap_init(&mmap, "x.txt", O_RDWR | O_CREAT | O_TRUNC,
                       PROT_READ | PROT_WRITE, MAP_SHARED, 0, 4095);
@@ -156,7 +180,7 @@ void fail_test()
     assert(sc_mmap_err(&mmap) != NULL);
     fail_mmap = false;
 
-    mmap = (struct sc_mmap) {0};
+    mmap = (struct sc_mmap){0};
     fail_munmap = true;
     rc = sc_mmap_term(&mmap);
     assert(rc == -1);
@@ -191,11 +215,26 @@ void fail_test()
 
     rc = sc_mmap_term(&mmap);
     assert(rc == 0);
+
+    fail_posix_fallocate = 1;
+    fail_posix_fallocate_errno = EINTR;
+    rc = sc_mmap_init(&mmap, "x.txt", O_RDWR | O_CREAT | O_TRUNC,
+                      PROT_READ | PROT_WRITE, MAP_SHARED, 0, 4095);
+    assert(rc == 0);
+    assert(sc_mmap_term(&mmap) == 0);
+
+
+    fail_posix_fallocate = 1;
+    fail_posix_fallocate_errno = -1;
+    rc = sc_mmap_init(&mmap, "x.txt", O_RDWR | O_CREAT | O_TRUNC,
+                      PROT_READ | PROT_WRITE, MAP_SHARED, 0, 4095);
+    assert(rc != 0);
+
+    fail_posix_fallocate = UINT32_MAX;
 }
 #else
 void fail_test()
 {
-
 }
 #endif
 
