@@ -38,7 +38,7 @@ if(SC_BUILD_TEST)
           target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
           target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
           target_link_options(${PROJECT_NAME}_test PRIVATE
-                  -Wl,--wrap=snprintf)
+                  -Wl,--wrap=snprintf,--wrap=strtoll)
       endif ()
   endif ()
 

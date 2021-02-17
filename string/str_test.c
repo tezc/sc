@@ -46,6 +46,7 @@ size_t __wrap_strlen(const char* str)
 }
 
 bool fail_vsnprintf;
+int fail_vnsprintf_value = -1;
 int fail_vsnprintf_at = -1;
 extern int __real_vsnprintf(char *str, size_t size, const char *format,
                             va_list ap);
@@ -56,7 +57,7 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
         return __real_vsnprintf(str, size, format, ap);
     }
 
-    return -1;
+    return fail_vnsprintf_value;
 }
 
 void test1()
@@ -201,6 +202,40 @@ void test2()
     assert(sc_str_replace(&c, "*", "2") == false);
     fail_strlen = INT32_MAX;
     sc_str_destroy(c);
+
+    c = sc_str_create("n1n1");
+    assert(sc_str_substring(&c, -1, -3) == false);
+    assert(sc_str_substring(&c, 5, 4) == false);
+    assert(sc_str_substring(&c, 2, 6) == false);
+    assert(sc_str_substring(&c, 5, 7) == false);
+    assert(sc_str_substring(&c, 2, 1) == false);
+
+    fail_strlen = 1;
+    assert(sc_str_append(&c, "12") == false);
+    fail_strlen = UINT32_MAX;
+
+    fail_realloc = true;
+    assert(sc_str_append(&c, "12") == false);
+    fail_realloc = false;
+
+    sc_str_destroy(c);
+
+    fail_vsnprintf_at = 2;
+    fail_vnsprintf_value = -1;
+    char *tmp = malloc(1500);
+    for (int i =0 ; i < 1500; i++) {
+        tmp[i] = '3';
+    }
+    tmp[1499] = '\0';
+    assert(sc_str_create_fmt("%s", tmp) == NULL);
+
+    fail_vsnprintf_at = 2;
+    fail_vnsprintf_value = 9000;
+    assert(sc_str_create_fmt("%s", tmp) == NULL);
+
+    fail_vsnprintf_at = -1;
+    fail_vnsprintf_value = -1;
+    free(tmp);
 }
 
 #endif
@@ -248,9 +283,21 @@ void test3()
     assert(count == 4);
     assert(strcmp(str, tokens) == 0);
     assert(sc_str_len(str) == (int64_t) strlen(tokens));
+
+    save = NULL;
+    while ((token = sc_str_token_begin(str, &save, "-")) != NULL) {
+
+    }
+    sc_str_token_end(str, &save);
     sc_str_destroy(str);
 
-
+    str = sc_str_create(NULL);
+    save = NULL;
+    while ((token = sc_str_token_begin(str, &save, "")) != NULL) {
+        assert(strcmp(token, "token") == 0);
+    }
+    sc_str_token_end(str, &save);
+    sc_str_destroy(str);
 }
 
 void test4()
