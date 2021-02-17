@@ -26,6 +26,8 @@ void test1(void)
     sc_log_init();
     sc_log_set_callback(&count, callback);
     assert(sc_log_set_level("errrorr") == -1);
+    assert(sc_log_set_level("errox") == -1);
+    assert(sc_log_set_level("err") == -1);
     sc_log_debug("test \n");
     assert(count == 0);
 
@@ -271,6 +273,7 @@ void fail_test(void)
     fprintf_ret = 0;
 
     assert(sc_log_set_file(NULL, "test.txt") == 0);
+    assert(sc_log_set_file("test.txt", NULL) == 0);
     mock_fopen = true;
     assert(sc_log_set_file("prev.txt", "current.txt") == -1);
     mock_fopen = false;

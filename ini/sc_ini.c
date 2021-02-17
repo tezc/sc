@@ -76,7 +76,7 @@ static char *trim_comment(char *str)
 
 static char *trim_bom(char *str)
 {
-    if (str != NULL && strlen(str) >= 3) {
+    if (strlen(str) >= 3) {
         if ((uint8_t) str[0] == 0xEF && (uint8_t) str[1] == 0xBB &&
             (uint8_t) str[2] == 0xBF) {
             str += 3;

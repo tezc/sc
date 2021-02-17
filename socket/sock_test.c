@@ -373,6 +373,10 @@ void test1()
     assert(sc_sock_connect(&sock, "d::1", "2131", "dsad", "50") != 0);
     assert(sc_sock_finish_connect(&sock) != 0);
     assert(sc_sock_connect(&sock, "dsadas", "2131", "::1", "50") != 0);
+    assert(sc_sock_connect(&sock, "dsadas", "2131", NULL, "50") != 0);
+    assert(sc_sock_connect(&sock, "dsadas", "2131", "s", NULL) != 0);
+    assert(sc_sock_connect(&sock, "127.0.01", "2131", "100.0.0.0", NULL) != 0);
+    assert(sc_sock_connect(&sock, "127.0.01", "2131",  NULL, "9000") != 0);
     sc_sock_term(&sock);
 
     sc_sock_init(&sock, 0, false, SC_SOCK_INET);

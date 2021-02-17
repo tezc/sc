@@ -540,6 +540,32 @@ void test15()
     remove("config.ini");
 }
 
+int cb16(void *arg, int line, const char *section, const char *key,
+         const char *value)
+{
+    (void) arg;
+    (void) line;
+    (void) section;
+    (void) key;
+    (void) value;
+
+    return 0;
+}
+
+void test16()
+{
+    int rc;
+
+    rc = sc_ini_parse_string(NULL, cb16, "key#  =  ;comment \n");
+    assert(rc == 0);
+    rc = sc_ini_parse_string(NULL, cb16, "key#  =  ;comment \n\n");
+    assert(rc == 0);
+    rc = sc_ini_parse_string(NULL, cb16, "key#  =  ;comment \nx=3\n");
+    assert(rc == 0);
+    rc = sc_ini_parse_string(NULL, cb16, "\n\0");
+    assert(rc == 0);
+}
+
 const char *example_ini = "# My configuration"
                           "[Network] \n"
                           "hostname = github.com \n"
@@ -656,6 +682,7 @@ int main()
     test13();
     test14();
     test15();
+    test16();
     test_fail();
 
     return 0;
