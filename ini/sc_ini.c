@@ -40,12 +40,12 @@ static char *trim_space(char *str)
 {
     char *end;
 
-    while (isspace(*str)) {
+    while (isspace((unsigned char) *str)) {
         str++;
     }
 
     end = str + strlen(str) - 1;
-    while (end > str && isspace(*end)) {
+    while (end > str && isspace((unsigned char) *end)) {
         end--;
     }
 
