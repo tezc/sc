@@ -436,6 +436,38 @@ void test5()
     sc_str_replace(&s1, "elem", "item");
     assert(strcmp(s1, "item1,item2,item3") == 0);
     sc_str_destroy(s1);
+
+    s1 = sc_str_create(NULL);
+    assert(sc_str_append_fmt(&s1, "%s", "string") == true);
+    assert(strcmp(s1, "string") == 0);
+    sc_str_destroy(s1);
+
+    s1 = sc_str_create(NULL);
+    sc_str_append(&s1, "string");
+    assert(strcmp(s1, "string") == 0);
+    sc_str_destroy(s1);
+
+    s1 = sc_str_create(NULL);
+    assert(sc_str_trim(&s1, "x") == true);
+    assert(s1 == NULL);
+    assert(sc_str_replace(&s1, "t", "x") == true);
+    assert(s1 == NULL);
+    assert(sc_str_substring(&s1, 0, 0) == false);
+    assert(s1 == NULL);
+    assert(sc_str_dup(s1) == NULL);
+    assert(sc_str_set(&s1, "string") == true);
+    assert(strcmp(s1, "string") == 0);
+    sc_str_destroy(s1);
+
+    s1 = sc_str_create(NULL);
+    assert(sc_str_set_fmt(&s1, "%s", "string") == true);
+    assert(strcmp(s1, "string") == 0);
+    sc_str_destroy(s1);
+
+    s1 = sc_str_create(NULL);
+    assert(sc_str_set(&s1, "string") == true);
+    assert(strcmp(s1, "string") == 0);
+    sc_str_destroy(s1);
 }
 
 void test6()
