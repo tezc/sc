@@ -125,7 +125,8 @@ bool sc_str_append(char **str, const char *text);
  * @return    'true' on success, 'false' on out of memory or if '*str' is NULL.
  */
 #define sc_str_append_fmt(str, fmt, ...)                                       \
-    sc_str_set_fmt(str, "%s" fmt, *str, __VA_ARGS__)
+    ((*str) ? (sc_str_set_fmt(str, "%s" fmt, *str, __VA_ARGS__)) :             \
+              (sc_str_set_fmt(str, fmt, __VA_ARGS__)))
 
 /**
  * Compare two length prefixed strings. To compare with C string, use strcmp().
