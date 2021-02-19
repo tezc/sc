@@ -233,10 +233,6 @@ void test2()
     fail_vnsprintf_value = 9000;
     assert(sc_str_create_fmt("%s", tmp) == NULL);
 
-    fail_vsnprintf_at = 1;
-    fail_vnsprintf_value = 9000;
-    assert(sc_str_create_fmt("%s", tmp) == NULL);
-
     fail_vsnprintf_at = -1;
     fail_vnsprintf_value = -1;
     char *x1 = sc_str_create_fmt("%s", tmp);
