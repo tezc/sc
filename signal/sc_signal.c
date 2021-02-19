@@ -256,8 +256,6 @@ void sc_signal_std_on_fatal(int sig)
         sig_str = "SIGSEGV";
     } else if (sig == SIGABRT) {
         sig_str = "SIGABRT";
-    } else if (sig == SIGBUS) {
-        sig_str = "SIGBUS";
     } else if (sig == SIGFPE) {
         sig_str = "SIGFPE";
     } else if (sig == SIGILL) {
