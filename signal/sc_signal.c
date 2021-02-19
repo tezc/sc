@@ -246,7 +246,7 @@ LONG WINAPI sc_signal_on_fatal(PEXCEPTION_POINTERS info)
     return 0;
 }
 
-void sc_signal_std_on_fatal(int type)
+void sc_signal_std_on_fatal(int sig)
 {
     char buf[128];
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stderr);
@@ -265,7 +265,7 @@ void sc_signal_std_on_fatal(int type)
     }
 
     sc_signal_log(fd, buf, sizeof(buf),
-                  "Fatal signal : [%s][%d], shutting down! \n", sig_str, type);
+                  "Fatal signal : [%s][%d], shutting down! \n", sig_str, sig);
 
     _Exit(1);
 }
