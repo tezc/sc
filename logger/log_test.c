@@ -160,6 +160,17 @@ FILE *__wrap_fopen(const char *filename, const char *mode)
     return NULL;
 }
 
+bool mock_ftell = false;
+extern long int __real_ftell (FILE *stream);
+extern long int __wrap_ftell (FILE *stream)
+{
+    if (mock_ftell) {
+        return -1;
+    }
+
+    return __real_ftell(stream);
+}
+
 bool mock_fclose = false;
 extern int __real_fclose (FILE *__stream);
 int __wrap_fclose (FILE *__stream)
@@ -277,6 +288,10 @@ void fail_test(void)
     mock_fopen = true;
     assert(sc_log_set_file("prev.txt", "current.txt") == -1);
     mock_fopen = false;
+    mock_ftell = true;
+    assert(sc_log_set_file("prev.txt", "current.txt") == -1);
+    mock_ftell = false;
+
     assert(sc_log_set_file("prev.txt", "current.txt") == 0);
     mock_localtime_r= true;
     assert(sc_log_error("test") == -1);

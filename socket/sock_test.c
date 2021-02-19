@@ -376,7 +376,7 @@ void test1()
     assert(sc_sock_connect(&sock, "dsadas", "2131", NULL, "50") != 0);
     assert(sc_sock_connect(&sock, "dsadas", "2131", "s", NULL) != 0);
     assert(sc_sock_connect(&sock, "127.0.01", "2131", "100.0.0.0", NULL) != 0);
-    assert(sc_sock_connect(&sock, "127.0.01", "2131",  NULL, "9000") != 0);
+    assert(sc_sock_connect(&sock, "127.0.01", "2131", NULL, "9000") != 0);
     sc_sock_term(&sock);
 
     sc_sock_init(&sock, 0, false, SC_SOCK_INET);
@@ -497,7 +497,7 @@ int sc_mutex_init(struct sc_mutex *mtx)
 
     // This won't fail as long as we pass correct params.
     rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
-    assert (rc == 0);
+    assert(rc == 0);
 
     // May fail on OOM
     rc = pthread_mutex_init(&mtx->mtx, &attr);
@@ -634,7 +634,7 @@ int __wrap_fcntl(int fd, int cmd, ...)
     if (test_done) {
         va_list va;
         va_start(va, cmd);
-        void* t = va_arg(va, void*);
+        void *t = va_arg(va, void *);
         return __real_fcntl(fd, cmd, t);
     }
 
@@ -659,6 +659,37 @@ int __wrap_fcntl(int fd, int cmd, ...)
 
     sc_mutex_unlock(&mutex);
     return -1;
+}
+
+int fail_getsockopt;
+int fail_getsockopt_result;
+
+extern int __real_getsockopt(int fd, int level, int optname,
+                             void *restrict optval, socklen_t *restrict optlen);
+extern int __wrap_getsockopt(int fd, int level, int optname,
+                             void *restrict optval, socklen_t *restrict optlen)
+{
+    if (fail_getsockopt) {
+        *(int *) optval = fail_getsockopt_result;
+        return fail_getsockopt_result != 0 ? 0 : 10;
+    }
+
+    return __real_getsockopt(fd, level, optname, optval, optlen);
+}
+
+int fail_epoll_wait;
+extern int __real_epoll_wait(int epfd, struct epoll_event *events,
+                             int maxevents, int timeout);
+extern int __wrap_epoll_wait(int epfd, struct epoll_event *events,
+                             int maxevents, int timeout)
+{
+    if (fail_epoll_wait) {
+        fail_epoll_wait = 0;
+        errno = EINTR;
+        return -1;
+    }
+
+    return __real_epoll_wait(epfd, events, maxevents, timeout);
 }
 
 int fail_socket = false;
@@ -768,6 +799,19 @@ int __wrap_epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)
     return __real_epoll_ctl(epfd, op, fd, event);
 }
 
+int fail_getsockname;
+int __real_getsockname (int fd, struct sockaddr * addr, socklen_t * len);
+int __wrap_getsockname (int fd, struct sockaddr * addr, socklen_t * len)
+{
+    if (fail_getsockname) {
+        struct sockaddr_storage* str = (struct sockaddr_storage*)addr;
+        str->ss_family = AF_BRIDGE;
+        return 0;
+    }
+
+    return __real_getsockname(fd, addr, len);
+}
+
 void poll_fail_test()
 {
     bool fail;
@@ -775,6 +819,11 @@ void poll_fail_test()
     struct sc_sock sock;
     struct sc_sock_poll poll;
     struct sc_sock_pipe pipe[301];
+
+    assert(sc_sock_poll_init(&poll) == 0);
+    fail_epoll_wait = 1;
+    assert(sc_sock_poll_wait(&poll, 10) == 0);
+    assert(sc_sock_poll_term(&poll) == 0);
 
     assert(sc_sock_poll_init(&poll) == 0);
     sc_sock_init(&sock, 0, true, AF_INET);
@@ -1197,6 +1246,14 @@ void sock_fail_test2()
     sc_sock_print(&client, NULL, 0);
     fail_inet_ntop = INT32_MAX;
     assert(sc_sock_term(&client) == 0);
+
+    char buf[128];
+    sc_sock_init(&client, 0, false, SC_SOCK_INET);
+    sc_sock_listen(&client, "127.0.0.1", "8080");
+    fail_getsockname = 1;
+    sc_sock_print(&client, buf, 128);
+    fail_getsockname = 0;
+    assert(sc_sock_term(&client) == 0);
 }
 
 void sock_fail_test3()
@@ -1272,6 +1329,14 @@ void sock_fail_test3()
     fail_connect_err = 0;
     fail_connect = 0;
     assert(sc_sock_term(&client) == 0);
+
+    sc_sock_init(&client, 0, false, SC_SOCK_INET);
+    assert(sc_sock_finish_connect(&client) != 0);
+    fail_getsockopt = 1;
+    fail_getsockopt_result = -1;
+    assert(sc_sock_finish_connect(&client) != 0);
+    fail_getsockopt = 0;
+    sc_sock_term(&client);
 }
 
 #else

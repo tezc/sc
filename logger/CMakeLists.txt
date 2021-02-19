@@ -38,7 +38,7 @@ if(SC_BUILD_TEST)
           target_link_options(${PROJECT_NAME}_test PRIVATE
                   -Wl,--wrap=fprintf,--wrap=vfprintf,--wrap=fopen,--wrap=localtime_r
                   -Wl,--wrap=pthread_mutexattr_init,--wrap=pthread_mutex_init
-                  -Wl,--wrap=fclose)
+                  -Wl,--wrap=fclose,--wrap=ftell)
       endif ()
   endif ()
 

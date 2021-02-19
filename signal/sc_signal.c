@@ -40,9 +40,9 @@
 
 #if defined(_WIN32)
     #include <WinSock2.h>
-    volatile SOCKET sc_signal_shutdown_fd;
+volatile SOCKET sc_signal_shutdown_fd;
 #else
-    volatile sig_atomic_t sc_signal_shutdown_fd;
+volatile sig_atomic_t sc_signal_shutdown_fd;
 #endif
 
 /**
@@ -59,14 +59,12 @@ volatile sig_atomic_t sc_signal_will_shutdown;
 #define get_uint(va, size)                                                     \
     (size) == 3 ? va_arg(va, unsigned long long) :                             \
     (size) == 2 ? va_arg(va, unsigned long) :                                  \
-    (size) == 1 ? va_arg(va, unsigned int) :                                   \
-                  0
+                  va_arg(va, unsigned int)
 
 #define get_int(va, size)                                                      \
     (size) == 3 ? va_arg(va, long long) :                                      \
     (size) == 2 ? va_arg(va, long) :                                           \
-    (size) == 1 ? va_arg(va, int) :                                            \
-                  0
+                  va_arg(va, int)
 
 #define PSIZE sizeof(void *) == sizeof(unsigned long long) ? 3 : 2
 
@@ -252,24 +250,18 @@ void sc_signal_std_on_fatal(int type)
 {
     char buf[128];
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stderr);
-    const char *sig_str;
+    char *sig_str = "unknown signal";
 
-    switch (type) {
-    case SIGSEGV:
+    if (sig == SIGSEGV) {
         sig_str = "SIGSEGV";
-        break;
-    case SIGABRT:
+    } else if (sig == SIGABRT) {
         sig_str = "SIGABRT";
-        break;
-    case SIGFPE:
+    } else if (sig == SIGBUS) {
+        sig_str = "SIGBUS";
+    } else if (sig == SIGFPE) {
         sig_str = "SIGFPE";
-        break;
-    case SIGILL:
+    } else if (sig == SIGILL) {
         sig_str = "SIGILL";
-        break;
-    default:
-        sig_str = "Unknown signal";
-        break;
     }
 
     sc_signal_log(fd, buf, sizeof(buf),
@@ -302,7 +294,7 @@ int sc_signal_init()
 
 #else
 
-// clang-format off
+    // clang-format off
 #include <unistd.h>
 #include <errno.h>
 
@@ -369,22 +361,19 @@ static void sc_signal_on_shutdown(int sig)
     int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDOUT_FILENO;
     char buf[4096], *sig_str = "Shutdown signal";
 
-    switch (sig) {
-    case SIGINT:
+    if (sig == SIGINT) {
         sig_str = "SIGINT";
-        break;
-    case SIGTERM:
+    } else if (sig == SIGTERM) {
         sig_str = "SIGTERM";
-        break;
     }
 
     sc_signal_log(fd, buf, sizeof(buf), "Received : %s, (%d) \n", sig_str, sig);
 
     if (sc_signal_will_shutdown != 0) {
         sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
-#ifdef SC_SIGNAL_TEST
+    #ifdef SC_SIGNAL_TEST
         return;
-#endif
+    #endif
         _Exit(1);
     }
 
@@ -397,17 +386,17 @@ static void sc_signal_on_shutdown(int sig)
             sc_signal_log(fd, buf, sizeof(buf),
                           "Failed to send shutdown command, "
                           "shutting down immediately! \n");
-#ifdef SC_SIGNAL_TEST
+    #ifdef SC_SIGNAL_TEST
             return;
-#endif
+    #endif
             _Exit(1);
         }
     } else {
         sc_signal_log(fd, buf, sizeof(buf),
                       "No shutdown handler, shutting down! \n");
-#ifdef SC_SIGNAL_TEST
+    #ifdef SC_SIGNAL_TEST
         return;
-#endif
+    #endif
         _Exit(0);
     }
 
@@ -423,22 +412,16 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
     char buf[4096], *sig_str = "unknown signal";
     struct sigaction act;
 
-    switch (sig) {
-    case SIGSEGV:
+    if (sig == SIGSEGV) {
         sig_str = "SIGSEGV";
-        break;
-    case SIGABRT:
+    } else if (sig == SIGABRT) {
         sig_str = "SIGABRT";
-        break;
-    case SIGBUS:
+    } else if (sig == SIGBUS) {
         sig_str = "SIGBUS";
-        break;
-    case SIGFPE:
+    } else if (sig == SIGFPE) {
         sig_str = "SIGFPE";
-        break;
-    case SIGILL:
+    } else if (sig == SIGILL) {
         sig_str = "SIGILL";
-        break;
     }
 
     sc_signal_log(fd, buf, sizeof(buf), "\nSignal received : [%d][%s] \n", sig,
@@ -493,6 +476,10 @@ int sc_signal_init()
     rc &= (sigaction(SIGTERM, &action, NULL) == 0);
     rc &= (sigaction(SIGINT, &action, NULL) == 0);
 
+#ifdef SC_SIGNAL_TEST
+    rc &= (sigaction(SIGUSR2, &action, NULL) == 0);
+#endif
+
     rc &= (sigemptyset(&action.sa_mask) == 0);
     action.sa_flags = SA_NODEFER | SA_RESETHAND | SA_SIGINFO;
     action.sa_sigaction = sc_signal_on_fatal;
@@ -502,6 +489,10 @@ int sc_signal_init()
     rc &= (sigaction(SIGBUS, &action, NULL) == 0);
     rc &= (sigaction(SIGFPE, &action, NULL) == 0);
     rc &= (sigaction(SIGILL, &action, NULL) == 0);
+
+#ifdef SC_SIGNAL_TEST
+    rc &= (sigaction(SIGSYS, &action, NULL) == 0);
+#endif
 
     return rc ? 0 : -1;
 }

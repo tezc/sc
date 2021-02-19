@@ -42,7 +42,8 @@ if(SC_BUILD_TEST)
           -Wl,--wrap=close,--wrap=malloc,--wrap=realloc,--wrap=epoll_create1
           -Wl,--wrap=setsockopt,--wrap=listen,--wrap=fcntl,--wrap=socket
           -Wl,--wrap=inet_ntop,--wrap=send,--wrap=recv,--wrap=connect
-          -Wl,--wrap=write,--wrap=read,--wrap=epoll_ctl)
+          -Wl,--wrap=write,--wrap=read,--wrap=epoll_ctl,--wrap=getsockopt
+          -Wl,--wrap=epoll_wait,--wrap=getsockname)
       endif ()
   endif ()
 

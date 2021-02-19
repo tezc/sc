@@ -95,7 +95,7 @@ char *sc_str_create_va(const char *fmt, va_list va)
 
     va_copy(args, va);
     rc = vsnprintf(tmp, sizeof(tmp), fmt, args);
-    if (rc < 0) {
+    if (rc < 0 || (size_t) rc > SC_SIZE_MAX) {
         return NULL;
     }
     va_end(args);
@@ -111,7 +111,7 @@ char *sc_str_create_va(const char *fmt, va_list va)
         memcpy(str->buf, tmp, str->len + 1);
     } else {
         va_copy(args, va);
-        rc = vsnprintf(str->buf, str->len, fmt, args);
+        rc = vsnprintf(str->buf, str->len + 1, fmt, args);
         va_end(args);
 
         if (rc < 0 || (uint32_t) rc > str->len) {
@@ -272,7 +272,7 @@ void sc_str_token_end(char *str, char **save)
         return;
     }
 
-    swap(str, (save != NULL && *save != NULL) ? *save : str + strlen(str));
+    swap(str, *save);
 }
 
 bool sc_str_trim(char **str, const char *list)
