@@ -235,7 +235,27 @@ void test2()
 
     fail_vsnprintf_at = -1;
     fail_vnsprintf_value = -1;
+    char *x1 = sc_str_create_fmt("%s", tmp);
+    assert(x1 != NULL);
+    assert(strcmp(x1, tmp) == 0);
+
+    for (int i =0 ; i < 1499; i++) {
+        assert(tmp[i] == x1[i]);
+    }
+
+    sc_str_destroy(x1);
     free(tmp);
+
+    x1 = NULL;
+    for (int i = 0; i < 4000; i++) {
+        sc_str_append_fmt(&x1, "%s", "x");
+    }
+
+    for (int i = 0; i < 4000; i++) {
+        assert(x1[i] == 'x');
+    }
+    assert(sc_str_len(x1) == 4000);
+    sc_str_destroy(x1);
 }
 
 #endif
@@ -296,6 +316,30 @@ void test3()
     while ((token = sc_str_token_begin(str, &save, "")) != NULL) {
         assert(strcmp(token, "token") == 0);
     }
+    sc_str_token_end(str, &save);
+    sc_str_destroy(str);
+
+    str = sc_str_create("x,x");
+    save = NULL;
+    sc_str_token_end(str, &save);
+    sc_str_destroy(str);
+
+    str = sc_str_create("x,x");
+    save = NULL;
+    while ((token = sc_str_token_begin(str, &save, ",")) != NULL) {
+        assert(strcmp(token, "x") == 0);
+        break;
+    }
+    sc_str_token_end(str, &save);
+    sc_str_destroy(str);
+
+    str = sc_str_create("x,x");
+    save = NULL;
+    while ((token = sc_str_token_begin(str, &save, ",")) != NULL) {
+        assert(strcmp(token, "x") == 0);
+        break;
+    }
+    sc_str_token_end(str, &save);
     sc_str_token_end(str, &save);
     sc_str_destroy(str);
 }
@@ -360,7 +404,7 @@ void test4()
         }
     }
 
-    sc_str_token_end(str, NULL);
+    sc_str_token_end(str, &save);
     assert(strcmp(str, "tk1;tk2-tk3 tk4  tk5*tk6") == 0);
 
     sc_str_destroy(str);

@@ -47,11 +47,23 @@ void test2()
 }
 
 #ifdef SC_HAVE_WRAP
+    #include <signal.h>
     #include <stdbool.h>
     #include <stdio.h>
     #include <stdlib.h>
     #include <unistd.h>
     #include <wait.h>
+
+bool fail_signal;
+extern void (*__real_signal(int sig, void (*func)(int)))(int);
+void (*__wrap_signal(int sig, void (*func)(int)))(int)
+{
+    if (fail_signal) {
+        return SIG_ERR;
+    }
+
+    return __real_signal(sig, func);
+}
 
 void sig_handler(int signum)
 {
@@ -85,8 +97,11 @@ void test3()
     test3x(SIGABRT);
     test3x(SIGBUS);
     test3x(SIGFPE);
+    sc_signal_log_fd = STDOUT_FILENO;
     test3x(SIGILL);
+    sc_signal_log_fd = -1;
     test3x(SIGUSR1);
+    test3x(SIGSYS);
 }
 
 
@@ -106,6 +121,7 @@ void test4x(int signal)
         }
     } else {
         assert(sc_signal_init() == 0);
+        sc_signal_log_fd = STDOUT_FILENO;
         sc_signal_shutdown_fd = STDOUT_FILENO;
         printf("Running child \n");
         raise(signal);
@@ -119,6 +135,7 @@ void test4()
 {
     test4x(SIGINT);
     test4x(SIGTERM);
+    test4x(SIGUSR2);
 }
 
 void test5()
@@ -217,6 +234,13 @@ void test8()
     }
 }
 
+void test9()
+{
+    fail_signal = true;
+    assert(sc_signal_init() != 0);
+    fail_signal = false;
+}
+
 #else
 void test3()
 {
@@ -236,6 +260,10 @@ void test7()
 void test8()
 {
 }
+void test9()
+{
+
+}
 #endif
 
 int main()
@@ -248,6 +276,7 @@ int main()
     test6();
     test7();
     test8();
+    test9();
 
     return 0;
 }

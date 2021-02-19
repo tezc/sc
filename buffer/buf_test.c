@@ -279,6 +279,7 @@ size_t __wrap_strlen(const char *s)
 }
 
 bool fail_vsnprintf;
+int fail_vsnprintf_value = -1;
 int fail_vsnprintf_at = -1;
 extern int __real_vsnprintf(char *str, size_t size, const char *format,
                             va_list ap);
@@ -289,7 +290,7 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
         return __real_vsnprintf(str, size, format, ap);
     }
 
-    return -1;
+    return fail_vsnprintf_value;
 }
 
 void fail_test()
@@ -455,6 +456,36 @@ void fail_test()
 
     fail_vsnprintf_at = -1;
     fail_realloc = false;
+
+    sc_buf_init(&buf, 3);
+    fail_vsnprintf_at = 2;
+    fail_vsnprintf_value = 1000000;
+    sc_buf_put_text(&buf, "test");
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 3);
+    fail_vsnprintf_at = 2;
+    fail_vsnprintf_value = -1;
+    sc_buf_put_text(&buf, "test");
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 3);
+    fail_vsnprintf_at = 2;
+    fail_vsnprintf_value = 1000000;
+    sc_buf_put_fmt(&buf, "%s", "test");
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_term(&buf);
+
+    fail_vsnprintf_value = -1;
+    fail_vsnprintf_at = -1;
+    fail_realloc = false;
+
+    sc_buf_init(&buf, 3);
+    sc_buf_put_text(&buf, "test");
+    assert(sc_buf_valid(&buf) == true);
+    sc_buf_term(&buf);
 
 }
 #else

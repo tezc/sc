@@ -739,7 +739,7 @@ void sc_buf_put_text(struct sc_buf *buf, const char *fmt, ...)
         rc = vsnprintf((char *) sc_buf_wbuf(buf) - offset, quota, fmt, args);
         va_end(args);
 
-        if (rc < 0 || (uint32_t) rc >= quota) {
+        if (rc < 0 || (uint32_t) rc >= sc_buf_quota(buf)) {
             sc_buf_set_wpos(buf, 0);
             buf->error = SC_BUF_OOM;
             return;
