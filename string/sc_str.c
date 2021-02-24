@@ -96,6 +96,7 @@ char *sc_str_create_va(const char *fmt, va_list va)
     va_copy(args, va);
     rc = vsnprintf(tmp, sizeof(tmp), fmt, args);
     if (rc < 0) {
+        va_end(args);
         return NULL;
     }
     va_end(args);

@@ -50,3 +50,17 @@ jobs:
           cmake .. -DSANITIZER=thread
           make -j
           make check
+  ubuntu-clang-tidy:
+    runs-on: ubuntu-latest
+    name: Clang Tidy
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        env:
+          CC: clang
+        run: |
+          sudo apt-get install cmake clang-tidy
+          mkdir build-debug && cd build-debug
+          cmake .. -DSC_CLANG_TIDY=1
+          make -j
+          make check

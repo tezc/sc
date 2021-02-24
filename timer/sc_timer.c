@@ -84,7 +84,8 @@ static bool expand(struct sc_timer *timer)
     size_t size = cap * sizeof(struct sc_timer_data);
     struct sc_timer_data *alloc;
 
-    // Check overflow
+    assert(size != 0);
+
     if (timer->wheel > SC_CAP_MAX / 2) {
         return false;
     }
@@ -123,8 +124,6 @@ uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
     const uint32_t pos = offset & (WHEEL_COUNT - 1);
     uint64_t id;
     uint32_t seq, index, wheel_pos;
-
-    assert(timeout < UINT64_MAX);
 
     timer->count++;
 
