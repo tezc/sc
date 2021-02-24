@@ -25,6 +25,12 @@ if (SC_BUILD_TEST)
     include(CTest)
     include(CheckCCompilerFlag)
 
+    set(CMAKE_C_CLANG_TIDY
+            clang-tidy;
+            -line-filter=[{"name":"${PROJECT_NAME}.h"},{"name":"${PROJECT_NAME}.c"}];
+            -checks=clang-analyzer-*,misc-*,portability-*,bugprone-*;
+            -warnings-as-errors=clang-analyzer-*,misc-*,portability-*,bugprone-*;)
+
     enable_testing()
 
     add_executable(${PROJECT_NAME}_test signal_test.c sc_signal.c)
@@ -94,7 +100,7 @@ if (SC_BUILD_TEST)
             ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --verbose
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-# ------------------------- Code Coverage Start ----------------------------- #
+    # ------------------------- Code Coverage Start ----------------------------- #
 
     if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
@@ -117,7 +123,7 @@ if (SC_BUILD_TEST)
 
     add_dependencies(coverage_${PROJECT_NAME} check_${PROJECT_NAME})
 
-# -------------------------- Code Coverage End ------------------------------ #
+    # -------------------------- Code Coverage End ------------------------------ #
 
 endif ()
 

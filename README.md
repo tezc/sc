@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/tezc/sc/branch/master/graph/badge.svg?token=O8ZHQ0XZ30)](https://codecov.io/gh/tezc/sc)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/tezc/sc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tezc/sc/alerts/)
 
-Common C libraries and data structures. (C99)    
+Portable, stand-alone C libraries and data structures. (C99)    
 
 Each folder is stand-alone and contains a single .h .c pair.  
 There is no build, copy .h .c files you want.
