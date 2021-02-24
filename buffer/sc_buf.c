@@ -27,6 +27,10 @@
 #include <assert.h>
 #include <stdio.h>
 
+#ifndef SC_BUF_SIZE_MAX
+    #define SC_BUF_SIZE_MAX UINT32_MAX
+#endif
+
 #define sc_buf_min(a, b) ((a) > (b) ? (b) : (a))
 
 bool sc_buf_init(struct sc_buf *buf, uint32_t cap)
@@ -51,7 +55,7 @@ struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags)
 {
     struct sc_buf buf = {.mem = data,
                          .cap = len,
-                         .limit = flags & SC_BUF_REF ? len : UINT32_MAX,
+                         .limit = flags & SC_BUF_REF ? len : SC_BUF_SIZE_MAX,
                          .wpos = flags & SC_BUF_DATA ? len : 0,
                          .rpos = 0,
                          .ref = (bool) (flags & SC_BUF_REF),
@@ -96,7 +100,7 @@ bool sc_buf_reserve(struct sc_buf *buf, uint32_t len)
 
         if (buf->wpos + len > buf->cap) {
             size = ((buf->cap + len + 4095) / 4096) * 4096;
-            if (size > buf->limit) {
+            if (size > buf->limit || buf->cap >= SC_BUF_SIZE_MAX - 4096) {
                 buf->error |= SC_BUF_OOM;
                 return false;
             }
