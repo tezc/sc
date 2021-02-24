@@ -174,6 +174,16 @@ void test1()
 
     assert(sc_buf_valid(&buf));
     sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 100);
+    sc_buf_limit(&buf, 100000000);
+
+    for (int i = 0; i < 1000000; i++) {
+        sc_buf_put_str(&buf, "teesssssssssssssssssssssssssssssssssssssssssss");
+    }
+
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_term(&buf);
 }
 
 void test2()
