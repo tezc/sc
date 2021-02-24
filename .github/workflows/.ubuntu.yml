@@ -57,7 +57,7 @@ jobs:
       - uses: actions/checkout@v2.1.0
       - name: build
         env:
-          CC: gcc
+          CC: clang
         run: |
           sudo apt-get install cmake
           mkdir build-debug && cd build-debug
