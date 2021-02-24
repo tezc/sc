@@ -6,9 +6,6 @@
 
 Common C libraries and data structures. (C99)    
 
-Most libraries are carefully optimized for  
-performance e.g : array, hashmap, queue, buffer, timer.
-
 Each folder is stand-alone and contains a single .h .c pair.  
 There is no build, copy .h .c files you want.
 
