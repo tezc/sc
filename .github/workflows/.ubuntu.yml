@@ -59,7 +59,7 @@ jobs:
         env:
           CC: clang
         run: |
-          sudo apt-get install cmake
+          sudo apt-get install cmake clang-tidy
           mkdir build-debug && cd build-debug
           cmake .. -DSC_CLANG_TIDY=1
           make -j
