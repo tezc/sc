@@ -25,11 +25,15 @@ if (SC_BUILD_TEST)
     include(CTest)
     include(CheckCCompilerFlag)
 
-    set(CMAKE_C_CLANG_TIDY
-            clang-tidy;
-            -line-filter=[{"name":"${PROJECT_NAME}.h"},{"name":"${PROJECT_NAME}.c"}];
-            -checks=clang-analyzer-*,misc-*,portability-*,bugprone-*,-bugprone-not-null-terminated-result;
-            -warnings-as-errors=clang-analyzer-*,misc-*,portability-*,bugprone-*;)
+    if (SC_CLANG_TIDY)
+        message(STATUS "Enabled CLANG_TIDY")
+
+        set(CMAKE_C_CLANG_TIDY
+                clang-tidy;
+                -line-filter=[{"name":"${PROJECT_NAME}.h"},{"name":"${PROJECT_NAME}.c"}];
+                -checks=clang-analyzer-*,misc-*,portability-*,bugprone-*,-bugprone-not-null-terminated-result;
+                -warnings-as-errors=clang-analyzer-*,misc-*,portability-*,bugprone-*;)
+    endif ()
 
     enable_testing()
 

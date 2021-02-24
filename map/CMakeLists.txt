@@ -75,7 +75,7 @@ if (SC_BUILD_TEST)
     # ----------------------- - Code Coverage Start ----------------------------- #
 
     if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
-        if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang")
+        if (SC_CLANG_TIDY)
 
             target_compile_options(${PROJECT_NAME}_test PRIVATE -fprofile-instr-generate)
             target_compile_options(${PROJECT_NAME}_test PRIVATE -fcoverage-mapping)
