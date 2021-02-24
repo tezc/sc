@@ -3,17 +3,16 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 [![codecov](https://codecov.io/gh/tezc/sc/branch/master/graph/badge.svg?token=O8ZHQ0XZ30)](https://codecov.io/gh/tezc/sc)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/tezc/sc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tezc/sc/alerts/)
-[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/tezc/sc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tezc/sc/context:cpp)
 
 Common C libraries and data structures. (C99)    
 
-I write server-side applications mostly, so most libraries are carefully  
-optimized for performance e.g : array, hashmap, queue, buffer, timer.
+Most libraries are carefully optimized for  
+performance e.g : array, hashmap, queue, buffer, timer.
 
 Each folder is stand-alone and contains a single .h .c pair.  
 There is no build, copy .h .c files you want.
 
-Although I use on Linux mostly, CI runs with
+Although I use on Linux mostly, CI runs on
 
 <pre>
 OS         : Linux, MacOS, FreeBSD and Windows  
