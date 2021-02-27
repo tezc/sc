@@ -84,3 +84,20 @@ int main(int argc, char *argv[])
 }
 
 ```
+
+Most probably you will hold array pointer in a struct anyway, so you have a  
+stable address of the pointer, "*numbers" might change but "numbers" is stable :
+
+```c
+struct my_app {
+    int *numbers;
+};
+
+void func(struct my_app* app)
+{
+    sc_array_add(app->numbers, 0);
+    sc_array_add(app->numbers, 1);
+    sc_array_add(app->numbers, 2);
+}
+
+```

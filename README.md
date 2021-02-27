@@ -6,10 +6,14 @@
 
 Portable, stand-alone C libraries and data structures. (C99)    
 
-Each folder is stand-alone and contains a single .h .c pair.  
-There is no build, copy .h .c files you want.
+This repo contains common libraries you may need when writing C applications.  
+Most of them are optimized for performance. e.g array, hashmap, queue, timer.
 
-Although I use on Linux mostly, CI runs on
+Each folder is stand-alone with a single header/source pair in it.  
+There is no build for libraries, just copy files you want.  
+e.g If you want array, copy sc_array.h and sc_array.c to your project.
+
+I use on Linux mostly but libraries are portable, CI runs on
 
 <pre>
 OS         : Linux, MacOS, FreeBSD and Windows  
