@@ -66,3 +66,18 @@ int main(int argc, char *argv[])
     sc_array_destroy(q);
 }
 ```
+
+Most probably you will hold queue pointer in a struct anyway, so you have a  
+stable address of the pointer, "*numbers" might change but "numbers" is stable :
+
+```c
+struct my_app {
+    int *numbers;
+};
+
+void func(struct my_app* app)
+{
+    sc_queue_add_last(app->numbers, 300);
+    sc_queue_add_last(app->numbers, 400);
+    sc_queue_add_last(app->numbers, 500);
+}

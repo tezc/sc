@@ -108,10 +108,10 @@
     uint32_t sc_map_size_##name(struct sc_map_##name *map);                    \
                                                                                \
     /**                                                                        \
-     * Get map element count                                                   \
+     * Clear map                                                               \
      *                                                                         \
      * struct sc_map_str map;                                                  \
-     * uint32_t count = sc_map_size_str(&map);                                 \
+     * sc_map_clear_str(&map);                                                 \
      *                                                                         \
      * @param map map                                                          \
      */                                                                        \
