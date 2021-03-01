@@ -5,8 +5,7 @@
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/tezc/sc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tezc/sc/alerts/)
 
 Portable, stand-alone C libraries and data structures. (C99)    
-
-This repo contains common libraries you may need when writing C applications.  
+ 
 Most of them are optimized for performance. e.g array, hashmap, queue, timer.
 
 Each folder is stand-alone with a single header/source pair in it.  
@@ -18,7 +17,7 @@ I use on Linux mostly but libraries are portable, CI runs on
 <pre>
 OS         : Linux, MacOS, FreeBSD and Windows  
 Compilers  : GCC, Clang, MSVC  
-Arch       : x64, aarch64, armv6, armv7, ppc64le, s390x  
+Arch       : x64, aarch64, armv6(32 bit), armv7(32 bit), ppc64le, s390x(big endian)  
 Sanitizers : valgrind and clang/gcc sanitizers(address, undefined, thread)
 </pre>
 
