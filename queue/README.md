@@ -81,3 +81,4 @@ void func(struct my_app* app)
     sc_queue_add_last(app->numbers, 400);
     sc_queue_add_last(app->numbers, 500);
 }
+```
