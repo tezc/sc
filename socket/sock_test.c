@@ -732,6 +732,17 @@ int __wrap_connect(int fd, const struct sockaddr *addr, socklen_t len)
     return __real_connect(fd, addr, len);
 }
 
+int success_sendmsg = 0;
+ssize_t __real_sendmsg(int fd, const struct msghdr *message, int flags);
+ssize_t __wrap_sendmsg(int fd, const struct msghdr *message, int flags)
+{
+    if (success_sendmsg) {
+        return 0;
+    }
+
+    return __real_sendmsg(fd, message, flags);
+}
+
 int fail_send = INT32_MAX;
 int fail_send_err = 0;
 int fail_send_errno = 0;
@@ -1337,6 +1348,29 @@ void sock_fail_test3()
     assert(sc_sock_finish_connect(&client) != 0);
     fail_getsockopt = 0;
     sc_sock_term(&client);
+
+    assert(sc_sock_notify_systemd("test") == -1);
+    setenv("NOTIFY_SOCKET", "x", 1);
+    assert(sc_sock_notify_systemd("test") == -1);
+    setenv("NOTIFY_SOCKET", "/", 1);
+    assert(sc_sock_notify_systemd("test") == -1);
+    setenv("NOTIFY_SOCKET", "@", 1);
+    assert(sc_sock_notify_systemd("test") == -1);
+
+    setenv("NOTIFY_SOCKET", "/tmp/x", 1);
+    fail_socket = 1;
+    assert(sc_sock_notify_systemd("test") == -1);
+    fail_socket = 0;
+    setenv("NOTIFY_SOCKET", "@tmp/x", 1);
+    assert(sc_sock_notify_systemd("test") == -1);
+    setenv("NOTIFY_SOCKET", "@tmp/xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 1);
+    assert(sc_sock_notify_systemd("test") == -1);
+
+    success_sendmsg = 1;
+    setenv("NOTIFY_SOCKET", "/tmp/x", 1);
+    assert(sc_sock_notify_systemd("test") == 0);
+    success_sendmsg = 0;
+    unsetenv("NOTIFY_SOCKET");
 }
 
 #else

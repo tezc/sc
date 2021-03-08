@@ -53,7 +53,7 @@ if (SC_BUILD_TEST)
                     -Wl,--wrap=setsockopt,--wrap=listen,--wrap=fcntl,--wrap=socket
                     -Wl,--wrap=inet_ntop,--wrap=send,--wrap=recv,--wrap=connect
                     -Wl,--wrap=write,--wrap=read,--wrap=epoll_ctl,--wrap=getsockopt
-                    -Wl,--wrap=epoll_wait,--wrap=getsockname)
+                    -Wl,--wrap=epoll_wait,--wrap=getsockname,--wrap=sendmsg)
         endif ()
     endif ()
 
