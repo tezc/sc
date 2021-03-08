@@ -320,13 +320,14 @@ static int sc_log_print_header(FILE *fp, enum sc_log_level level)
 static int sc_log_stdout(enum sc_log_level level, const char *fmt, va_list va)
 {
     int rc;
+    FILE *dest = level == SC_LOG_ERROR ? stderr : stdout;
 
-    rc = sc_log_print_header(stdout, level);
+    rc = sc_log_print_header(dest, level);
     if (rc < 0) {
         return -1;
     }
 
-    rc = vfprintf(stdout, fmt, va);
+    rc = vfprintf(dest, fmt, va);
     if (rc < 0) {
         return -1;
     }
