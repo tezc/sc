@@ -245,6 +245,19 @@ const char *sc_sock_remote_str(struct sc_sock *sock, char *buf, size_t len);
 void sc_sock_print(struct sc_sock *sock, char *buf, size_t len);
 
 
+/**
+ * Linux only. Helper function make your application a daemon with systemd.
+ * e.g
+ * sc_sock_notify_systemd("READY=1\n");           // Tell systemd app started
+ * sc_sock_notify_systemd("STATUS=doing work\n"); // Tell systemd app doing sth
+ * sc_sock_notify_systemd("STOPPING=1\n")       ; // Tell systemd app will stop
+ *
+ * @param msg msg with systemd protocol format
+ * @return    '0' on success, negative on error, errno will be set.
+ */
+int sc_sock_notify_systemd(const char *msg);
+
+
 struct sc_sock_pipe
 {
     struct sc_sock_fd fdt;

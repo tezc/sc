@@ -104,9 +104,14 @@ int sc_sock_cleanup()
     return rc != 0 ? -1 : 0;
 }
 
+int sc_sock_notify_systemd(const char *msg)
+{
+    return -1;
+}
 
 #else
     #include <arpa/inet.h>
+    #include <assert.h>
     #include <netdb.h>
     #include <netinet/in.h>
     #include <netinet/tcp.h>
@@ -121,6 +126,51 @@ int sc_sock_cleanup()
     #define SC_EAGAIN      EAGAIN
     #define SC_EINPROGRESS EINPROGRESS
     #define SC_EINTR       EINTR
+
+int sc_sock_notify_systemd(const char *msg)
+{
+    assert(msg != NULL);
+
+    int fd, rc;
+    const char *s;
+    struct sockaddr_un addr = {.sun_family = AF_UNIX};
+    struct iovec iovec = {.iov_base = (char *) msg, .iov_len = strlen(msg)};
+    struct msghdr msghdr = {.msg_name = &addr,
+            .msg_iov = &iovec,
+            .msg_iovlen = 1};
+
+    s = getenv("NOTIFY_SOCKET");
+    if (!s) {
+        errno = EINVAL;
+        return -1;
+    }
+
+    if ((s[0] != '@' && s[0] != '/') || s[1] == '\0') {
+        errno = EINVAL;
+        return -1;
+    }
+
+    fd = socket(AF_UNIX, SOCK_DGRAM, 0);
+    if (fd < 0) {
+        return -1;
+    }
+
+    strncpy(addr.sun_path, s, sizeof(addr.sun_path) - 1);
+    if (addr.sun_path[0] == '@') {
+        addr.sun_path[0] = '\0';
+    }
+
+    msghdr.msg_namelen = offsetof(struct sockaddr_un, sun_path) + strlen(s);
+    if (msghdr.msg_namelen > sizeof(struct sockaddr_un)) {
+        msghdr.msg_namelen = sizeof(struct sockaddr_un);
+    }
+
+    rc = sendmsg(fd, &msghdr, MSG_NOSIGNAL);
+
+    close(fd);
+
+    return rc < 0 ? -1 : 0;
+}
 
 int sc_sock_startup()
 {
@@ -747,7 +797,6 @@ void sc_sock_print(struct sc_sock *sock, char *buf, size_t len)
 
     snprintf(buf, len, "Local(%s), Remote(%s) ", l, r);
 }
-
 
 const char *sc_sock_pipe_err(struct sc_sock_pipe *pipe)
 {
