@@ -340,7 +340,7 @@ struct sc_sock_poll
 #else
 
     #if !defined(_WIN32)
-        #include <sys/poll.h>
+        #include <poll.h>
     #endif
 
 struct sc_sock_poll
