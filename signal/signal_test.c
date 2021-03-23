@@ -52,7 +52,7 @@ void test2()
     #include <stdio.h>
     #include <stdlib.h>
     #include <unistd.h>
-    #include <wait.h>
+    #include <sys/wait.h>
 
 bool fail_signal;
 extern void (*__real_signal(int sig, void (*func)(int)))(int);

@@ -13,7 +13,7 @@ jobs:
     name: Build on s390x
     steps:
       - uses: actions/checkout@v2.1.0
-      - uses: uraimo/run-on-arch-action@v2.0.8
+      - uses: uraimo/run-on-arch-action@v2.0.9
         name: Build artifact
         id: build
         with:
