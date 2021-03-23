@@ -150,7 +150,7 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  * struct sc_list *list;        // List pointer, should already be initialized.
  * struct sc_list *it;          // Iterator
  *
- * sc_list_foreach(list, it) {
+ * sc_list_foreach (list, it) {
  *       container = sc_list_entry(it, struct container, others);
  * }
  */
@@ -166,9 +166,10 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  *
  * struct container *container; // User object
  * struct sc_list *list;        // List pointer, should already be initialized.
+ * struct sc_list *tmp;         // Variable for loop, user should not use this.
  * struct sc_list *it;          // Iterator
  *
- * sc_list_foreach(list, it) {
+ * sc_list_foreach_safe (list, it) {
  *       container = sc_list_entry(it, struct container, others);
  *       sc_list_del(list, &container->others);
  * }
@@ -188,11 +189,10 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  * struct sc_list *list;        // List pointer, should already be initialized.
  * struct sc_list *it;          // Iterator
  *
- * sc_list_foreach(list, it) {
+ * sc_list_foreach_r (list, it) {
  *       container = sc_list_entry(it, struct container, others);
  * }
  */
-
 #define sc_list_foreach_r(list, elem)                                          \
     for ((elem) = (list)->prev; (elem) != (list); (elem) = (elem)->prev)
 
@@ -209,9 +209,10 @@ void sc_list_del(struct sc_list *list, struct sc_list *elem);
  *
  * struct container *container; // User object
  * struct sc_list *list;        // List pointer, should already be initialized.
+ * struct sc_list *tmp;         // Variable for loop, user should not use this.
  * struct sc_list *it;          // Iterator
  *
- * sc_list_foreach(list, it) {
+ * sc_list_foreach_safe_r (list, tmp, it) {
  *       container = sc_list_entry(it, struct container, others);
  *       sc_list_del(list, &container->others);
  * }

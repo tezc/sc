@@ -188,6 +188,7 @@ void test1()
 
 void test2()
 {
+    unsigned char tmp[32];
     struct sc_buf buf;
     sc_buf_init(&buf, 100);
 
@@ -248,22 +249,57 @@ void test2()
     sc_buf_set_32(&buf, 100);
     sc_buf_set_64(&buf, 100);
     sc_buf_set_data(&buf, 19, "d", 1);
-    sc_buf_peek_data(&buf, 10, NULL, 0);
+    sc_buf_peek_data(&buf, 10, tmp, 0);
     assert(!sc_buf_valid(&buf));
+    sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 32);
+    sc_buf_put_64(&buf, 100);
+    sc_buf_put_64(&buf, 200);
+    sc_buf_put_64(&buf, 300);
+    sc_buf_put_64(&buf, 400);
+    sc_buf_get_64(&buf);
+    sc_buf_get_64(&buf);
+    sc_buf_shrink(&buf, 24);
+    assert(sc_buf_get_64(&buf) == 300);
+    assert(sc_buf_get_64(&buf) == 400);
+    assert(sc_buf_size(&buf) == 0);
+    sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 4096);
+    sc_buf_shrink(&buf, 4096 * 2);
+    sc_buf_shrink(&buf, 128);
+
+    for (int i = 0; i < 4000; i++) {
+        sc_buf_put_64(&buf, i);
+    }
+
+    sc_buf_shrink(&buf, 0);
+
+    for (int i = 0; i < 3700; i++) {
+        sc_buf_get_64(&buf);
+    }
+
+    sc_buf_shrink(&buf, 4096);
+
+    for (int i = 0; i < 300; i++) {
+        assert(sc_buf_get_64(&buf) == (uint64_t) 3700 + i);
+    }
+
     sc_buf_term(&buf);
 }
 
 #ifdef SC_HAVE_WRAP
 
-bool fail_malloc = false;
-void *__real_malloc(size_t n);
-void *__wrap_malloc(size_t n)
+bool fail_calloc = false;
+void *__real_calloc(size_t m, size_t n);
+void *__wrap_calloc(size_t m, size_t n)
 {
-    if (fail_malloc) {
+    if (fail_calloc) {
         return NULL;
     }
 
-    return __real_malloc(n);
+    return __real_calloc(m, n);
 }
 
 bool fail_realloc = false;
@@ -309,22 +345,22 @@ void fail_test()
     unsigned char* p;
     struct sc_buf buf;
 
-    fail_malloc = true;
+    fail_calloc = true;
     assert(sc_buf_init(&buf, 100) == false);
-    fail_malloc = false;
+    fail_calloc = false;
 
     assert(sc_buf_init(&buf, 0) == true);
     sc_buf_put_32(&buf, 100);
     assert(sc_buf_valid(&buf) == true);
     sc_buf_term(&buf);
 
-    fail_malloc = true;
+    fail_calloc = true;
     fail_realloc = true;
     assert(sc_buf_init(&buf, 0) == true);
     sc_buf_put_32(&buf, 100);
     assert(sc_buf_valid(&buf) == false);
     sc_buf_term(&buf);
-    fail_malloc = false;
+    fail_calloc = false;
     fail_realloc = false;
 
     sc_buf_init(&buf, 10);
@@ -496,6 +532,15 @@ void fail_test()
     sc_buf_put_text(&buf, "test");
     assert(sc_buf_valid(&buf) == true);
     sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 4096 * 8);
+    fail_realloc = true;
+    assert(sc_buf_shrink(&buf, 4096) == false);
+    fail_realloc = false;
+    assert(sc_buf_shrink(&buf, 4096) == true);
+    assert(sc_buf_cap(&buf) == 4096);
+    sc_buf_term(&buf);
+
 
 }
 #else

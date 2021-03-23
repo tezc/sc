@@ -32,8 +32,11 @@ void sc_list_init(struct sc_list *list)
 
 void sc_list_clear(struct sc_list *list)
 {
-    list->next = list;
-    list->prev = list;
+    struct sc_list *tmp, *elem;
+
+    sc_list_foreach_safe (list, tmp, elem) {
+        sc_list_del(NULL, elem);
+    }
 }
 
 bool sc_list_is_empty(struct sc_list *list)
@@ -55,31 +58,20 @@ size_t sc_list_count(struct sc_list *list)
 
 struct sc_list *sc_list_head(struct sc_list *list)
 {
-    struct sc_list *elem;
-
-    elem = list->next;
-    if (elem == list) {
-        return NULL;
-    }
-
-    return elem;
+    return list->next != list ? list->next : NULL;
 }
 
 struct sc_list *sc_list_tail(struct sc_list *list)
 {
-    struct sc_list *elem;
-
-    elem = list->prev;
-    if (elem == list) {
-        return NULL;
-    }
-
-    return elem;
+    return list->prev != list ? list->prev : NULL;
 }
 
 void sc_list_add_tail(struct sc_list *list, struct sc_list *elem)
 {
     struct sc_list *prev;
+
+    // Delete if exists to prevent adding same item twice
+    sc_list_del(list, elem);
 
     prev = list->prev;
     list->prev = elem;
@@ -90,13 +82,12 @@ void sc_list_add_tail(struct sc_list *list, struct sc_list *elem)
 
 struct sc_list *sc_list_pop_tail(struct sc_list *list)
 {
-    struct sc_list *tail;
+    struct sc_list *tail = list->prev;
 
     if (sc_list_is_empty(list)) {
         return NULL;
     }
 
-    tail = list->prev;
     sc_list_del(list, list->prev);
 
     return tail;
@@ -104,18 +95,26 @@ struct sc_list *sc_list_pop_tail(struct sc_list *list)
 
 void sc_list_add_head(struct sc_list *list, struct sc_list *elem)
 {
-    sc_list_add_before(list, list->next, elem);
+    struct sc_list *next;
+
+    // Delete if exists to prevent adding same item twice
+    sc_list_del(list, elem);
+
+    next = list->next;
+    list->next = elem;
+    elem->prev = list;
+    elem->next = next;
+    next->prev = elem;
 }
 
 struct sc_list *sc_list_pop_head(struct sc_list *list)
 {
-    struct sc_list *head;
+    struct sc_list *head = list->next;
 
     if (sc_list_is_empty(list)) {
         return NULL;
     }
 
-    head = list->next;
     sc_list_del(list, list->next);
 
     return head;
@@ -126,6 +125,9 @@ void sc_list_add_after(struct sc_list *list, struct sc_list *prev,
 {
     (void) list;
     struct sc_list *next;
+
+    // Delete if exists to prevent adding same item twice
+    sc_list_del(list, elem);
 
     next = prev->next;
     prev->next = elem;
@@ -139,6 +141,9 @@ void sc_list_add_before(struct sc_list *list, struct sc_list *next,
 {
     (void) list;
     struct sc_list *prev;
+
+    // Delete if exists to prevent adding same item twice
+    sc_list_del(list, elem);
 
     prev = next->prev;
     next->prev = elem;

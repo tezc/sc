@@ -36,7 +36,7 @@
 #ifdef SC_HAVE_CONFIG_H
     #include "config.h"
 #else
-    #define sc_buf_malloc  malloc
+    #define sc_buf_calloc  calloc
     #define sc_buf_realloc realloc
     #define sc_buf_free    free
 #endif
@@ -123,6 +123,8 @@ uint32_t sc_buf_cap(struct sc_buf *buf);
  */
 bool sc_buf_reserve(struct sc_buf *buf, uint32_t len);
 
+
+bool sc_buf_shrink(struct sc_buf *buf, uint32_t len);
 /**
  * @param buf buf
  * @return    'true' if buffer is valid. Buffer becomes invalid on out of

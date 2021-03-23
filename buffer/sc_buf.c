@@ -40,7 +40,7 @@ bool sc_buf_init(struct sc_buf *buf, uint32_t cap)
     *buf = (struct sc_buf){0};
 
     if (cap > 0) {
-        mem = sc_buf_malloc(cap);
+        mem = sc_buf_calloc(1, cap);
         if (mem == NULL) {
             return false;
         }
@@ -115,6 +115,30 @@ bool sc_buf_reserve(struct sc_buf *buf, uint32_t len)
             buf->mem = tmp;
         }
     }
+
+    return true;
+}
+
+bool sc_buf_shrink(struct sc_buf *buf, uint32_t len)
+{
+    void *tmp;
+
+    sc_buf_compact(buf);
+
+    if (len > buf->cap || buf->wpos >= len) {
+        return true;
+    }
+
+    len = ((len + 4095) / 4096) * 4096;
+
+    tmp = sc_buf_realloc(buf->mem, len);
+    if (tmp == NULL) {
+        buf->error |= SC_BUF_OOM;
+        return false;
+    }
+
+    buf->cap = len;
+    buf->mem = tmp;
 
     return true;
 }

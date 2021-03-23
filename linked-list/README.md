@@ -33,8 +33,10 @@ int main()
     struct sc_list list;
 
     sc_list_init(&list);
+    
 
     for (int i = 0; i < 5; i++) {
+        sc_list_init(&users[i].next);
         sc_list_add_tail(&list, &users[i].next);
     }
 

@@ -1,6 +1,7 @@
 #include "sc_list.h"
 
 #include <assert.h>
+#include <stdio.h>
 
 struct elem
 {
@@ -13,6 +14,12 @@ static void test1(void)
     int k, i;
     struct elem a, b, c, d, e, *elem;
     struct sc_list list, *item, *tmp;
+
+    sc_list_init(&a.list);
+    sc_list_init(&b.list);
+    sc_list_init(&c.list);
+    sc_list_init(&d.list);
+    sc_list_init(&e.list);
 
     a.id = 1;
     b.id = 2;
@@ -97,12 +104,41 @@ static void test1(void)
     sc_list_add_tail(&list, &a.list);
     sc_list_add_tail(&list, &b.list);
     sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &b.list);
+    sc_list_add_tail(&list, &c.list);
     sc_list_add_tail(&list, &d.list);
+    sc_list_add_tail(&list, &d.list);
+    sc_list_add_head(&list, &c.list);
+    sc_list_add_tail(&list, &d.list);
+    sc_list_add_head(&list, &e.list);
+    sc_list_add_tail(&list, &e.list);
+    sc_list_add_head(&list, &e.list);
+    sc_list_add_tail(&list, &e.list);
+    sc_list_add_tail(&list, &d.list);
+    sc_list_add_tail(&list, &e.list);
+    sc_list_add_head(&list, &e.list);
     sc_list_add_tail(&list, &e.list);
 
     assert(sc_list_head(&list) != NULL);
     assert(sc_list_tail(&list) != NULL);
     assert(sc_list_is_empty(&list) == false);
+    assert(sc_list_count(&list) == 5);
+
+    sc_list_clear(&list);
+
+    sc_list_add_tail(&list, &a.list);
+    sc_list_add_tail(&list, &b.list);
+    sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &c.list);
+    sc_list_add_tail(&list, &d.list);
+    sc_list_add_tail(&list, &d.list);
+    sc_list_add_tail(&list, &e.list);
+    sc_list_add_tail(&list, &e.list);
 
     k = 0;
     sc_list_foreach_safe (&list, tmp, item) {
