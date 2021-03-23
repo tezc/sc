@@ -29,6 +29,6 @@ jobs:
           # Produce a binary artifact and place it in the mounted volume
           run: |
             apk update
-            apk add git gcc valgrind cmake
+            apk add git gcc make valgrind cmake
             mkdir build && cd build
             cmake .. && make -j && make check
