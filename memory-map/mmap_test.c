@@ -57,6 +57,7 @@ void test1()
 #ifdef SC_HAVE_WRAP
     #include <errno.h>
     #include <stdint.h>
+    #include <sys/stat.h>
 
 
 bool fail_open;
