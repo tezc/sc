@@ -13,12 +13,12 @@ jobs:
     name: Build on armv6
     steps:
       - uses: actions/checkout@v2.1.0
-      - uses: uraimo/run-on-arch-action@v2.0.8
+      - uses: uraimo/run-on-arch-action@v2.0.9
         name: Build artifact
         id: build
         with:
           arch: armv6
-          distro: buster
+          distro: alpine_latest
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
@@ -28,8 +28,7 @@ jobs:
 
           # Produce a binary artifact and place it in the mounted volume
           run: |
-            apt-get update -q -y
-            apt-get install -q -y  build-essential git gcc valgrind cmake
-            uname -a;id;uname -m;lscpu | grep Endian
+            apk update
+            apk add git gcc valgrind cmake
             mkdir build && cd build
             cmake .. && make -j && make check
