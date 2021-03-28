@@ -473,6 +473,10 @@ void fail_test()
     assert(sc_buf_get_str(&buf) == NULL);
     assert(sc_buf_valid(&buf) == true);
 
+    sc_buf_put_str_len(&buf, "", 0);
+    assert(strcmp(sc_buf_get_str(&buf), "") == 0);
+    assert(sc_buf_valid(&buf) == true);
+
     sc_buf_term(&buf);
     sc_buf_init(&buf, 0);
     fail_realloc = true;

@@ -675,7 +675,7 @@ void sc_buf_put_str(struct sc_buf *buf, const char *str)
 
 void sc_buf_put_str_len(struct sc_buf *buf, const char *str, int len)
 {
-    assert(len > 0);
+    assert(len >= 0);
 
     if (str == NULL) {
         sc_buf_put_32(buf, UINT32_MAX);
