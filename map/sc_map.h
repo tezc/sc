@@ -144,6 +144,7 @@
      * @param V pointer to put value, if key is missing, value is undefined    \
      * @return 'true' if key exists, 'false' otherwise                         \
      */                                                                        \
+    /** NOLINTNEXTLINE */                                                      \
     bool sc_map_get_##name(struct sc_map_##name *map, K key, V *val);          \
                                                                                \
     /**                                                                        \
@@ -162,6 +163,7 @@
      *          - Pass NULL if you don't want to get previous 'value'          \
      * @return 'true' if key exists, 'false' otherwise                         \
      */                                                                        \
+    /** NOLINTNEXTLINE */                                                      \
     bool sc_map_del_##name(struct sc_map_##name *map, K key, V *val);
 
 /**

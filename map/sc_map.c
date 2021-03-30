@@ -235,6 +235,7 @@
         }                                                                      \
     }                                                                          \
                                                                                \
+    /** NOLINTNEXTLINE */                                                      \
     bool sc_map_get_##name(struct sc_map_##name *map, K key, V *value)         \
     {                                                                          \
         const uint32_t mod = map->cap - 1;                                     \
@@ -261,6 +262,7 @@
         }                                                                      \
     }                                                                          \
                                                                                \
+    /** NOLINTNEXTLINE */                                                      \
     bool sc_map_del_##name(struct sc_map_##name *map, K key, V *value)         \
     {                                                                          \
         const uint32_t mod = map->cap - 1;                                     \
