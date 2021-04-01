@@ -55,6 +55,7 @@ struct sc_array
 bool sc_array_init(void *arr, size_t elem_size, size_t cap);
 void sc_array_term(void *arr);
 bool sc_array_expand(void *arr, size_t elem_size);
+#define sc_array_sizeof(a) (sizeof(a)) // NOLINT
 // Internals end
 
 /**
@@ -62,7 +63,8 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *   @param cap initial capacity. '0' is a valid initial capacity.
  *   @return   'true' on success, 'false' on out of memory
  */
-#define sc_array_create(arr, cap) sc_array_init(&(arr), sizeof(*(arr)), cap)
+#define sc_array_create(arr, cap)                                              \
+    sc_array_init(&(arr), sc_array_sizeof(*(arr)), cap)
 
 /**
  *   @param arr array to be destroyed
@@ -93,7 +95,7 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *   @return     'true' on success, 'false' on out of memory.
  */
 #define sc_array_add(arr, elem)                                                \
-    sc_array_expand(&((arr)), sizeof(*(arr))) == true ?                        \
+    sc_array_expand(&((arr)), sc_array_sizeof(*(arr))) == true ?               \
             (arr)[sc_array_meta(arr)->size++] = (elem),                        \
             true : false
 
@@ -143,7 +145,7 @@ bool sc_array_expand(void *arr, size_t elem_size);
  *   @param cmp comparator, check qsort() documentation for details
  */
 #define sc_array_sort(arr, cmp)                                                \
-    (qsort((arr), sc_array_size((arr)), sizeof(*(arr)), cmp))
+    (qsort((arr), sc_array_size((arr)), sc_array_sizeof(*(arr)), cmp))
 
 /**
  *  @param arr  array

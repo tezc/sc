@@ -90,13 +90,15 @@ static inline size_t sc_queue_dec_last(void *q)
 bool sc_queue_init(void *q, size_t elem_size, size_t cap);
 void sc_queue_term(void *q);
 bool sc_queue_expand(void *q, size_t elem_size);
+#define sc_queue_sizeof(a) (sizeof(a)) // NOLINT
 
 /**
  *   @param q     queue
  *   @param count initial capacity, '0' is accepted.
  *   @return      'true' on success, 'false' on out of memory.
  */
-#define sc_queue_create(q, count) sc_queue_init(&(q), sizeof(*(q)), count)
+#define sc_queue_create(q, count)                                              \
+    sc_queue_init(&(q), sc_queue_sizeof(*(q)), count)
 
 /**
  *   Destroy queue
@@ -184,7 +186,7 @@ bool sc_queue_expand(void *q, size_t elem_size);
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_last(q, elem)                                             \
-    sc_queue_expand(&(q), sizeof(*(q))) == true ?                              \
+    sc_queue_expand(&(q), sc_queue_sizeof(*(q))) == true ?                     \
             (q)[sc_queue_inc_last((q))] = (elem),                              \
             true : false
 
@@ -201,7 +203,7 @@ bool sc_queue_expand(void *q, size_t elem_size);
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_first(q, elem)                                            \
-    sc_queue_expand(&(q), sizeof(*(q))) == true ?                              \
+    sc_queue_expand(&(q), sc_queue_sizeof(*(q))) == true ?                     \
             (q)[sc_queue_dec_first((q))] = (elem),                             \
             true : false
 
@@ -224,7 +226,7 @@ bool sc_queue_expand(void *q, size_t elem_size);
  *  }
  */
 #define sc_queue_foreach(q, elem)                                              \
-    for (size_t _k = 1, _i = sc_queue_first(q); _k && _i != sc_queue_last(q);     \
+    for (size_t _k = 1, _i = sc_queue_first(q); _k && _i != sc_queue_last(q);  \
          _k = !_k, _i = sc_queue_next(q, _i))                                  \
         for ((elem) = (q)[_i]; _k; _k = !_k)
 
