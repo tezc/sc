@@ -39,10 +39,14 @@
 #include <string.h>
 
 #if defined(_WIN32)
-    #include <WinSock2.h>
+#include <WinSock2.h>
 volatile SOCKET sc_signal_shutdown_fd;
 #else
 volatile sig_atomic_t sc_signal_shutdown_fd;
+#endif
+
+#if defined(__APPLE__) && defined(__arm64__)
+#include <mach/mach.h>
 #endif
 
 /**
@@ -177,7 +181,7 @@ int sc_signal_snprintf(char *buf, size_t size, const char *fmt, ...)
 
 #if defined(_WIN32)
 
-    #define WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
 
     #include <Ws2tcpip.h>
     #include <io.h>
@@ -292,7 +296,7 @@ int sc_signal_init()
 
 #else
 
-    // clang-format off
+// clang-format off
 #include <unistd.h>
 #include <errno.h>
 
@@ -303,46 +307,46 @@ static void *sc_instruction(ucontext_t *uc)
 {
     void* p = NULL;
 
-#if defined(__APPLE__) && defined(MAC_OS_X_VERSION_10_6)
+#if defined(__APPLE__)
     #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
-            p = (void *) uc->uc_mcontext->__ss.__rip;
-        #elif defined(__i386__)
-            p = (void *) uc->uc_mcontext->__ss.__eip;
-        #else
-            p = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
-        #endif
+        p = (void *) uc->uc_mcontext->__ss.__rip;
+    #elif defined(__i386__)
+        p = (void *) uc->uc_mcontext->__ss.__eip;
+    #else
+        p = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
+    #endif
 #elif defined(__linux__)
-#if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
-    p = (void *) uc->uc_mcontext.gregs[REG_EIP];
-#elif defined(__x86_64__)
-    p = (void *) uc->uc_mcontext.gregs[REG_RIP];
-#elif defined(__ia64__)
-    p = (void *) uc->uc_mcontext.sc_ip;
-        #elif defined(__arm__)
-            p = (void *) uc->uc_mcontext.arm_pc;
-        #elif defined(__aarch64__)
-            p = (void *) uc->uc_mcontext.pc;
-#endif
+    #if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
+        p = (void *) uc->uc_mcontext.gregs[REG_EIP];
+    #elif defined(__x86_64__)
+        p = (void *) uc->uc_mcontext.gregs[REG_RIP];
+    #elif defined(__ia64__)
+        p = (void *) uc->uc_mcontext.sc_ip;
+    #elif defined(__arm__)
+        p = (void *) uc->uc_mcontext.arm_pc;
+    #elif defined(__aarch64__)
+        p = (void *) uc->uc_mcontext.pc;
+    #endif
 #elif defined(__FreeBSD__)
     #if defined(__i386__)
-            p = (void *) uc->uc_mcontext.mc_eip;
-        #elif defined(__x86_64__)
-            p = (void *) uc->uc_mcontext.mc_rip;
-        #endif
-    #elif defined(__OpenBSD__)
-        #if defined(__i386__)
-            p = (void *) uc->sc_eip;
-        #elif defined(__x86_64__)
-            p = (void *) uc->sc_rip;
-        #endif
-    #elif defined(__NetBSD__)
-        #if defined(__i386__)
-            p = (void *) uc->uc_mcontext.__gregs[_REG_EIP];
-        #elif defined(__x86_64__)
-            p = (void *) uc->uc_mcontext.__gregs[_REG_RIP];
-        #endif
-    #elif defined(__DragonFly__)
-            p = (void *) uc->uc_mcontext.mc_rip;
+        p = (void *) uc->uc_mcontext.mc_eip;
+    #elif defined(__x86_64__)
+        p = (void *) uc->uc_mcontext.mc_rip;
+    #endif
+#elif defined(__OpenBSD__)
+    #if defined(__i386__)
+        p = (void *) uc->sc_eip;
+    #elif defined(__x86_64__)
+        p = (void *) uc->sc_rip;
+    #endif
+#elif defined(__NetBSD__)
+    #if defined(__i386__)
+        p = (void *) uc->uc_mcontext.__gregs[_REG_EIP];
+    #elif defined(__x86_64__)
+        p = (void *) uc->uc_mcontext.__gregs[_REG_RIP];
+    #endif
+#elif defined(__DragonFly__)
+    p = (void *) uc->uc_mcontext.mc_rip;
 #endif
 
     return p;
@@ -369,9 +373,9 @@ static void sc_signal_on_shutdown(int sig)
 
     if (sc_signal_will_shutdown != 0) {
         sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
-    #ifdef SC_SIGNAL_TEST
+#ifdef SC_SIGNAL_TEST
         return;
-    #endif
+#endif
         _Exit(1);
     }
 
@@ -384,17 +388,17 @@ static void sc_signal_on_shutdown(int sig)
             sc_signal_log(fd, buf, sizeof(buf),
                           "Failed to send shutdown command, "
                           "shutting down immediately! \n");
-    #ifdef SC_SIGNAL_TEST
+#ifdef SC_SIGNAL_TEST
             return;
-    #endif
+#endif
             _Exit(1);
         }
     } else {
         sc_signal_log(fd, buf, sizeof(buf),
                       "No shutdown handler, shutting down! \n");
-    #ifdef SC_SIGNAL_TEST
+#ifdef SC_SIGNAL_TEST
         return;
-    #endif
+#endif
         _Exit(0);
     }
 
