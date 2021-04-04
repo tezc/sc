@@ -11,6 +11,15 @@ void test1()
     struct sc_buf buf, buf2;
 
     sc_buf_init(&buf, 100);
+    sc_buf_set_rpos(&buf, 1);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_clear(&buf);
+    assert(sc_buf_valid(&buf) == true);
+    sc_buf_set_wpos(&buf, 101);
+    assert(sc_buf_valid(&buf) == false);
+    sc_buf_term(&buf);
+
+    sc_buf_init(&buf, 100);
     sc_buf_init(&buf2, 100);
     sc_buf_put_str(&buf, "s");
     sc_buf_move(&buf2, &buf);
