@@ -93,28 +93,28 @@ bool sc_buf_reserve(struct sc_buf *buf, uint32_t len)
 
     if (buf->wpos + len > buf->cap) {
         if (buf->ref) {
-            return false;
+            goto error;
         }
 
-        if (buf->wpos + len > buf->cap) {
-            size = ((buf->cap + len + 4095) / 4096) * 4096;
-            if (size > buf->limit || buf->cap >= SC_BUF_SIZE_MAX - 4096) {
-                buf->error |= SC_BUF_OOM;
-                return false;
-            }
-
-            tmp = sc_buf_realloc(buf->mem, size);
-            if (tmp == NULL) {
-                buf->error |= SC_BUF_OOM;
-                return false;
-            }
-
-            buf->cap = size;
-            buf->mem = tmp;
+        size = ((buf->cap + len + 4095) / 4096) * 4096;
+        if (size > buf->limit || buf->cap >= SC_BUF_SIZE_MAX - 4096) {
+            goto error;
         }
+
+        tmp = sc_buf_realloc(buf->mem, size);
+        if (tmp == NULL) {
+            goto error;
+        }
+
+        buf->cap = size;
+        buf->mem = tmp;
     }
 
     return true;
+
+error:
+    buf->error |= SC_BUF_OOM;
+    return false;
 }
 
 bool sc_buf_shrink(struct sc_buf *buf, uint32_t len)
