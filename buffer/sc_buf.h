@@ -121,7 +121,15 @@ uint32_t sc_buf_cap(struct sc_buf *b);
  */
 bool sc_buf_reserve(struct sc_buf *b, uint32_t len);
 
+/**
+ * Shrink buffer. Shrinks only if empty space > 4096 bytes
+ *
+ * @param b   buf
+ * @param len desired size
+ * @return    'false' on out of memory, true otherwise.
+ */
 bool sc_buf_shrink(struct sc_buf *b, uint32_t len);
+
 /**
  * @param buf buf
  * @return    'true' if buffer is valid. Buffer becomes invalid on out of
