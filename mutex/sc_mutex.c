@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 #ifndef _XOPEN_SOURCE
-    #define _XOPEN_SOURCE 700
+#define _XOPEN_SOURCE 700
 #endif
 
 #include "sc_mutex.h"
@@ -33,83 +33,83 @@
 
 int sc_mutex_init(struct sc_mutex *mtx)
 {
-    InitializeCriticalSection(&mtx->mtx);
-    return 0;
+	InitializeCriticalSection(&mtx->mtx);
+	return 0;
 }
 
 int sc_mutex_term(struct sc_mutex *mtx)
 {
-    DeleteCriticalSection(&mtx->mtx);
-    return 0;
+	DeleteCriticalSection(&mtx->mtx);
+	return 0;
 }
 
 void sc_mutex_lock(struct sc_mutex *mtx)
 {
-    EnterCriticalSection(&mtx->mtx);
+	EnterCriticalSection(&mtx->mtx);
 }
 
 void sc_mutex_unlock(struct sc_mutex *mtx)
 {
-    LeaveCriticalSection(&mtx->mtx);
+	LeaveCriticalSection(&mtx->mtx);
 }
 
 #else
 
 int sc_mutex_init(struct sc_mutex *mtx)
 {
-    int rc, rv;
-    pthread_mutexattr_t attr;
-    pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+	int rc, rv;
+	pthread_mutexattr_t attr;
+	pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
-    mtx->mtx = mut;
+	mtx->mtx = mut;
 
-    // May fail on OOM
-    rc = pthread_mutexattr_init(&attr);
-    if (rc != 0) {
-        return -1;
-    }
+	// May fail on OOM
+	rc = pthread_mutexattr_init(&attr);
+	if (rc != 0) {
+		return -1;
+	}
 
-    // This won't fail as long as we pass correct params.
-    rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
-    assert (rc == 0);
+	// This won't fail as long as we pass correct params.
+	rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+	assert(rc == 0);
 
-    // May fail on OOM
-    rc = pthread_mutex_init(&mtx->mtx, &attr);
+	// May fail on OOM
+	rc = pthread_mutex_init(&mtx->mtx, &attr);
 
-    // This won't fail as long as we pass correct param.
-    rv = pthread_mutexattr_destroy(&attr);
-    assert(rv == 0);
-    (void) rv;
+	// This won't fail as long as we pass correct param.
+	rv = pthread_mutexattr_destroy(&attr);
+	assert(rv == 0);
+	(void) rv;
 
-    return rc != 0 ? -1 : 0;
+	return rc != 0 ? -1 : 0;
 }
 
 int sc_mutex_term(struct sc_mutex *mtx)
 {
-    int rc;
+	int rc;
 
-    rc = pthread_mutex_destroy(&mtx->mtx);
-    return rc != 0 ? -1 : 0;
+	rc = pthread_mutex_destroy(&mtx->mtx);
+	return rc != 0 ? -1 : 0;
 }
 
 void sc_mutex_lock(struct sc_mutex *mtx)
 {
-    int rc;
+	int rc;
 
-    // This won't fail as long as we pass correct param.
-    rc = pthread_mutex_lock(&mtx->mtx);
-    assert(rc == 0);
-    (void) rc;
+	// This won't fail as long as we pass correct param.
+	rc = pthread_mutex_lock(&mtx->mtx);
+	assert(rc == 0);
+	(void) rc;
 }
 
 void sc_mutex_unlock(struct sc_mutex *mtx)
 {
-    int rc;
+	int rc;
 
-    // This won't fail as long as we pass correct param.
-    rc = pthread_mutex_unlock(&mtx->mtx);
-    assert(rc == 0);
-    (void) rc;
+	// This won't fail as long as we pass correct param.
+	rc = pthread_mutex_unlock(&mtx->mtx);
+	assert(rc == 0);
+	(void) rc;
 }
 
 #endif

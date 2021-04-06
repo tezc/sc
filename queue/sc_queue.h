@@ -35,56 +35,55 @@
 #define SC_QUEUE_VERSION "1.0.0"
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "config.h"
+#include "config.h"
 #else
-    #define sc_queue_realloc realloc
-    #define sc_queue_free    free
+#define sc_queue_realloc realloc
+#define sc_queue_free	 free
 #endif
 
 // Internals
-struct sc_queue
-{
-    size_t cap;
-    size_t first;
-    size_t last;
-    unsigned char elems[];
+struct sc_queue {
+	size_t cap;
+	size_t first;
+	size_t last;
+	unsigned char elems[];
 };
 
 #define sc_queue_meta(q)                                                       \
-    ((struct sc_queue *) ((char *) (q) -offsetof(struct sc_queue, elems)))
+	((struct sc_queue *) ((char *) (q) -offsetof(struct sc_queue, elems)))
 
 static inline size_t sc_queue_inc_first(void *q)
 {
-    struct sc_queue *meta = sc_queue_meta(q);
-    size_t tmp = meta->first;
+	struct sc_queue *meta = sc_queue_meta(q);
+	size_t tmp = meta->first;
 
-    meta->first = (meta->first + 1) & (meta->cap - 1);
-    return tmp;
+	meta->first = (meta->first + 1) & (meta->cap - 1);
+	return tmp;
 }
 
 static inline size_t sc_queue_inc_last(void *q)
 {
-    struct sc_queue *meta = sc_queue_meta(q);
-    size_t tmp = meta->last;
+	struct sc_queue *meta = sc_queue_meta(q);
+	size_t tmp = meta->last;
 
-    meta->last = (meta->last + 1) & (meta->cap - 1);
-    return tmp;
+	meta->last = (meta->last + 1) & (meta->cap - 1);
+	return tmp;
 }
 
 static inline size_t sc_queue_dec_first(void *q)
 {
-    struct sc_queue *meta = sc_queue_meta(q);
+	struct sc_queue *meta = sc_queue_meta(q);
 
-    meta->first = (meta->first - 1) & (meta->cap - 1);
-    return meta->first;
+	meta->first = (meta->first - 1) & (meta->cap - 1);
+	return meta->first;
 }
 
 static inline size_t sc_queue_dec_last(void *q)
 {
-    struct sc_queue *meta = sc_queue_meta(q);
+	struct sc_queue *meta = sc_queue_meta(q);
 
-    meta->last = (meta->last - 1) & (meta->cap - 1);
-    return meta->last;
+	meta->last = (meta->last - 1) & (meta->cap - 1);
+	return meta->last;
 }
 
 bool sc_queue_init(void *q, size_t elem_size, size_t cap);
@@ -98,7 +97,7 @@ bool sc_queue_expand(void *q, size_t elem_size);
  *   @return      'true' on success, 'false' on out of memory.
  */
 #define sc_queue_create(q, count)                                              \
-    sc_queue_init(&(q), sc_queue_sizeof(*(q)), count)
+	sc_queue_init(&(q), sc_queue_sizeof(*(q)), count)
 
 /**
  *   Destroy queue
@@ -117,8 +116,8 @@ bool sc_queue_expand(void *q, size_t elem_size);
  *   @return  element count
  */
 #define sc_queue_size(q)                                                       \
-    ((sc_queue_meta(q)->last - sc_queue_meta(q)->first) &                      \
-     (sc_queue_meta(q)->cap - 1))
+	((sc_queue_meta(q)->last - sc_queue_meta(q)->first) &                  \
+	 (sc_queue_meta(q)->cap - 1))
 
 /**
  *   @param q queue
@@ -131,10 +130,10 @@ bool sc_queue_expand(void *q, size_t elem_size);
  * @param q queue
  */
 #define sc_queue_clear(q)                                                      \
-    do {                                                                       \
-        sc_queue_meta(q)->first = 0;                                           \
-        sc_queue_meta(q)->last = 0;                                            \
-    } while (0)
+	do {                                                                   \
+		sc_queue_meta(q)->first = 0;                                   \
+		sc_queue_meta(q)->last = 0;                                    \
+	} while (0)
 
 /**
  * @param q queue
@@ -165,7 +164,7 @@ bool sc_queue_expand(void *q, size_t elem_size);
  *   @return element at index i
  */
 #define sc_queue_at(q, i)                                                      \
-    (q)[((sc_queue_meta(q)->first) + (i)) & (sc_queue_cap(q) - 1)]
+	(q)[((sc_queue_meta(q)->first) + (i)) & (sc_queue_cap(q) - 1)]
 
 /**
  *   @param q queue
@@ -178,7 +177,7 @@ bool sc_queue_expand(void *q, size_t elem_size);
  *   @return  peek last element, if queue is empty, result is undefined
  */
 #define sc_queue_peek_last(q)                                                  \
-    (q)[(sc_queue_meta(q)->last - 1) & (sc_queue_meta(q)->cap - 1)]
+	(q)[(sc_queue_meta(q)->last - 1) & (sc_queue_meta(q)->cap - 1)]
 
 /**
  * @param q    queue
@@ -186,9 +185,8 @@ bool sc_queue_expand(void *q, size_t elem_size);
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_last(q, elem)                                             \
-    sc_queue_expand(&(q), sc_queue_sizeof(*(q))) == true ?                     \
-            (q)[sc_queue_inc_last((q))] = (elem),                              \
-            true : false
+	sc_queue_expand(&(q), sc_queue_sizeof(*(q))) == true ?                 \
+		      (q)[sc_queue_inc_last((q))] = (elem), true : false
 
 /**
  * @param q queue
@@ -203,9 +201,8 @@ bool sc_queue_expand(void *q, size_t elem_size);
  * @return     'true' on success, 'false' on out of memory.
  */
 #define sc_queue_add_first(q, elem)                                            \
-    sc_queue_expand(&(q), sc_queue_sizeof(*(q))) == true ?                     \
-            (q)[sc_queue_dec_first((q))] = (elem),                             \
-            true : false
+	sc_queue_expand(&(q), sc_queue_sizeof(*(q))) == true ?                 \
+		      (q)[sc_queue_dec_first((q))] = (elem), true : false
 
 /**
  * @param q queue
@@ -226,8 +223,9 @@ bool sc_queue_expand(void *q, size_t elem_size);
  *  }
  */
 #define sc_queue_foreach(q, elem)                                              \
-    for (size_t _k = 1, _i = sc_queue_first(q); _k && _i != sc_queue_last(q);  \
-         _k = !_k, _i = sc_queue_next(q, _i))                                  \
-        for ((elem) = (q)[_i]; _k; _k = !_k)
+	for (size_t _k = 1, _i = sc_queue_first(q);                            \
+	     _k && _i != sc_queue_last(q);                                     \
+	     _k = !_k, _i = sc_queue_next(q, _i))                              \
+		for ((elem) = (q)[_i]; _k; _k = !_k)
 
 #endif

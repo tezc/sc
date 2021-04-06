@@ -31,14 +31,13 @@
 #define SC_PERF_VERSION "1.0.0"
 
 #define SC_PERF_HW_CACHE(CACHE, OP, RESULT)                                    \
-    ((PERF_COUNT_HW_CACHE_##CACHE) | (PERF_COUNT_HW_CACHE_OP_##OP << 8u) |     \
-     (PERF_COUNT_HW_CACHE_RESULT_##RESULT << 16u))
+	((PERF_COUNT_HW_CACHE_##CACHE) | (PERF_COUNT_HW_CACHE_OP_##OP << 8u) | \
+	 (PERF_COUNT_HW_CACHE_RESULT_##RESULT << 16u))
 
-struct sc_perf_event
-{
-    char *name;
-    uint64_t type;
-    uint64_t config;
+struct sc_perf_event {
+	char *name;
+	uint64_t type;
+	uint64_t config;
 };
 
 // clang-format off
@@ -109,7 +108,6 @@ static const struct sc_perf_event sc_perf_hw[] = {
 };
 
 // clang-format on
-
 
 void sc_perf_start();
 void sc_perf_pause();

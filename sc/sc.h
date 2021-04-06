@@ -33,11 +33,10 @@
 #define sc_max(a, b) (((a) > (b)) ? (a) : (b))
 #define sc_min(a, b) (((a) > (b)) ? (b) : (a))
 
-struct sc_rand
-{
-    unsigned char i;
-    unsigned char j;
-    unsigned char init[256];
+struct sc_rand {
+	unsigned char i;
+	unsigned char j;
+	unsigned char init[256];
 };
 
 /**

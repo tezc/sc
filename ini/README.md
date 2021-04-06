@@ -3,6 +3,7 @@
 ### Overview
 
 - Ini file parser
+- Based on : https://github.com/benhoyt/inih
 
 ### Features
 

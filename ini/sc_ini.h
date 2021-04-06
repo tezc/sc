@@ -44,7 +44,7 @@
  *                 stop and return error
  */
 typedef int (*sc_ini_on_item)(void *arg, int line, const char *section,
-                              const char *key, const char *value);
+			      const char *key, const char *value);
 
 /**
  * @param arg      user data to be passed to 'on_item' callback

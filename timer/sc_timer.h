@@ -33,50 +33,48 @@
 #include <stdlib.h>
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "config.h"
+#include "config.h"
 #else
-    #define sc_timer_malloc malloc
-    #define sc_timer_free   free
+#define sc_timer_malloc malloc
+#define sc_timer_free	free
 #endif
 
 #define SC_TIMER_INVALID UINT64_MAX
 
-struct sc_timer_data
-{
-    uint64_t timeout;
-    uint64_t type;
-    void *data;
+struct sc_timer_data {
+	uint64_t timeout;
+	uint64_t type;
+	void *data;
 };
 
-struct sc_timer
-{
-    uint64_t timestamp;
-    uint32_t head;
-    uint32_t wheel;
-    uint32_t count;
-    struct sc_timer_data *list;
+struct sc_timer {
+	uint64_t timestamp;
+	uint32_t head;
+	uint32_t wheel;
+	uint32_t count;
+	struct sc_timer_data *list;
 };
 
 /**
  * Init timer
  *
- * @param timer     timer
+ * @param t         timer
  * @param timestamp current timestamp. Use monotonic timer source.
  * @return          'false' on out of memory.
  */
-bool sc_timer_init(struct sc_timer *timer, uint64_t timestamp);
+bool sc_timer_init(struct sc_timer *t, uint64_t timestamp);
 
 /**
  * Destroy timer.
- * @param timer timer
+ * @param t timer
  */
-void sc_timer_term(struct sc_timer *timer);
+void sc_timer_term(struct sc_timer *t);
 
 /**
  * Remove all timers without deallocating underlying memory.
- * @param timer
+ * @param t timer
  */
-void sc_timer_clear(struct sc_timer *timer);
+void sc_timer_clear(struct sc_timer *t);
 
 /**
  * Add timer
@@ -88,7 +86,7 @@ void sc_timer_clear(struct sc_timer *timer);
  *     sc_timer_add(&timer, arg, 10); // Timeout will be at 2010.
  *
  *
- * @param timer   timer
+ * @param t       timer
  * @param timeout timeout value, this is relative to 'sc_timer_init's timer.
  *                e.g sc_timer_init(&timer, 10); // say, start time is 10
  * milliseconds
@@ -97,17 +95,17 @@ void sc_timer_clear(struct sc_timer *timer);
  * @return        SC_TIMER_INVALID on out of memory. Otherwise, timer id. You
  *                can cancel this timer via this id later.
  */
-uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
-                      void *data);
+uint64_t sc_timer_add(struct sc_timer *t, uint64_t timeout, uint64_t type,
+		      void *data);
 
 /**
  * uint64_t id = sc_timer_add(&timer, arg, 10);
  * sc_timer_cancel(&timer, &id);
  *
- * @param timer timer
- * @param id    timer id
+ * @param t  timer
+ * @param id timer id
  */
-void sc_timer_cancel(struct sc_timer *timer, uint64_t *id);
+void sc_timer_cancel(struct sc_timer *t, uint64_t *id);
 
 /**
  * Checks timeouts and calls 'callback' function for each timeout.
@@ -125,7 +123,7 @@ void sc_timer_cancel(struct sc_timer *timer, uint64_t *id);
  * }
  *
  *
- * @param timer     timer
+ * @param t         timer
  * @param timestamp current timestamp
  * @param arg       user data to user callback
  * @param callback  'arg' is user data.
@@ -134,7 +132,7 @@ void sc_timer_cancel(struct sc_timer *timer, uint64_t *id);
  *                  'data' is what user passed on 'sc_timer_add'.
  * @return          next timeout.
  */
-uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
-                          void (*callback)(void *arg, uint64_t timeout,
-                                           uint64_t type, void *data));
+uint64_t sc_timer_timeout(struct sc_timer *t, uint64_t timestamp, void *arg,
+			  void (*callback)(void *arg, uint64_t timeout,
+					   uint64_t type, void *data));
 #endif

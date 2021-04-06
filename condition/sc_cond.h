@@ -30,49 +30,46 @@
 #define SC_COND_VERSION "1.0.0"
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <pthread.h>
+#include <pthread.h>
 #endif
 
-struct sc_cond
-{
-    bool done;
-    void *data;
+struct sc_cond {
+	bool done;
+	void *data;
 
 #if defined(_WIN32) || defined(_WIN64)
-    CONDITION_VARIABLE cond;
-    CRITICAL_SECTION mtx;
+	CONDITION_VARIABLE cond;
+	CRITICAL_SECTION mtx;
 #else
-    pthread_cond_t cond;
-    pthread_mutex_t mtx;
+	pthread_cond_t cond;
+	pthread_mutex_t mtx;
 #endif
 };
 
 /**
- * @param cond cond
+ * @param c cond
  * @return     '0' on success, negative on error, errno will be set.
  */
-int sc_cond_init(struct sc_cond *cond);
+int sc_cond_init(struct sc_cond *c);
 
 /**
- * @param cond cond
+ * @param c cond
  * @return     '0' on success, negative on error, errno will be set.
  */
-int sc_cond_term(struct sc_cond *cond);
+int sc_cond_term(struct sc_cond *c);
 
 /**
- * @param cond cond
+ * @param c cond
  * @param data data to pass to thread which will call 'sc_cond_wait'.
  */
-void sc_cond_signal(struct sc_cond *cond, void *data);
+void sc_cond_signal(struct sc_cond *c, void *data);
 
 /**
- * @param cond cond
+ * @param c cond
  * @return     'user data'.'data' argument on previous sc_cond_signal() call
  */
-void *sc_cond_wait(struct sc_cond *cond);
-
-
+void *sc_cond_wait(struct sc_cond *c);
 
 #endif

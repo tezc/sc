@@ -35,149 +35,149 @@
  */
 void sc_rand_init(struct sc_rand *r, const unsigned char *init)
 {
-    unsigned char t;
+	unsigned char t;
 
-    *r = (struct sc_rand){0};
+	*r = (struct sc_rand){0};
 
-    memcpy(r->init, init, 256);
+	memcpy(r->init, init, 256);
 
-    for (int i = 0; i < 256; i++) {
-        r->j += r->init[i] + init[i];
-        t = r->init[r->j];
-        r->init[r->j] = r->init[i];
-        r->init[i] = t;
-    }
+	for (int i = 0; i < 256; i++) {
+		r->j += r->init[i] + init[i];
+		t = r->init[r->j];
+		r->init[r->j] = r->init[i];
+		r->init[i] = t;
+	}
 }
 
 void sc_rand_read(struct sc_rand *r, void *buf, int size)
 {
-    unsigned char t;
-    unsigned char *p = buf;
+	unsigned char t;
+	unsigned char *p = buf;
 
-    if (size <= 0 || buf == NULL) {
-        return;
-    }
+	if (size <= 0 || buf == NULL) {
+		return;
+	}
 
-    do {
-        r->i++;
-        t = r->init[r->i];
-        r->j += t;
-        r->init[r->i] = r->init[r->j];
-        r->init[r->j] = t;
-        t += r->init[r->i];
-        *(p++) = r->init[t];
-    } while (--size);
+	do {
+		r->i++;
+		t = r->init[r->i];
+		r->j += t;
+		r->init[r->i] = r->init[r->j];
+		r->init[r->j] = t;
+		t += r->init[r->i];
+		*(p++) = r->init[t];
+	} while (--size);
 }
 
 bool sc_is_pow2(size_t num)
 {
-    return (num != 0) && (num & (num - 1)) == 0;
+	return (num != 0) && (num & (num - 1)) == 0;
 }
 
 size_t sc_to_pow2(size_t size)
 {
-    if (size == 0) {
-        return 1;
-    }
+	if (size == 0) {
+		return 1;
+	}
 
-    size--;
+	size--;
 
-    for (uint32_t i = 1; i < sizeof(size) * 8; i *= 2) {
-        size |= size >> i;
-    }
+	for (uint32_t i = 1; i < sizeof(size) * 8; i *= 2) {
+		size |= size >> i;
+	}
 
-    size++;
+	size++;
 
-    return size;
+	return size;
 }
 
 char *sc_bytes_to_size(char *buf, size_t len, uint64_t val)
 {
-    const char *suffix[] = {"KB", "MB", "GB", "TB", "PB", "EB"};
-    int n = 0, wr;
-    uint64_t count = val;
+	const char *suffix[] = {"KB", "MB", "GB", "TB", "PB", "EB"};
+	int n = 0, wr;
+	uint64_t count = val;
 
-    if (val < 1024) {
-        wr = snprintf(buf, len, "%d B", (int) val);
-        if (wr <= 0 || (size_t) wr >= len) {
-            return NULL;
-        }
-        return buf;
-    }
+	if (val < 1024) {
+		wr = snprintf(buf, len, "%d B", (int) val);
+		if (wr <= 0 || (size_t) wr >= len) {
+			return NULL;
+		}
+		return buf;
+	}
 
-    for (int i = 40; i >= 0 && val > 0xfffccccccccccccUL >> i; i -= 10) {
-        n++;
-        count >>= 10;
-    }
+	for (int i = 40; i >= 0 && val > 0xfffccccccccccccUL >> i; i -= 10) {
+		n++;
+		count >>= 10;
+	}
 
-    wr = snprintf(buf, len, "%.02lf %s", (double) count / 1024, suffix[n]);
-    if (wr <= 0 || (size_t) wr >= len) {
-        return NULL;
-    }
+	wr = snprintf(buf, len, "%.02lf %s", (double) count / 1024, suffix[n]);
+	if (wr <= 0 || (size_t) wr >= len) {
+		return NULL;
+	}
 
-    return buf;
+	return buf;
 }
 
 int64_t sc_size_to_bytes(const char *buf)
 {
-    const int64_t kb = (int64_t) 1024;
-    const int64_t mb = (int64_t) 1024 * 1024;
-    const int64_t gb = (int64_t) 1024 * 1024 * 1024;
-    const int64_t tb = (int64_t) 1024 * 1024 * 1024 * 1024;
-    const int64_t pb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024;
-    const int64_t eb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
+	const int64_t kb = (int64_t) 1024;
+	const int64_t mb = (int64_t) 1024 * 1024;
+	const int64_t gb = (int64_t) 1024 * 1024 * 1024;
+	const int64_t tb = (int64_t) 1024 * 1024 * 1024 * 1024;
+	const int64_t pb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024;
+	const int64_t eb = (int64_t) 1024 * 1024 * 1024 * 1024 * 1024 * 1024;
 
-    int count;
-    int64_t val;
-    char *parse_end;
-    const char *end = (char *) (buf + strlen(buf));
+	int count;
+	int64_t val;
+	char *parse_end;
+	const char *end = (char *) (buf + strlen(buf));
 
-    errno = 0;
-    val = strtoll(buf, &parse_end, 10);
-    if (errno != 0 || parse_end == buf) {
-        return -1;
-    }
+	errno = 0;
+	val = strtoll(buf, &parse_end, 10);
+	if (errno != 0 || parse_end == buf) {
+		return -1;
+	}
 
-    count = (int) (end - parse_end);
+	count = (int) (end - parse_end);
 
-    switch (count) {
-    case 0:
-        return val;
-    case 1:
-        break;
-    case 2:
-        if (tolower(parse_end[1]) != 'b') {
-            return -1;
-        }
-        break;
-    default:
-        return -1;
-    }
+	switch (count) {
+	case 0:
+		return val;
+	case 1:
+		break;
+	case 2:
+		if (tolower(parse_end[1]) != 'b') {
+			return -1;
+		}
+		break;
+	default:
+		return -1;
+	}
 
-    switch (tolower(parse_end[0])) {
-    case 'b':
-        break;
-    case 'k':
-        val = (val > INT64_MAX / kb) ? -1 : val * kb;
-        break;
-    case 'm':
-        val = (val > INT64_MAX / mb) ? -1 : val * mb;
-        break;
-    case 'g':
-        val = (val > INT64_MAX / gb) ? -1 : val * gb;
-        break;
-    case 't':
-        val = (val > INT64_MAX / tb) ? -1 : val * tb;
-        break;
-    case 'p':
-        val = (val > INT64_MAX / pb) ? -1 : val * pb;
-        break;
-    case 'e':
-        val = (val > INT64_MAX / eb) ? -1 : val * eb;
-        break;
-    default:
-        return -1;
-    }
+	switch (tolower(parse_end[0])) {
+	case 'b':
+		break;
+	case 'k':
+		val = (val > INT64_MAX / kb) ? -1 : val * kb;
+		break;
+	case 'm':
+		val = (val > INT64_MAX / mb) ? -1 : val * mb;
+		break;
+	case 'g':
+		val = (val > INT64_MAX / gb) ? -1 : val * gb;
+		break;
+	case 't':
+		val = (val > INT64_MAX / tb) ? -1 : val * tb;
+		break;
+	case 'p':
+		val = (val > INT64_MAX / pb) ? -1 : val * pb;
+		break;
+	case 'e':
+		val = (val > INT64_MAX / eb) ? -1 : val * eb;
+		break;
+	default:
+		return -1;
+	}
 
-    return val;
+	return val;
 }
