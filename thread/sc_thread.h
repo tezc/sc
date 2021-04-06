@@ -30,58 +30,55 @@
 
 #include <windows.h>
 
-struct sc_thread
-{
-    HANDLE id;
-    void* (*fn)(void*);
-    void* arg;
-    void* ret;
-    char err[64];
+struct sc_thread {
+	HANDLE id;
+	void *(*fn)(void *);
+	void *arg;
+	void *ret;
+	char err[64];
 };
 
 #else
 
 #include <pthread.h>
 
-struct sc_thread
-{
-    pthread_t id;
-    char err[128];
+struct sc_thread {
+	pthread_t id;
+	char err[128];
 };
 
 #endif
 
 /**
- * @param thread thread
+ * @param t thread
  */
-void sc_thread_init(struct sc_thread* thread);
+void sc_thread_init(struct sc_thread *t);
 
 /**
- * @param thread thread
- * @return       '0' on success,
- *               '-1' on error, call 'sc_thread_err()' for error string.
+ * @param t thread
+ * @return  '0' on success,
+ *          '-1' on error, call 'sc_thread_err()' for error string.
  */
-int sc_thread_term(struct sc_thread* thread);
+int sc_thread_term(struct sc_thread *t);
 
 /**
- * @param thread thread
- * @return       last error message
+ * @param t thread
+ * @return  last error message
  */
-const char* sc_thread_err(struct sc_thread * thread);
+const char *sc_thread_err(struct sc_thread *t);
 
 /**
- * @param thread thread
- * @return       '0' on success,
- *               '-1' on error, call 'sc_thread_err()' for error string.
+ * @param t thread
+ * @return  '0' on success,
+ *          '-1' on error, call 'sc_thread_err()' for error string.
  */
-int sc_thread_start(struct sc_thread* thread, void* (*fn)(void*), void* arg);
+int sc_thread_start(struct sc_thread *t, void *(*fn)(void *), void *arg);
 
 /**
- * @param thread thread
- * @return       '0' on success,
- *               '-1' on error, call 'sc_thread_err()' for error string.
+ * @param t thread
+ * @return  '0' on success,
+ *          '-1' on error, call 'sc_thread_err()' for error string.
  */
-int sc_thread_join(struct sc_thread* thread, void** ret);
-
+int sc_thread_join(struct sc_thread *t, void **ret);
 
 #endif

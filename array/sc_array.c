@@ -25,9 +25,8 @@
 #include "sc_array.h"
 
 #ifndef SC_SIZE_MAX
-    #define SC_SIZE_MAX SIZE_MAX
+#define SC_SIZE_MAX SIZE_MAX
 #endif
-
 
 /**
  * Empty array instance.
@@ -36,78 +35,77 @@
  */
 static const struct sc_array sc_empty = {.size = 0, .cap = 0};
 
-bool sc_array_init(void *arr, size_t elem_size, size_t cap)
+bool sc_array_init(void *a, size_t elem_size, size_t cap)
 {
-    const size_t max = SC_SIZE_MAX / elem_size;
-    size_t bytes;
-    void **p = arr;
-    struct sc_array *meta;
+	const size_t max = SC_SIZE_MAX / elem_size;
+	const size_t bytes = sizeof(struct sc_array) + (elem_size * cap);
 
-    if (cap == 0) {
-        *p = (void *) sc_empty.elems;
-        return true;
-    }
+	void **p = a;
+	struct sc_array *m;
 
-    // Check overflow
-    if (cap > max) {
-        *p = NULL;
-        return false;
-    }
+	if (cap == 0) {
+		*p = (void *) sc_empty.elems;
+		return true;
+	}
 
-    bytes = sizeof(*meta) + (elem_size * cap);
-    meta = sc_array_realloc(NULL, bytes);
-    if (meta == NULL) {
-        *p = NULL;
-        return false;
-    }
+	if (cap > max) {
+		*p = NULL;
+		return false;
+	}
 
-    meta->size = 0;
-    meta->cap = cap;
-    *p = meta->elems;
+	m = sc_array_realloc(NULL, bytes);
+	if (m == NULL) {
+		*p = NULL;
+		return false;
+	}
 
-    return true;
+	m->size = 0;
+	m->cap = cap;
+	*p = m->elems;
+
+	return true;
 }
 
-void sc_array_term(void *arr)
+void sc_array_term(void *a)
 {
-    void **p = arr;
-    struct sc_array *meta = sc_array_meta(*p);
+	void **p = a;
+	struct sc_array *m = sc_array_meta(*p);
 
-    if (meta != &sc_empty) {
-        sc_array_free(meta);
-    }
+	if (m != &sc_empty) {
+		sc_array_free(m);
+	}
 
-    *p = NULL;
+	*p = NULL;
 }
 
-bool sc_array_expand(void *arr, size_t elem_size)
+bool sc_array_expand(void *a, size_t elem_size)
 {
-    const size_t max = SC_SIZE_MAX / elem_size;
-    size_t size, cap, bytes;
-    void **p = arr;
-    struct sc_array *prev, *meta = sc_array_meta(*p);
+	const size_t max = SC_SIZE_MAX / elem_size;
 
-    if (meta->size == meta->cap) {
+	size_t size, cap, bytes;
+	void **p = a;
+	struct sc_array *prev;
+	struct sc_array *m = sc_array_meta(*p);
 
-        // Check overflow
-        if (meta->cap > max / 2) {
-            return false;
-        }
+	if (m->size == m->cap) {
+		if (m->cap > max / 2) {
+			return false;
+		}
 
-        size = meta->size;
-        cap = (meta != &sc_empty) ? meta->cap * 2 : 2;
-        prev = (meta != &sc_empty) ? meta : NULL;
+		size = m->size;
+		cap = (m != &sc_empty) ? m->cap * 2 : 2;
+		prev = (m != &sc_empty) ? m : NULL;
 
-        bytes = sizeof(*meta) + (elem_size * cap);
-        meta = sc_array_realloc(prev, bytes);
-        if (meta == NULL) {
-            return false;
-        }
+		bytes = sizeof(*m) + (elem_size * cap);
+		m = sc_array_realloc(prev, bytes);
+		if (m == NULL) {
+			return false;
+		}
 
-        meta->size = size;
-        meta->cap = cap;
-        *p = meta->elems;
-    }
+		m->size = size;
+		m->cap = cap;
+		*p = m->elems;
+	}
 
-    return true;
+	return true;
 }

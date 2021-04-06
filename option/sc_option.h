@@ -30,17 +30,15 @@
 
 #define SC_OPTION_VERSION "1.0.0"
 
-struct sc_option_item
-{
-    const char letter;
-    const char *name;
+struct sc_option_item {
+	const char letter;
+	const char *name;
 };
 
-struct sc_option
-{
-    struct sc_option_item *options;
-    int count;
-    char **argv;
+struct sc_option {
+	struct sc_option_item *options;
+	int count;
+	char **argv;
 };
 
 /**

@@ -35,11 +35,11 @@
 
 enum sc_log_level
 {
-    SC_LOG_DEBUG,
-    SC_LOG_INFO,
-    SC_LOG_WARN,
-    SC_LOG_ERROR,
-    SC_LOG_OFF,
+	SC_LOG_DEBUG,
+	SC_LOG_INFO,
+	SC_LOG_WARN,
+	SC_LOG_ERROR,
+	SC_LOG_OFF,
 };
 
 // clang-format off
@@ -64,10 +64,10 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...);
 
 // Define SC_LOG_PRINT_FILE_NAME to print file name and line no in the log line.
 #ifdef SC_LOG_PRINT_FILE_NAME
-    #define sc_log_ap(fmt, ...)                                                \
-        "(%s:%d) " fmt, strrchr("/" __FILE__, '/') + 1, __LINE__, __VA_ARGS__
+#define sc_log_ap(fmt, ...)                                                    \
+	"(%s:%d) " fmt, strrchr("/" __FILE__, '/') + 1, __LINE__, __VA_ARGS__
 #else
-    #define sc_log_ap(fmt, ...) fmt, __VA_ARGS__
+#define sc_log_ap(fmt, ...) fmt, __VA_ARGS__
 #endif
 
 /**
@@ -87,10 +87,10 @@ int sc_log_term(void);
 void sc_log_set_thread_name(const char *name);
 
 /**
- * @param level_str  One of "DEBUG", "INFO", "WARN", "ERROR", "OFF"
- * @return           '0' on success, negative value on invalid level string
+ * @param level  One of "DEBUG", "INFO", "WARN", "ERROR", "OFF"
+ * @return       '0' on success, negative value on invalid level string
  */
-int sc_log_set_level(const char *level_str);
+int sc_log_set_level(const char *level);
 
 /**
  * @param enable 'true' to enable, 'false' to disable logging to stdout.
@@ -102,19 +102,19 @@ void sc_log_set_stdout(bool enable);
  * e.g sc_log_set_file("/tmp/log.0.txt", "/tmp/log-latest.txt");
  *     To disable logging into file : sc_log_set_file(NULL, NULL);
  *
- * @param prev_file     file path for previous log file, 'NULL' to disable
- * @param current_file  file path for latest log file, 'NULL' to disable
- * @return              0 on success, -1 on error, errno will be set.
+ * @param prev     file path for previous log file, 'NULL' to disable
+ * @param current  file path for latest log file, 'NULL' to disable
+ * @return         0 on success, -1 on error, errno will be set.
  */
-int sc_log_set_file(const char *prev_file, const char *current_file);
+int sc_log_set_file(const char *prev, const char *current);
 
 /**
  * @param arg user arg to callback.
  * @param cb  log callback.
  */
 void sc_log_set_callback(void *arg,
-                         int (*cb)(void *arg, enum sc_log_level level,
-                                   const char *fmt, va_list va));
+			 int (*cb)(void *arg, enum sc_log_level level,
+				   const char *fmt, va_list va));
 
 // e.g : sc_log_error("Errno : %d, reason : %s", errno, strerror(errno));
 #define sc_log_debug(...) (sc_log_log(SC_LOG_DEBUG, sc_log_ap(__VA_ARGS__, "")))

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 #ifndef _XOPEN_SOURCE
-    #define _XOPEN_SOURCE 700
+#define _XOPEN_SOURCE 700
 #endif
 
 #include "sc_cond.h"
@@ -34,160 +34,158 @@
 #if defined(_WIN32) || defined(_WIN64)
 #pragma warning(disable : 4996)
 
-int sc_cond_init(struct sc_cond *cond)
+int sc_cond_init(struct sc_cond *c)
 {
-    *cond = (struct sc_cond){0};
+	*c = (struct sc_cond){0};
 
-    InitializeCriticalSection(&cond->mtx);
-    InitializeConditionVariable(&cond->cond);
+	InitializeCriticalSection(&c->mtx);
+	InitializeConditionVariable(&c->cond);
 
-    return 0;
+	return 0;
 }
 
-int sc_cond_term(struct sc_cond *cond)
+int sc_cond_term(struct sc_cond *c)
 {
-    DeleteCriticalSection(&cond->mtx);
+	DeleteCriticalSection(&c->mtx);
 
-    return 0;
+	return 0;
 }
 
-void sc_cond_signal(struct sc_cond *cond, void *var)
+void sc_cond_signal(struct sc_cond *c, void *var)
 {
-    EnterCriticalSection(&cond->mtx);
+	EnterCriticalSection(&c->mtx);
 
-    cond->data = var;
-    cond->done = true;
+	c->data = var;
+	c->done = true;
 
-    WakeConditionVariable(&cond->cond);
-    LeaveCriticalSection(&cond->mtx);
+	WakeConditionVariable(&c->cond);
+	LeaveCriticalSection(&c->mtx);
 }
 
-void* sc_cond_wait(struct sc_cond *cond)
+void *sc_cond_wait(struct sc_cond *c)
 {
-    BOOL rc;
-    void* data;
+	BOOL rc;
+	void *data;
 
-    EnterCriticalSection(&cond->mtx);
+	EnterCriticalSection(&c->mtx);
 
-    while (cond->done == false) {
-        // This should not fail as we pass INFINITE.
-        rc = SleepConditionVariableCS(&cond->cond, &cond->mtx, INFINITE);
-        assert(rc != 0);
-    }
+	while (cond->done == false) {
+		// This should not fail as we pass INFINITE.
+		rc = SleepConditionVariableCS(&c->cond, &c->mtx, INFINITE);
+		assert(rc != 0);
+	}
 
-    data = cond->data;
-    cond->data = NULL;
-    cond->done = false;
+	data = c->data;
+	c->data = NULL;
+	c->done = false;
 
-    LeaveCriticalSection(&cond->mtx);
+	LeaveCriticalSection(&c->mtx);
 
-    return data;
+	return data;
 }
 
 #else
 
-
-int sc_cond_init(struct sc_cond *cond)
+int sc_cond_init(struct sc_cond *c)
 {
-    int rc;
+	int rc;
 
-    *cond = (struct sc_cond){0};
+	*c = (struct sc_cond){0};
 
-    pthread_mutexattr_t attr;
-    pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
+	pthread_mutexattr_t attr;
+	pthread_mutex_t mut = PTHREAD_MUTEX_INITIALIZER;
 
-    cond->mtx = mut;
+	c->mtx = mut;
 
-    rc = pthread_mutexattr_init(&attr);
-    if (rc != 0) {
-        goto error;
-    }
+	rc = pthread_mutexattr_init(&attr);
+	if (rc != 0) {
+		goto error;
+	}
 
-    // This won't fail as long as we pass correct params.
-    rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
-    assert(rc == 0);
+	// This won't fail as long as we pass correct params.
+	rc = pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_NORMAL);
+	assert(rc == 0);
 
-    rc = pthread_mutex_init(&cond->mtx, &attr);
-    if (rc != 0) {
-        goto cleanup_attr;
-    }
+	rc = pthread_mutex_init(&c->mtx, &attr);
+	if (rc != 0) {
+		goto cleanup_attr;
+	}
 
-    rc = pthread_cond_init(&cond->cond, NULL);
-    if (rc != 0) {
-        goto cleanup_mutex;
-    }
+	rc = pthread_cond_init(&c->cond, NULL);
+	if (rc != 0) {
+		goto cleanup_mutex;
+	}
 
-    pthread_mutexattr_destroy(&attr);
+	pthread_mutexattr_destroy(&attr);
 
-    return 0;
+	return 0;
 
 cleanup_mutex:
-    pthread_mutex_destroy(&cond->mtx);
+	pthread_mutex_destroy(&c->mtx);
 cleanup_attr:
-    pthread_mutexattr_destroy(&attr);
+	pthread_mutexattr_destroy(&attr);
 error:
-    errno = rc;
-    return -1;
+	errno = rc;
+	return -1;
 }
 
-int sc_cond_term(struct sc_cond *cond)
+int sc_cond_term(struct sc_cond *c)
 {
-    int rc;
+	int rc;
 
-    errno = 0;
+	errno = 0;
 
-    rc = pthread_mutex_destroy(&cond->mtx);
-    if (rc != 0) {
-        errno = rc;
-    }
+	rc = pthread_mutex_destroy(&c->mtx);
+	if (rc != 0) {
+		errno = rc;
+	}
 
-    rc = pthread_cond_destroy(&cond->cond);
-    if (rc != 0 && errno == 0) {
-        errno = rc;
-    }
+	rc = pthread_cond_destroy(&c->cond);
+	if (rc != 0 && errno == 0) {
+		errno = rc;
+	}
 
-    return errno;
+	return errno;
 }
 
-void sc_cond_signal(struct sc_cond *cond, void *data)
+void sc_cond_signal(struct sc_cond *c, void *data)
 {
-    int rc;
+	int rc;
 
-    pthread_mutex_lock(&cond->mtx);
+	pthread_mutex_lock(&c->mtx);
 
-    cond->data = data;
-    cond->done = true;
+	c->data = data;
+	c->done = true;
 
-    // This won't fail as long as we pass correct params.
-    rc = pthread_cond_signal(&cond->cond);
-    assert(rc == 0);
-    (void) rc;
+	// This won't fail as long as we pass correct params.
+	rc = pthread_cond_signal(&c->cond);
+	assert(rc == 0);
+	(void) rc;
 
-    pthread_mutex_unlock(&cond->mtx);
+	pthread_mutex_unlock(&c->mtx);
 }
 
-void *sc_cond_wait(struct sc_cond *cond)
+void *sc_cond_wait(struct sc_cond *c)
 {
-    int rc;
-    void *data;
+	int rc;
+	void *data;
 
-    pthread_mutex_lock(&cond->mtx);
+	pthread_mutex_lock(&c->mtx);
 
-    while (cond->done == false) {
-        // This won't fail as long as we pass correct params.
-        rc = pthread_cond_wait(&cond->cond, &cond->mtx);
-        assert(rc == 0);
-        (void) rc;
-    }
+	while (c->done == false) {
+		// This won't fail as long as we pass correct params.
+		rc = pthread_cond_wait(&c->cond, &c->mtx);
+		assert(rc == 0);
+		(void) rc;
+	}
 
-    data = cond->data;
-    cond->data = NULL;
-    cond->done = false;
+	data = c->data;
+	c->data = NULL;
+	c->done = false;
 
-    pthread_mutex_unlock(&cond->mtx);
+	pthread_mutex_unlock(&c->mtx);
 
-    return data;
+	return data;
 }
 
 #endif
-

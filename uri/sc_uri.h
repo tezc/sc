@@ -27,10 +27,10 @@
 #define SC_URI_VERSION "1.0.0"
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "config.h"
+#include "config.h"
 #else
-    #define sc_uri_malloc malloc
-    #define sc_uri_free   free
+#define sc_uri_malloc malloc
+#define sc_uri_free   free
 #endif
 
 #include <stdbool.h>
@@ -55,18 +55,17 @@
  *
  */
 
-struct sc_uri
-{
-    const char *str;          // Full string
-    const char *scheme;
-    const char *host;
-    const char *userinfo;
-    const char *port;
-    const char *path;
-    const char *query;
-    const char *fragment;
+struct sc_uri {
+	const char *str; // Full string
+	const char *scheme;
+	const char *host;
+	const char *userinfo;
+	const char *port;
+	const char *path;
+	const char *query;
+	const char *fragment;
 
-    char buf[];
+	char buf[];
 };
 
 /**
@@ -80,7 +79,8 @@ struct sc_uri
  * struct sc_uri* uri;
  *
  * struct sc_uri* uri;
- * uri = sc_uri_create("http://user:pass@any.com:8042/over/there?name=jane#doe");
+ * uri =
+ * sc_uri_create("http://user:pass@any.com:8042/over/there?name=jane#doe");
  *
  * printf("%s \n", uri->str);       // prints full string.
  * printf("%s \n", uri->scheme);    // prints "http"

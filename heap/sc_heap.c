@@ -27,122 +27,121 @@
 #include <stdlib.h>
 
 #ifndef SC_SIZE_MAX
-    #define SC_SIZE_MAX SIZE_MAX
+#define SC_SIZE_MAX SIZE_MAX
 #endif
 
 #define SC_CAP_MAX SC_SIZE_MAX / sizeof(struct sc_heap_data)
 
-bool sc_heap_init(struct sc_heap *heap, size_t cap)
+bool sc_heap_init(struct sc_heap *h, size_t cap)
 {
-    void *elems;
-    const size_t alloc = cap * sizeof(struct sc_heap_data);
+	void *e;
+	const size_t sz = cap * sizeof(struct sc_heap_data);
 
-    *heap = (struct sc_heap){0};
+	*h = (struct sc_heap){0};
 
-    if (cap == 0) {
-        return true;
-    }
+	if (cap == 0) {
+		return true;
+	}
 
-    // Check overflow
-    if (cap > SC_CAP_MAX || (elems = sc_heap_malloc(alloc)) == NULL) {
-        return false;
-    }
+	if (cap > SC_CAP_MAX || (e = sc_heap_malloc(sz)) == NULL) {
+		return false;
+	}
 
-    heap->elems = elems;
-    heap->cap = cap;
+	h->elems = e;
+	h->cap = cap;
 
-    return true;
+	return true;
 }
 
-void sc_heap_term(struct sc_heap *heap)
+void sc_heap_term(struct sc_heap *h)
 {
-    sc_heap_free(heap->elems);
+	sc_heap_free(h->elems);
 }
 
-size_t sc_heap_size(struct sc_heap *heap)
+size_t sc_heap_size(struct sc_heap *h)
 {
-    return heap->size;
+	return h->size;
 }
 
-void sc_heap_clear(struct sc_heap *heap)
+void sc_heap_clear(struct sc_heap *h)
 {
-    heap->size = 0;
+	h->size = 0;
 }
 
-bool sc_heap_add(struct sc_heap *heap, int64_t key, void *data)
+bool sc_heap_add(struct sc_heap *h, int64_t key, void *data)
 {
-    size_t i;
-    void *exp;
+	size_t i;
+	void *exp;
 
-    if (++heap->size >= heap->cap) {
-        const size_t cap = heap->cap != 0 ? heap->cap * 2 : 4;
-        const size_t m = cap * 2 * sizeof(struct sc_heap_data);
-        // Check overflow
-        if (heap->cap >= SC_CAP_MAX / 2 ||
-            (exp = sc_heap_realloc(heap->elems, m)) == NULL) {
-            return false;
-        }
+	if (++h->size >= h->cap) {
+		const size_t cap = h->cap != 0 ? h->cap * 2 : 4;
+		const size_t m = cap * 2 * sizeof(struct sc_heap_data);
 
-        heap->elems = exp;
-        heap->cap = cap;
-    }
+		if (h->cap >= SC_CAP_MAX / 2 ||
+		    (exp = sc_heap_realloc(h->elems, m)) == NULL) {
+			return false;
+		}
 
-    i = heap->size;
-    while (i != 1 && key < heap->elems[i / 2].key) {
-        heap->elems[i] = heap->elems[i / 2];
-        i /= 2;
-    }
+		h->elems = exp;
+		h->cap = cap;
+	}
 
-    heap->elems[i].key = key;
-    heap->elems[i].data = data;
+	i = h->size;
+	while (i != 1 && key < h->elems[i / 2].key) {
+		h->elems[i] = h->elems[i / 2];
+		i /= 2;
+	}
 
-    return true;
+	h->elems[i].key = key;
+	h->elems[i].data = data;
+
+	return true;
 }
 
-bool sc_heap_peek(struct sc_heap *heap, int64_t *key, void **data)
+bool sc_heap_peek(struct sc_heap *h, int64_t *key, void **data)
 {
-    if (heap->size == 0) {
-        return false;
-    }
+	if (h->size == 0) {
+		return false;
+	}
 
-    // Top element is always at heap->elems[1].
-    *key = heap->elems[1].key;
-    *data = heap->elems[1].data;
+	// Top element is always at heap->elems[1].
+	*key = h->elems[1].key;
+	*data = h->elems[1].data;
 
-    return true;
+	return true;
 }
 
-bool sc_heap_pop(struct sc_heap *heap, int64_t *key, void **data)
+bool sc_heap_pop(struct sc_heap *h, int64_t *key, void **data)
 {
-    size_t i = 1, child = 2;
-    struct sc_heap_data last;
+	size_t i = 1, child = 2;
+	struct sc_heap_data last;
 
-    if (heap->size == 0) {
-        return false;
-    }
+	if (h->size == 0) {
+		return false;
+	}
 
-    // Top element is always at heap->elems[1].
-    *key = heap->elems[1].key;
-    *data = heap->elems[1].data;
+	// Top element is always at heap->elems[1].
+	*key = h->elems[1].key;
+	*data = h->elems[1].data;
 
-    last = heap->elems[heap->size--];
-    while (child <= heap->size) {
-        if (child < heap->size &&
-            heap->elems[child].key > heap->elems[child + 1].key) {
-            child++;
-        };
+	last = h->elems[h->size--];
+	while (child <= h->size) {
+		if (child < h->size &&
+		    h->elems[child].key > h->elems[child + 1].key) {
+			child++;
+		};
 
-        if (last.key <= heap->elems[child].key) {
-            break;
-        }
+		if (last.key <= h->elems[child].key) {
+			break;
+		}
 
-        heap->elems[i] = heap->elems[child];
+		h->elems[i] = h->elems[child];
 
-        i = child;
-        child *= 2;
-    }
+		i = child;
+		child *= 2;
+	}
 
-    heap->elems[i] = last;
+	h->elems[i] = last;
 
-    return true;
+	return true;
 }

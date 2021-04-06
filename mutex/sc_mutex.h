@@ -28,17 +28,16 @@
 #define SC_MUTEX_VERSION "1.0.0"
 
 #if defined(_WIN32) || defined(_WIN64)
-    #include <windows.h>
+#include <windows.h>
 #else
-    #include <pthread.h>
+#include <pthread.h>
 #endif
 
-struct sc_mutex
-{
+struct sc_mutex {
 #if defined(_WIN32) || defined(_WIN64)
-    CRITICAL_SECTION mtx;
+	CRITICAL_SECTION mtx;
 #else
-    pthread_mutex_t mtx;
+	pthread_mutex_t mtx;
 #endif
 };
 

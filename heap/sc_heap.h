@@ -32,79 +32,75 @@
 #define SC_HEAP_VERSION "1.0.0"
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "config.h"
+#include "config.h"
 #else
-    #define sc_heap_malloc  malloc
-    #define sc_heap_realloc realloc
-    #define sc_heap_free    free
+#define sc_heap_malloc	malloc
+#define sc_heap_realloc realloc
+#define sc_heap_free	free
 #endif
 
-
-struct sc_heap_data
-{
-    int64_t key;
-    void *data;
+struct sc_heap_data {
+	int64_t key;
+	void *data;
 };
 
-struct sc_heap
-{
-    size_t cap;
-    size_t size;
-    struct sc_heap_data *elems;
+struct sc_heap {
+	size_t cap;
+	size_t size;
+	struct sc_heap_data *elems;
 };
 
 /**
- * @param heap heap
- * @param cap  initial capacity, pass '0' for no initial memory allocation
- * @return     'true' on success, 'false' on out of memory
+ * @param h   heap
+ * @param cap initial capacity, pass '0' for no initial memory allocation
+ * @return    'true' on success, 'false' on out of memory
  */
-bool sc_heap_init(struct sc_heap *heap, size_t cap);
+bool sc_heap_init(struct sc_heap *h, size_t cap);
 
 /**
  * Destroys heap, frees memory
- * @param heap heap
+ * @param h heap
  */
-void sc_heap_term(struct sc_heap *heap);
+void sc_heap_term(struct sc_heap *h);
 
 /**
- * @param heap heap
- * @return     element count
+ * @param h heap
+ * @return  element count
  */
-size_t sc_heap_size(struct sc_heap *heap);
+size_t sc_heap_size(struct sc_heap *h);
 
 /**
  * Clears elements from the queue, does not free the allocated memory.
- * @param heap heap
+ * @param h heap
  */
-void sc_heap_clear(struct sc_heap *heap);
+void sc_heap_clear(struct sc_heap *h);
 
 /**
- * @param heap heap
+ * @param h    heap
  * @param key  key
  * @param data data
  * @return     'false' on out of memory.
  */
-bool sc_heap_add(struct sc_heap *heap, int64_t key, void *data);
+bool sc_heap_add(struct sc_heap *h, int64_t key, void *data);
 
 /**
  * Read top element without removing from the heap.
  *
- * @param heap heap
+ * @param h    heap
  * @param key  [out] key
  * @param data [out] data
  * @return     'false' if there is no element in the heap.
  */
-bool sc_heap_peek(struct sc_heap *heap, int64_t *key, void **data);
+bool sc_heap_peek(struct sc_heap *h, int64_t *key, void **data);
 
 /**
  * Read top element and remove it from the heap.
  *
- * @param heap heap
+ * @param h    heap
  * @param key  [out] key
  * @param data [out] data
  * @return     'false' if there is no element in the heap.
  */
-bool sc_heap_pop(struct sc_heap *heap, int64_t *key, void **data);
-
+bool sc_heap_pop(struct sc_heap *h, int64_t *key, void **data);
 
 #endif

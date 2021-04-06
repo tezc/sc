@@ -23,11 +23,11 @@
  */
 
 #ifndef _GNU_SOURCE
-    #define _GNU_SOURCE
+#define _GNU_SOURCE
 #endif
 
 #ifndef _XOPEN_SOURCE
-    #define _XOPEN_SOURCE 700
+#define _XOPEN_SOURCE 700
 #endif
 
 #include "sc_signal.h"
@@ -61,295 +61,305 @@ volatile sig_atomic_t sc_signal_log_fd;
 volatile sig_atomic_t sc_signal_will_shutdown;
 
 #define get_uint(va, size)                                                     \
-    (size) == 3 ? va_arg(va, unsigned long long) :                             \
-    (size) == 2 ? va_arg(va, unsigned long) :                                  \
-                  va_arg(va, unsigned int)
+	(size) == 3 ? va_arg(va, unsigned long long) :                         \
+	(size) == 2 ? va_arg(va, unsigned long) :                              \
+			    va_arg(va, unsigned int)
 
 #define get_int(va, size)                                                      \
-    (size) == 3 ? va_arg(va, long long) :                                      \
-    (size) == 2 ? va_arg(va, long) :                                           \
-                  va_arg(va, int)
+	(size) == 3 ? va_arg(va, long long) :                                  \
+	(size) == 2 ? va_arg(va, long) :                                       \
+			    va_arg(va, int)
 
 #define PSIZE sizeof(void *) == sizeof(unsigned long long) ? 3 : 2
 
-int sc_signal_vsnprintf(char *buf, size_t size, const char *fmt, va_list va)
+int sc_signal_vsnprintf(char *buf, size_t sz, const char *fmt, va_list va)
 {
-    size_t len;
-    size_t out_cap = size == 0 ? 0 : size - 1;
-    char *str;
-    char *out = buf;
-    char *pos = (char *) fmt;
-    char digits[32];
+	const char *arr = "0123456789abcdef";
 
-    while (true) {
-        char *orig = pos;
+	char c;
+	int64_t i;
+	uint64_t u;
+	size_t len;
+	size_t out_cap = sz == 0 ? 0 : sz - 1;
+	char *str, *out = buf;
+	char *pos = (char *) fmt;
+	char dst[32];
 
-        switch (*pos) {
-        case '\0': {
-            *out = '\0';
-            return (int) (out - buf);
-        }
-        case '%': {
-            pos++;
-            switch (*pos) {
-            case 's':
-                str = (char *) va_arg(va, const char *);
-                str = (str == NULL) ? "(null)" : str;
-                len = strlen(str);
-                break;
-            case 'l':
-                pos += (*(pos + 1) == 'l') ? 2 : 1; // fall through
-            case 'd':
-            case 'u':
-                len = 0;
+	while (true) {
+		char *orig = pos;
 
-                if (*pos == 'u') {
-                    uint64_t u64 = get_uint(va, pos - orig);
+		switch (*pos) {
+		case '\0': {
+			*out = '\0';
+			return (int) (out - buf);
+		}
+		case '%': {
+			pos++;
+			switch (*pos) {
+			case 's':
+				str = (char *) va_arg(va, const char *);
+				str = (str == NULL) ? "(null)" : str;
+				len = strlen(str);
+				break;
+			case 'l':
+				pos += (*(pos + 1) == 'l') ? 2 : 1;
+				// fall through
+			case 'd':
+			case 'u':
+				len = 0;
 
-                    do {
-                        digits[31 - (len++)] = (char) ('0' + (u64 % 10));
-                    } while (u64 /= 10UL);
+				if (*pos == 'u') {
+					u = get_uint(va, pos - orig);
 
-                } else if (*pos == 'd') {
-                    int64_t i64 = get_int(va, pos - orig);
-                    uint64_t u64 = (uint64_t)(i64 < 0 ? -i64 : i64);
+					do {
+						c = (char)('0' +  (u % 10));
+						dst[31 - (len++)] = c;
+					} while (u /= 10UL);
 
-                    do {
-                        digits[31 - (len++)] = (char) ('0' + (char) (u64 % 10));
-                    } while (u64 /= 10UL);
+				} else if (*pos == 'd') {
+					i = get_int(va, pos - orig);
+					u = (uint64_t)(i < 0 ? -i : i);
 
-                    if (i64 < 0) {
-                        digits[31 - (len++)] = '-';
-                    }
-                } else {
-                    return -1;
-                }
+					do {
+						c = (char)('0' +  (u % 10));
+						dst[31 - (len++)] = c;
+					} while (u /= 10UL);
 
-                str = &digits[32 - len];
-                break;
-            case 'p': {
-                const char *arr = "0123456789abcdef";
-                len = 0;
-                uint64_t u64 = get_uint(va, PSIZE);
+					if (i < 0) {
+						dst[31 - (len++)] = '-';
+					}
+				} else {
+					return -1;
+				}
 
-                do {
-                    digits[31 - (len++)] = arr[u64 % 16];
-                } while (u64 /= 16UL);
+				str = &dst[32 - len];
+				break;
+			case 'p':
+				len = 0;
+				u = get_uint(va, PSIZE);
 
-                digits[31 - (len++)] = 'x';
-                digits[31 - (len++)] = '0';
-                str = &digits[32 - len];
-            } break;
-            case '%':
-                str = "%";
-                len = 1;
-                break;
-            default:
-                return -1;
-            }
-            pos++;
-        } break;
-        default: {
-            while (*pos != '\0' && *pos != '%') {
-                pos++;
-            }
-            str = orig;
-            len = pos - orig;
-            break;
-        }
-        }
+				do {
+					dst[31 - (len++)] = arr[u % 16];
+				} while (u /= 16UL);
 
-        len = len < out_cap ? len : out_cap;
-        memcpy(out, str, len);
+				dst[31 - (len++)] = 'x';
+				dst[31 - (len++)] = '0';
+				str = &dst[32 - len];
+				break;
+			case '%':
+				str = "%";
+				len = 1;
+				break;
+			default:
+				return -1;
+			}
+			pos++;
+		} break;
+		default: {
+			while (*pos != '\0' && *pos != '%') {
+				pos++;
+			}
+			str = orig;
+			len = pos - orig;
+			break;
+		}
+		}
 
-        out += len;
-        out_cap -= len;
-    }
+		len = len < out_cap ? len : out_cap;
+		memcpy(out, str, len);
+
+		out += len;
+		out_cap -= len;
+	}
 }
 
-int sc_signal_snprintf(char *buf, size_t size, const char *fmt, ...)
+int sc_signal_snprintf(char *buf, size_t sz, const char *fmt, ...)
 {
-    int ret;
-    va_list args;
+	int ret;
+	va_list args;
 
-    va_start(args, fmt);
-    ret = sc_signal_vsnprintf(buf, size, fmt, args);
-    va_end(args);
+	va_start(args, fmt);
+	ret = sc_signal_vsnprintf(buf, sz, fmt, args);
+	va_end(args);
 
-    return ret;
+	return ret;
 }
 
 #if defined(_WIN32)
 
 #define WIN32_LEAN_AND_MEAN
 
-    #include <Ws2tcpip.h>
-    #include <io.h>
-    #include <signal.h>
-    #include <windows.h>
+#include <Ws2tcpip.h>
+#include <io.h>
+#include <signal.h>
+#include <windows.h>
 
-    #pragma warning(disable : 4996)
-    #pragma comment(lib, "Ws2_32.lib")
+#pragma warning(disable : 4996)
+#pragma comment(lib, "Ws2_32.lib")
 
 BOOL WINAPI sc_console_handler(DWORD type)
 {
-    int rc;
-    char *err;
-    char buf[128];
-    int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stdout);
+	int rc;
+	char *err;
+	char buf[128];
+	int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stdout);
 
-    switch (type) {
-    case CTRL_C_EVENT:
-        err = "CTRL_C event";
-        break;
-    case CTRL_BREAK_EVENT:
-        err = "CTRL_BREAK event";
-        break;
-    default:
-        sc_signal_log(fd, buf, sizeof(buf),
-                      "Unknown console event [%d], shutting down! \n", type);
-        _Exit(1);
-    }
+	switch (type) {
+	case CTRL_C_EVENT:
+		err = "CTRL_C event";
+		break;
+	case CTRL_BREAK_EVENT:
+		err = "CTRL_BREAK event";
+		break;
+	default:
+		sc_signal_log(fd, buf, sizeof(buf),
+			      "Unknown console event [%d], shutting down! \n",
+			      type);
+		_Exit(1);
+	}
 
-    sc_signal_log(fd, buf, sizeof(buf), "Received : %s, (%d) \n", err, type);
+	sc_signal_log(fd, buf, sizeof(buf), "Received : %s, (%d) \n", err,
+		      type);
 
-    if (sc_signal_will_shutdown != 0) {
-        sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
-        _Exit(1);
-    }
+	if (sc_signal_will_shutdown != 0) {
+		sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
+		_Exit(1);
+	}
 
-    sc_signal_will_shutdown = 1;
+	sc_signal_will_shutdown = 1;
 
-    if (sc_signal_shutdown_fd != INVALID_SOCKET) {
-        sc_signal_log(fd, buf, sizeof(buf), "Sending shutdown command. \n");
-        rc = send(sc_signal_shutdown_fd, (void *) &(int){1}, 1, 0);
-        if (rc != 1) {
-            sc_signal_log(fd, buf, sizeof(buf),
-                          "Failed to send shutdown command, "
-                          "shutting down immediately! \n");
-            _Exit(1);
-        }
-    } else {
-        sc_signal_log(fd, buf, sizeof(buf),
-                      "No shutdown handler, shutting down! \n");
-        _Exit(0);
-    }
+	if (sc_signal_shutdown_fd != INVALID_SOCKET) {
+		sc_signal_log(fd, buf, sizeof(buf),
+			      "Sending shutdown command. \n");
+		rc = send(sc_signal_shutdown_fd, (void *) &(int){1}, 1, 0);
+		if (rc != 1) {
+			sc_signal_log(fd, buf, sizeof(buf),
+				      "Failed to send shutdown command, "
+				      "shutting down immediately! \n");
+			_Exit(1);
+		}
+	} else {
+		sc_signal_log(fd, buf, sizeof(buf),
+			      "No shutdown handler, shutting down! \n");
+		_Exit(0);
+	}
 
-
-    return TRUE;
+	return TRUE;
 }
 
 LONG WINAPI sc_signal_on_fatal(PEXCEPTION_POINTERS info)
 {
-    char buf[128];
-    int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stderr);
+	char buf[128];
+	int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stderr);
 
-    sc_signal_log(fd, buf, sizeof(buf), "Fatal signal : %d, shutting down! \n",
-                  info->ExceptionRecord->ExceptionCode);
+	sc_signal_log(fd, buf, sizeof(buf),
+		      "Fatal signal : %d, shutting down! \n",
+		      info->ExceptionRecord->ExceptionCode);
 
-    return 0;
+	return 0;
 }
 
 void sc_signal_std_on_fatal(int sig)
 {
-    char buf[128];
-    int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stderr);
-    char *sig_str = "unknown signal";
+	char buf[128];
+	int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : _fileno(stderr);
+	char *sig_str = "unknown signal";
 
-    if (sig == SIGSEGV) {
-        sig_str = "SIGSEGV";
-    } else if (sig == SIGABRT) {
-        sig_str = "SIGABRT";
-    } else if (sig == SIGFPE) {
-        sig_str = "SIGFPE";
-    } else if (sig == SIGILL) {
-        sig_str = "SIGILL";
-    }
+	if (sig == SIGSEGV) {
+		sig_str = "SIGSEGV";
+	} else if (sig == SIGABRT) {
+		sig_str = "SIGABRT";
+	} else if (sig == SIGFPE) {
+		sig_str = "SIGFPE";
+	} else if (sig == SIGILL) {
+		sig_str = "SIGILL";
+	}
 
-    sc_signal_log(fd, buf, sizeof(buf),
-                  "Fatal signal : [%s][%d], shutting down! \n", sig_str, sig);
+	sc_signal_log(fd, buf, sizeof(buf),
+		      "Fatal signal : [%s][%d], shutting down! \n", sig_str,
+		      sig);
 
-    _Exit(1);
+	_Exit(1);
 }
 
 void sc_signal_std_on_shutdown(int type)
 {
-    sc_console_handler(CTRL_C_EVENT);
+	sc_console_handler(CTRL_C_EVENT);
 }
 int sc_signal_init()
 {
-    BOOL b;
-    sc_signal_log_fd = -1;
-    sc_signal_shutdown_fd = -1;
+	BOOL b;
+	sc_signal_log_fd = -1;
+	sc_signal_shutdown_fd = -1;
 
-    b = SetConsoleCtrlHandler(sc_console_handler, TRUE);
-    if (!b) {
-        return -1;
-    }
+	b = SetConsoleCtrlHandler(sc_console_handler, TRUE);
+	if (!b) {
+		return -1;
+	}
 
-    SetUnhandledExceptionFilter(sc_signal_on_fatal);
-    signal(SIGABRT, sc_signal_std_on_fatal);
-    signal(SIGINT, sc_signal_std_on_shutdown);
+	SetUnhandledExceptionFilter(sc_signal_on_fatal);
+	signal(SIGABRT, sc_signal_std_on_fatal);
+	signal(SIGINT, sc_signal_std_on_shutdown);
 
-    return 0;
+	return 0;
 }
 
 #else
 
-// clang-format off
-#include <unistd.h>
 #include <errno.h>
+#include <unistd.h>
 
 #ifdef HAVE_BACKTRACE
 #include <execinfo.h>
 
+// clang-format off
 static void *sc_instruction(ucontext_t *uc)
 {
-    void* p = NULL;
+	(void) uc;
+	void *p = NULL;
 
 #if defined(__APPLE__)
-    #if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
-        p = (void *) uc->uc_mcontext->__ss.__rip;
-    #elif defined(__i386__)
-        p = (void *) uc->uc_mcontext->__ss.__eip;
-    #else
-        p = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
-    #endif
+	#if defined(_STRUCT_X86_THREAD_STATE64) && !defined(__i386__)
+		p = (void *) uc->uc_mcontext->__ss.__rip;
+	#elif defined(__i386__)
+		p = (void *) uc->uc_mcontext->__ss.__eip;
+	#else
+		p = (void *) arm_thread_state64_get_pc(uc->uc_mcontext->__ss);
+	#endif
 #elif defined(__linux__)
-    #if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
-        p = (void *) uc->uc_mcontext.gregs[REG_EIP];
-    #elif defined(__x86_64__)
-        p = (void *) uc->uc_mcontext.gregs[REG_RIP];
-    #elif defined(__ia64__)
-        p = (void *) uc->uc_mcontext.sc_ip;
-    #elif defined(__arm__)
-        p = (void *) uc->uc_mcontext.arm_pc;
-    #elif defined(__aarch64__)
-        p = (void *) uc->uc_mcontext.pc;
-    #endif
+	#if defined(__i386__) || ((defined(__x86_64__)) && defined(__ILP32__))
+		p = (void *) uc->uc_mcontext.gregs[REG_EIP];
+	#elif defined(__x86_64__)
+		p = (void *) uc->uc_mcontext.gregs[REG_RIP];
+	#elif defined(__ia64__)
+		p = (void *) uc->uc_mcontext.sc_ip;
+	#elif defined(__arm__)
+		p = (void *) uc->uc_mcontext.arm_pc;
+	#elif defined(__aarch64__)
+		p = (void *) uc->uc_mcontext.pc;
+	#endif
 #elif defined(__FreeBSD__)
-    #if defined(__i386__)
-        p = (void *) uc->uc_mcontext.mc_eip;
-    #elif defined(__x86_64__)
-        p = (void *) uc->uc_mcontext.mc_rip;
-    #endif
+	#if defined(__i386__)
+		p = (void *) uc->uc_mcontext.mc_eip;
+	#elif defined(__x86_64__)
+		p = (void *) uc->uc_mcontext.mc_rip;
+	#endif
 #elif defined(__OpenBSD__)
-    #if defined(__i386__)
-        p = (void *) uc->sc_eip;
-    #elif defined(__x86_64__)
-        p = (void *) uc->sc_rip;
-    #endif
+	#if defined(__i386__)
+		p = (void *) uc->sc_eip;
+	#elif defined(__x86_64__)
+		p = (void *) uc->sc_rip;
+	#endif
 #elif defined(__NetBSD__)
-    #if defined(__i386__)
-        p = (void *) uc->uc_mcontext.__gregs[_REG_EIP];
-    #elif defined(__x86_64__)
-        p = (void *) uc->uc_mcontext.__gregs[_REG_RIP];
-    #endif
+	#if defined(__i386__)
+		p = (void *) uc->uc_mcontext.__gregs[_REG_EIP];
+	#elif defined(__x86_64__)
+		p = (void *) uc->uc_mcontext.__gregs[_REG_RIP];
+	#endif
 #elif defined(__DragonFly__)
-    p = (void *) uc->uc_mcontext.mc_rip;
+	p = (void *) uc->uc_mcontext.mc_rip;
 #endif
-
-    return p;
+	return p;
 }
 
 #endif
@@ -358,158 +368,156 @@ static void *sc_instruction(ucontext_t *uc)
 
 static void sc_signal_on_shutdown(int sig)
 {
-    int rc;
-    int saved_errno = errno;
-    int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDOUT_FILENO;
-    char buf[4096], *sig_str = "Shutdown signal";
+	int rc, saved_errno = errno;
+	int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDOUT_FILENO;
+	char buf[4096], *str = "Shutdown signal";
 
-    if (sig == SIGINT) {
-        sig_str = "SIGINT";
-    } else if (sig == SIGTERM) {
-        sig_str = "SIGTERM";
-    }
+	if (sig == SIGINT) {
+		str = "SIGINT";
+	} else if (sig == SIGTERM) {
+		str = "SIGTERM";
+	}
 
-    sc_signal_log(fd, buf, sizeof(buf), "Received : %s, (%d) \n", sig_str, sig);
+	sc_signal_log(fd, buf, sizeof(buf), "Recv : %s, (%d) \n", str, sig);
 
-    if (sc_signal_will_shutdown != 0) {
-        sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
+	if (sc_signal_will_shutdown != 0) {
+		sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
 #ifdef SC_SIGNAL_TEST
-        return;
+		return;
 #endif
-        _Exit(1);
-    }
+		_Exit(1);
+	}
 
-    sc_signal_will_shutdown = 1;
+	sc_signal_will_shutdown = 1;
 
-    if (sc_signal_shutdown_fd != -1) {
-        sc_signal_log(fd, buf, sizeof(buf), "Sending shutdown command. \n");
-        rc = (int) write(sc_signal_shutdown_fd, (void *) &(int){1}, 1);
-        if (rc != 1) {
-            sc_signal_log(fd, buf, sizeof(buf),
-                          "Failed to send shutdown command, "
-                          "shutting down immediately! \n");
+	if (sc_signal_shutdown_fd != -1) {
+		sc_signal_log(fd, buf, sizeof(buf),
+			      "Sending shutdown command. \n");
+		rc = (int) write(sc_signal_shutdown_fd, (void *) &(int){1}, 1);
+		if (rc != 1) {
+			sc_signal_log(fd, buf, sizeof(buf),
+				      "Failed to send shutdown command, "
+				      "shutting down immediately! \n");
 #ifdef SC_SIGNAL_TEST
-            return;
+			return;
 #endif
-            _Exit(1);
-        }
-    } else {
-        sc_signal_log(fd, buf, sizeof(buf),
-                      "No shutdown handler, shutting down! \n");
+			_Exit(1);
+		}
+	} else {
+		sc_signal_log(fd, buf, sizeof(buf),
+			      "No shutdown handler, shutting down! \n");
 #ifdef SC_SIGNAL_TEST
-        return;
+		return;
 #endif
-        _Exit(0);
-    }
+		_Exit(0);
+	}
 
-    errno = saved_errno;
+	errno = saved_errno;
 }
 
 static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
 {
-    (void) info;
+	(void) info;
 
-    int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDERR_FILENO;
+	int fd = sc_signal_log_fd != -1 ? sc_signal_log_fd : STDERR_FILENO;
 
-    char buf[4096], *sig_str = "unknown signal";
-    struct sigaction act;
+	char buf[4096], *str = "unknown signal";
+	struct sigaction act;
 
-    if (sig == SIGSEGV) {
-        sig_str = "SIGSEGV";
-    } else if (sig == SIGABRT) {
-        sig_str = "SIGABRT";
-    } else if (sig == SIGBUS) {
-        sig_str = "SIGBUS";
-    } else if (sig == SIGFPE) {
-        sig_str = "SIGFPE";
-    } else if (sig == SIGILL) {
-        sig_str = "SIGILL";
-    }
+	if (sig == SIGSEGV) {
+		str = "SIGSEGV";
+	} else if (sig == SIGABRT) {
+		str = "SIGABRT";
+	} else if (sig == SIGBUS) {
+		str = "SIGBUS";
+	} else if (sig == SIGFPE) {
+		str = "SIGFPE";
+	} else if (sig == SIGILL) {
+		str = "SIGILL";
+	}
 
-    sc_signal_log(fd, buf, sizeof(buf), "\nSignal received : [%d][%s] \n", sig,
-                  sig_str);
-
-    sc_signal_log(fd, buf, sizeof(buf),
-                  "\n----------------- CRASH REPORT ---------------- \n");
+	sc_signal_log(fd, buf, sizeof(buf), "\nSignal : [%d][%s] \n", sig, str);
+	sc_signal_log(fd, buf, sizeof(buf),
+		      "\n----------------- CRASH REPORT ---------------- \n");
 
 #ifdef HAVE_BACKTRACE
-    void *caller = sc_instruction((ucontext_t *) context);
-    int trace_size;
-    void *trace[100];
+	void *caller = sc_instruction((ucontext_t *) context);
+	int trace_size;
+	void *trace[100];
 
-    sc_signal_log(fd, buf, sizeof(buf), "\n Caller [%p] \n\n", caller);
+	sc_signal_log(fd, buf, sizeof(buf), "\n Caller [%p] \n\n", caller);
 
-    trace_size = backtrace(trace, 100);
-    backtrace_symbols_fd(trace, trace_size, fd);
+	trace_size = backtrace(trace, 100);
+	backtrace_symbols_fd(trace, trace_size, fd);
 #else
-    (void) context;
+	(void) context;
 #endif
-    sc_signal_log(fd, buf, sizeof(buf),
-                  "\n--------------- CRASH REPORT END -------------- \n");
+	sc_signal_log(fd, buf, sizeof(buf),
+		      "\n--------------- CRASH REPORT END -------------- \n");
 
-    sc_signal_log(fd, buf, sizeof(buf), "\nSignal handler completed! \n");
-    close(fd);
+	sc_signal_log(fd, buf, sizeof(buf), "\nSignal handler completed! \n");
+	close(fd);
 
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = SA_NODEFER | SA_ONSTACK | SA_RESETHAND;
-    act.sa_handler = SIG_DFL;
-    sigaction(sig, &act, NULL);
+	sigemptyset(&act.sa_mask);
+	act.sa_flags = SA_NODEFER | SA_ONSTACK | SA_RESETHAND;
+	act.sa_handler = SIG_DFL;
+	sigaction(sig, &act, NULL);
 
 #ifndef SC_SIGNAL_TEST
-    kill(getpid(), sig);
+	kill(getpid(), sig);
 #endif
 }
 
 int sc_signal_init()
 {
-    bool rc = true;
-    struct sigaction action;
+	bool rc = true;
+	struct sigaction action;
 
-    sc_signal_log_fd = -1;
-    sc_signal_shutdown_fd = -1;
+	sc_signal_log_fd = -1;
+	sc_signal_shutdown_fd = -1;
 
-    rc &= (signal(SIGHUP, SIG_IGN) != SIG_ERR);
-    rc &= (signal(SIGPIPE, SIG_IGN) != SIG_ERR);
-    rc &= (sigemptyset(&action.sa_mask) == 0);
+	rc &= (signal(SIGHUP, SIG_IGN) != SIG_ERR);
+	rc &= (signal(SIGPIPE, SIG_IGN) != SIG_ERR);
+	rc &= (sigemptyset(&action.sa_mask) == 0);
 
-    action.sa_flags = 0;
-    action.sa_handler = sc_signal_on_shutdown;
+	action.sa_flags = 0;
+	action.sa_handler = sc_signal_on_shutdown;
 
-    rc &= (sigaction(SIGTERM, &action, NULL) == 0);
-    rc &= (sigaction(SIGINT, &action, NULL) == 0);
-
-#ifdef SC_SIGNAL_TEST
-    rc &= (sigaction(SIGUSR2, &action, NULL) == 0);
-#endif
-
-    rc &= (sigemptyset(&action.sa_mask) == 0);
-    action.sa_flags = SA_NODEFER | SA_RESETHAND | SA_SIGINFO;
-    action.sa_sigaction = sc_signal_on_fatal;
-
-    rc &= (sigaction(SIGABRT, &action, NULL) == 0);
-    rc &= (sigaction(SIGSEGV, &action, NULL) == 0);
-    rc &= (sigaction(SIGBUS, &action, NULL) == 0);
-    rc &= (sigaction(SIGFPE, &action, NULL) == 0);
-    rc &= (sigaction(SIGILL, &action, NULL) == 0);
+	rc &= (sigaction(SIGTERM, &action, NULL) == 0);
+	rc &= (sigaction(SIGINT, &action, NULL) == 0);
 
 #ifdef SC_SIGNAL_TEST
-    rc &= (sigaction(SIGSYS, &action, NULL) == 0);
+	rc &= (sigaction(SIGUSR2, &action, NULL) == 0);
 #endif
 
-    return rc ? 0 : -1;
+	rc &= (sigemptyset(&action.sa_mask) == 0);
+	action.sa_flags = SA_NODEFER | SA_RESETHAND | SA_SIGINFO;
+	action.sa_sigaction = sc_signal_on_fatal;
+
+	rc &= (sigaction(SIGABRT, &action, NULL) == 0);
+	rc &= (sigaction(SIGSEGV, &action, NULL) == 0);
+	rc &= (sigaction(SIGBUS, &action, NULL) == 0);
+	rc &= (sigaction(SIGFPE, &action, NULL) == 0);
+	rc &= (sigaction(SIGILL, &action, NULL) == 0);
+
+#ifdef SC_SIGNAL_TEST
+	rc &= (sigaction(SIGSYS, &action, NULL) == 0);
+#endif
+
+	return rc ? 0 : -1;
 }
 
 #endif
 
-void sc_signal_log(int fd, char *buf, size_t len, char *fmt, ...)
+void sc_signal_log(int fd, char *buf, size_t sz, char *fmt, ...)
 {
-    int written, rc;
-    va_list args;
+	int wr, rc;
+	va_list args;
 
-    va_start(args, fmt);
-    written = sc_signal_vsnprintf(buf, len, fmt, args);
-    va_end(args);
+	va_start(args, fmt);
+	wr = sc_signal_vsnprintf(buf, sz, fmt, args);
+	va_end(args);
 
-    rc = write(fd, buf, (size_t) written);
-    (void) rc;
+	rc = write(fd, buf, (size_t) wr);
+	(void) rc;
 }

@@ -4,27 +4,27 @@
 
 int main()
 {
-    int *queue;
-    int elem;
+	int *queue;
+	int elem;
 
-    sc_queue_create(queue, 0);
+	sc_queue_create(queue, 0);
 
-    sc_queue_add_last(queue, 2);
-    sc_queue_add_last(queue, 3);
-    sc_queue_add_last(queue, 4);
-    sc_queue_add_first(queue, 1);
+	sc_queue_add_last(queue, 2);
+	sc_queue_add_last(queue, 3);
+	sc_queue_add_last(queue, 4);
+	sc_queue_add_first(queue, 1);
 
-    sc_queue_foreach (queue, elem) {
-        printf("elem = [%d] \n", elem);
-    }
+	sc_queue_foreach (queue, elem) {
+		printf("elem = [%d] \n", elem);
+	}
 
-    elem = sc_queue_del_last(queue);
-    printf("Last element was : [%d] \n", elem);
+	elem = sc_queue_del_last(queue);
+	printf("Last element was : [%d] \n", elem);
 
-    elem = sc_queue_del_first(queue);
-    printf("First element was : [%d] \n", elem);
+	elem = sc_queue_del_first(queue);
+	printf("First element was : [%d] \n", elem);
 
-    sc_queue_destroy(queue);
+	sc_queue_destroy(queue);
 
-    return 0;
+	return 0;
 }

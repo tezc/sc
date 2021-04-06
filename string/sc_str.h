@@ -32,11 +32,11 @@
 #define SC_STR_VERSION "1.0.0"
 
 #ifdef SC_HAVE_CONFIG_H
-    #include "config.h"
+#include "config.h"
 #else
-    #define sc_str_malloc  malloc
-    #define sc_str_realloc realloc
-    #define sc_str_free    free
+#define sc_str_malloc  malloc
+#define sc_str_realloc realloc
+#define sc_str_free    free
 #endif
 
 /**
@@ -125,8 +125,8 @@ bool sc_str_append(char **str, const char *text);
  * @return    'true' on success, 'false' on out of memory or if '*str' is NULL.
  */
 #define sc_str_append_fmt(str, fmt, ...)                                       \
-    ((*str) ? (sc_str_set_fmt(str, "%s" fmt, *str, __VA_ARGS__)) :             \
-              (sc_str_set_fmt(str, fmt, __VA_ARGS__)))
+	((*str) ? (sc_str_set_fmt(str, "%s" fmt, *str, __VA_ARGS__)) :         \
+			(sc_str_set_fmt(str, fmt, __VA_ARGS__)))
 
 /**
  * Compare two length prefixed strings. To compare with C string, use strcmp().
@@ -190,6 +190,5 @@ bool sc_str_replace(char **str, const char *rep, const char *with);
  */
 const char *sc_str_token_begin(char *str, char **save, const char *delim);
 void sc_str_token_end(char *str, char **save);
-
 
 #endif

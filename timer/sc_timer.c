@@ -27,188 +27,188 @@
 #include <assert.h>
 #include <memory.h>
 
-#define TICK        16u
+#define TICK	    16u
 #define WHEEL_COUNT 16u
 
 #ifndef SC_SIZE_MAX
-    #define SC_SIZE_MAX UINT32_MAX
+#define SC_SIZE_MAX UINT32_MAX
 #endif
 
 #define SC_CAP_MAX (SC_SIZE_MAX / sizeof(struct sc_timer_data)) / WHEEL_COUNT
 
-bool sc_timer_init(struct sc_timer *timer, uint64_t timestamp)
+bool sc_timer_init(struct sc_timer *t, uint64_t timestamp)
 {
-    const uint32_t wheel_cap = 4;
-    const uint32_t cap = WHEEL_COUNT * wheel_cap;
-    const size_t size = cap * sizeof(struct sc_timer_data);
+	const uint32_t wheel_cap = 4;
+	const uint32_t cap = WHEEL_COUNT * wheel_cap;
+	const size_t size = cap * sizeof(struct sc_timer_data);
 
-    timer->count = 0;
-    timer->head = 0;
-    timer->wheel = wheel_cap;
-    timer->timestamp = timestamp;
+	t->count = 0;
+	t->head = 0;
+	t->wheel = wheel_cap;
+	t->timestamp = timestamp;
 
-    timer->list = sc_timer_malloc(size);
-    if (timer->list == NULL) {
-        return false;
-    }
+	t->list = sc_timer_malloc(size);
+	if (t->list == NULL) {
+		return false;
+	}
 
-    for (uint32_t i = 0; i < cap; i++) {
-        timer->list[i].timeout = UINT64_MAX;
-        timer->list[i].data = NULL;
-    }
+	for (uint32_t i = 0; i < cap; i++) {
+		t->list[i].timeout = UINT64_MAX;
+		t->list[i].data = NULL;
+	}
 
-    return true;
+	return true;
 }
 
-void sc_timer_term(struct sc_timer *timer)
+void sc_timer_term(struct sc_timer *t)
 {
-    sc_timer_free(timer->list);
+	sc_timer_free(t->list);
 }
 
-void sc_timer_clear(struct sc_timer *timer)
+void sc_timer_clear(struct sc_timer *t)
 {
-    const uint32_t cap = timer->wheel * WHEEL_COUNT;
+	const uint32_t cap = t->wheel * WHEEL_COUNT;
 
-    timer->count = 0;
-    timer->head = 0;
+	t->count = 0;
+	t->head = 0;
 
-    for (uint32_t i = 0; i < cap; i++) {
-        timer->list[i].timeout = UINT64_MAX;
-        timer->list[i].data = NULL;
-    }
+	for (uint32_t i = 0; i < cap; i++) {
+		t->list[i].timeout = UINT64_MAX;
+		t->list[i].data = NULL;
+	}
 }
 
-static bool expand(struct sc_timer *timer)
+static bool expand(struct sc_timer *t)
 {
-    uint32_t cap = timer->wheel * WHEEL_COUNT * 2;
-    size_t size = cap * sizeof(struct sc_timer_data);
-    struct sc_timer_data *alloc;
+	uint32_t cap = t->wheel * WHEEL_COUNT * 2;
+	size_t size = cap * sizeof(struct sc_timer_data);
+	struct sc_timer_data *alloc;
 
-    assert(size != 0);
+	assert(size != 0);
 
-    if (timer->wheel > SC_CAP_MAX / 2) {
-        return false;
-    }
+	if (t->wheel > SC_CAP_MAX / 2) {
+		return false;
+	}
 
-    alloc = sc_timer_malloc(size);
-    if (alloc == NULL) {
-        return false;
-    }
+	alloc = sc_timer_malloc(size);
+	if (alloc == NULL) {
+		return false;
+	}
 
-    for (uint32_t i = 0; i < cap; i++) {
-        alloc[i].timeout = UINT64_MAX;
-        alloc[i].data = NULL;
-    }
+	for (uint32_t i = 0; i < cap; i++) {
+		alloc[i].timeout = UINT64_MAX;
+		alloc[i].data = NULL;
+	}
 
-    // Copy from old list to new list
-    for (uint32_t i = 0; i < WHEEL_COUNT; i++) {
-        void *dest = &alloc[(i * timer->wheel * 2)];
-        void *src = &timer->list[(i * timer->wheel)];
-        size_t copy = sizeof(struct sc_timer_data) * timer->wheel;
+	// Copy from old list to new list
+	for (uint32_t i = 0; i < WHEEL_COUNT; i++) {
+		void *dest = &alloc[(i * t->wheel * 2)];
+		void *src = &t->list[(i * t->wheel)];
+		size_t copy = sizeof(struct sc_timer_data) * t->wheel;
 
-        memcpy(dest, src, copy);
-    }
+		memcpy(dest, src, copy);
+	}
 
-    sc_timer_free(timer->list);
+	sc_timer_free(t->list);
 
-    timer->list = alloc;
-    timer->wheel *= 2;
+	t->list = alloc;
+	t->wheel *= 2;
 
-    return true;
+	return true;
 }
 
-uint64_t sc_timer_add(struct sc_timer *timer, uint64_t timeout, uint64_t type,
-                      void *data)
+uint64_t sc_timer_add(struct sc_timer *t, uint64_t timeout, uint64_t type,
+		      void *data)
 {
-    const uint32_t offset = (uint32_t)(timeout / TICK + timer->head);
-    const uint32_t pos = offset & (WHEEL_COUNT - 1);
-    uint64_t id;
-    uint32_t seq, index, wheel_pos;
+	const uint32_t offset = (uint32_t)(timeout / TICK + t->head);
+	const uint32_t pos = offset & (WHEEL_COUNT - 1);
+	uint64_t id;
+	uint32_t seq, index, wheel_pos;
 
-    timer->count++;
+	t->count++;
 
-    wheel_pos = (pos * timer->wheel);
-    for (seq = 0; seq < timer->wheel; seq++) {
-        index = wheel_pos + seq;
-        if (timer->list[index].timeout == UINT64_MAX) {
-            goto out;
-        }
-    }
+	wheel_pos = (pos * t->wheel);
+	for (seq = 0; seq < t->wheel; seq++) {
+		index = wheel_pos + seq;
+		if (t->list[index].timeout == UINT64_MAX) {
+			goto out;
+		}
+	}
 
-    if (!expand(timer)) {
-        return SC_TIMER_INVALID;
-    }
+	if (!expand(t)) {
+		return SC_TIMER_INVALID;
+	}
 
-    index = (pos * timer->wheel) + (seq);
-    assert(timer->list[index].timeout == UINT64_MAX);
+	index = (pos * t->wheel) + (seq);
+	assert(t->list[index].timeout == UINT64_MAX);
 
 out:
-    timer->list[index].timeout = timeout + timer->timestamp;
-    timer->list[index].type = type;
-    timer->list[index].data = data;
+	t->list[index].timeout = timeout + t->timestamp;
+	t->list[index].type = type;
+	t->list[index].data = data;
 
-    id = (((uint64_t) seq) << 32u) | pos;
-    assert(id != SC_TIMER_INVALID);
+	id = (((uint64_t) seq) << 32u) | pos;
+	assert(id != SC_TIMER_INVALID);
 
-    return id;
+	return id;
 }
 
-void sc_timer_cancel(struct sc_timer *timer, uint64_t *id)
+void sc_timer_cancel(struct sc_timer *t, uint64_t *id)
 {
-    uint64_t pos;
+	uint64_t pos;
 
-    if (*id == SC_TIMER_INVALID) {
-        return;
-    }
+	if (*id == SC_TIMER_INVALID) {
+		return;
+	}
 
-    timer->count--;
-    pos = (((uint32_t) *id) * timer->wheel) + (*id >> 32u);
+	t->count--;
+	pos = (((uint32_t) *id) * t->wheel) + (*id >> 32u);
 
-    assert(timer->list[pos].timeout != UINT64_MAX);
-    timer->list[pos].timeout = UINT64_MAX;
-    *id = SC_TIMER_INVALID;
+	assert(t->list[pos].timeout != UINT64_MAX);
+	t->list[pos].timeout = UINT64_MAX;
+	*id = SC_TIMER_INVALID;
 }
 
 #define sc_timer_min(a, b) (a) < (b) ? (a) : (b)
 
-uint64_t sc_timer_timeout(struct sc_timer *timer, uint64_t timestamp, void *arg,
-                          void (*callback)(void *, uint64_t, uint64_t, void *))
+uint64_t sc_timer_timeout(struct sc_timer *t, uint64_t timestamp, void *arg,
+			  void (*callback)(void *, uint64_t, uint64_t, void *))
 {
-    const uint64_t time = timestamp - timer->timestamp;
-    uint32_t wheel, base;
-    uint32_t head = timer->head;
-    uint32_t wheels = (uint32_t) (sc_timer_min(time / TICK, WHEEL_COUNT));
+	const uint64_t time = timestamp - t->timestamp;
+	uint32_t wheel, base;
+	uint32_t head = t->head;
+	uint32_t wheels = (uint32_t)(sc_timer_min(time / TICK, WHEEL_COUNT));
 
-    if (wheels == 0) {
-        return sc_timer_min(TICK - time, TICK);
-    }
+	if (wheels == 0) {
+		return sc_timer_min(TICK - time, TICK);
+	}
 
-    timer->timestamp = timestamp;
-    timer->head = (timer->head + wheels) & (WHEEL_COUNT - 1);
+	t->timestamp = timestamp;
+	t->head = (t->head + wheels) & (WHEEL_COUNT - 1);
 
-    while (wheels-- > 0) {
-        wheel = timer->wheel;
-        base = wheel * head;
+	while (wheels-- > 0) {
+		wheel = t->wheel;
+		base = wheel * head;
 
-        for (uint32_t i = 0; i < wheel; i++) {
-            struct sc_timer_data *item = &timer->list[base + i];
+		for (uint32_t i = 0; i < wheel; i++) {
+			struct sc_timer_data *item = &t->list[base + i];
 
-            if (item->timeout <= timer->timestamp) {
-                uint64_t timeout = item->timeout;
-                item->timeout = UINT64_MAX;
+			if (item->timeout <= t->timestamp) {
+				uint64_t timeout = item->timeout;
+				item->timeout = UINT64_MAX;
 
-                timer->count--;
-                callback(arg, timeout, item->type, item->data);
+				t->count--;
+				callback(arg, timeout, item->type, item->data);
 
-                // Recalculates position each time because there might be newly
-                // added timers in the callback and it might require expansion
-                // of the list.
-                base = timer->wheel * head;
-            }
-        }
+				// Recalculates position each time because there
+				// might be newly added timers in the callback
+				// and it might require expansion of the list.
+				base = t->wheel * head;
+			}
+		}
 
-        head = (head + 1) & (WHEEL_COUNT - 1);
-    }
+		head = (head + 1) & (WHEEL_COUNT - 1);
+	}
 
-    return sc_timer_min(TICK - time, TICK);
+	return sc_timer_min(TICK - time, TICK);
 }

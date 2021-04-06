@@ -41,105 +41,105 @@ struct sc_list
 
 /**
  * Call once to initialize.
- * @param list list
+ * @param l list
  */
-void sc_list_init(struct sc_list *list);
+void sc_list_init(struct sc_list *l);
 
 /**
- * @param list list
+ * @param l list
  */
-void sc_list_clear(struct sc_list *list);
+void sc_list_clear(struct sc_list *l);
 
 /**
- * @param list list
+ * @param l list
  * @return     'true' if empty
  */
-bool sc_list_is_empty(struct sc_list *list);
+bool sc_list_is_empty(struct sc_list *l);
 
 /**
- * @param list list
+ * @param l list
  * @return     element count in the list, beware this is a log(n) operation.
  */
-size_t sc_list_count(struct sc_list *list);
+size_t sc_list_count(struct sc_list *l);
 
 /**
- * @param list list
- * @return     returns head. If list is empty, returns NULL.
+ * @param l list
+ * @return  returns head. If list is empty, returns NULL.
  */
-struct sc_list *sc_list_head(struct sc_list *list);
+struct sc_list *sc_list_head(struct sc_list *l);
 
 /**
- * @param list list
- * @return     returns tail. If list is empty, returns NULL.
+ * @param l list
+ * @return  returns tail. If list is empty, returns NULL.
  */
-struct sc_list *sc_list_tail(struct sc_list *list);
+struct sc_list *sc_list_tail(struct sc_list *l);
 
 /**
  *  before : [head]item1 -> [tail]item2
  *  after  : [head]'elem' -> item1 -> [tail]item2
  *
- * @param list list
+ * @param l    list
  * @param elem elem to add to the head
  */
-void sc_list_add_head(struct sc_list *list, struct sc_list *elem);
+void sc_list_add_head(struct sc_list *l, struct sc_list *elem);
 
 /**
  *  before : [head]item1 -> item2 -> item3
  *  after  : [head]item2 -> item3
  *
- * @param list list
- * @return     head element, if list is empty, returns NULL.
+ * @param l list
+ * @return  head element, if list is empty, returns NULL.
  */
-struct sc_list *sc_list_pop_head(struct sc_list *list);
+struct sc_list *sc_list_pop_head(struct sc_list *l);
 
 /**
  *  before : [head]item1 -> [tail]item2
  *  after  : [head]item1 -> item2 -> [tail]'elem'
  *
- * @param list list
+ * @param l    list
  * @param elem elem to append to the tail
  */
-void sc_list_add_tail(struct sc_list *list, struct sc_list *elem);
+void sc_list_add_tail(struct sc_list *l, struct sc_list *elem);
 
 /**
  *  before : [head]item1 -> item2 -> item3
  *  after  : [head]item1 -> item2
  *
- * @param list list
- * @return     head element, if list is empty, returns NULL.
+ * @param l list
+ * @return  head element, if list is empty, returns NULL.
  */
-struct sc_list *sc_list_pop_tail(struct sc_list *list);
+struct sc_list *sc_list_pop_tail(struct sc_list *l);
 
 /**
  *  before : item1 -> 'prev' -> item2
  *  after  : item1 -> 'prev' -> 'elem' -> item2
  *
- * @param list list
+ * @param l    list
  * @param prev previous element of the 'elem'
  * @param elem elem to be added after 'prev'
  */
-void sc_list_add_after(struct sc_list *list, struct sc_list *prev,
+void sc_list_add_after(struct sc_list *l, struct sc_list *prev,
                        struct sc_list *elem);
 
 /**
  *  before : item1 -> 'next' -> item2
  *  after  : item1 -> 'elem'-> 'next' -> item2
  *
- * @param list list
+ * @param l    list
  * @param next next element of the 'elem'
  * @param elem elem to be added before 'next'
  */
-void sc_list_add_before(struct sc_list *list, struct sc_list *next,
+void sc_list_add_before(struct sc_list *l, struct sc_list *next,
                         struct sc_list *elem);
 
 /**
  *  before : item1 -> 'elem' -> item2
  *  after  : item1 -> item2
  *
- * @param list list pointer
+ * @param l    list
  * @param elem elem to be deleted
  */
-void sc_list_del(struct sc_list *list, struct sc_list *elem);
+void sc_list_del(struct sc_list *l, struct sc_list *elem);
 
 /**
  * struct container {

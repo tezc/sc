@@ -28,50 +28,51 @@
 
 char sc_option_at(struct sc_option *opt, int index, char **value)
 {
-    char id = '?';
-    size_t len;
-    char *pos;
-    const char *curr, *name;
+	char id = '?';
+	size_t len;
+	char *pos;
+	const char *curr, *name;
 
-    pos = opt->argv[index];
-    *value = NULL;
+	pos = opt->argv[index];
+	*value = NULL;
 
-    if (*pos != '-') {
-        return id;
-    }
+	if (*pos != '-') {
+		return id;
+	}
 
-    pos++; // Skip first '-'
-    if (*pos != '-') {
-        for (int i = 0; i < opt->count; i++) {
-            if (*pos == opt->options[i].letter &&
-                strchr("= \0", *(pos + 1)) != NULL) {
-                id = *pos;
-                pos++; // skip letter
-                *value = pos + (*pos != '=' ? 0 : 1);
-                break;
-            }
-        }
-    } else {
-        while (*pos && *pos != '=') {
-            pos++;
-        }
+	pos++; // Skip first '-'
+	if (*pos != '-') {
+		for (int i = 0; i < opt->count; i++) {
+			if (*pos == opt->options[i].letter &&
+			    strchr("= \0", *(pos + 1)) != NULL) {
+				id = *pos;
+				pos++; // skip letter
+				*value = pos + (*pos != '=' ? 0 : 1);
+				break;
+			}
+		}
+	} else {
+		while (*pos && *pos != '=') {
+			pos++;
+		}
 
-        for (int i = 0; i < opt->count; i++) {
-            curr = opt->argv[index] + 2; // Skip '--'
-            name = opt->options[i].name;
-            len = (pos - curr);
+		for (int i = 0; i < opt->count; i++) {
+			curr = opt->argv[index] + 2; // Skip '--'
+			name = opt->options[i].name;
+			len = (pos - curr);
 
-            if (name == NULL) {
-                continue;
-            }
+			if (name == NULL) {
+				continue;
+			}
 
-            if (len == strlen(name) && memcmp(name, curr, len) == 0) {
-                id = opt->options[i].letter;
-                *value = pos + (*pos != '=' ? 0 : 1);
-                break;
-            }
-        }
-    }
+			if (len == strlen(name) &&
+			    memcmp(name, curr, len) == 0) {
+				id = opt->options[i].letter;
+				*value = pos + (*pos != '=' ? 0 : 1);
+				break;
+			}
+		}
+	}
 
-    return id;
+	return id;
 }

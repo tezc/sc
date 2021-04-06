@@ -33,158 +33,157 @@
 #include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)
-    #pragma warning(disable : 4996)
+#pragma warning(disable : 4996)
 #endif
 
 static char *trim_space(char *str)
 {
-    char *end;
+	char *end;
 
-    while (isspace((unsigned char) *str)) {
-        str++;
-    }
+	while (isspace((unsigned char) *str)) {
+		str++;
+	}
 
-    end = str + strlen(str) - 1;
-    while (end > str && isspace((unsigned char) *end)) {
-        end--;
-    }
+	end = str + strlen(str) - 1;
+	while (end > str && isspace((unsigned char) *end)) {
+		end--;
+	}
 
-    end[1] = '\0';
+	end[1] = '\0';
 
-    return str;
+	return str;
 }
 
 static char *trim_comment(char *str)
 {
-    char *s = str;
+	char *s = str;
 
-    if (*s == '\0' || *s == ';' || *s == '#') {
-        *s = '\0';
-        return str;
-    }
+	if (*s == '\0' || *s == ';' || *s == '#') {
+		*s = '\0';
+		return str;
+	}
 
-    while (*s && (s = strchr(s, ' ')) != NULL) {
-        s++;
-        if (*s == ';' || *s == '#') {
-            *s = '\0';
-            break;
-        }
-    }
+	while (*s && (s = strchr(s, ' ')) != NULL) {
+		s++;
+		if (*s == ';' || *s == '#') {
+			*s = '\0';
+			break;
+		}
+	}
 
-    return str;
+	return str;
 }
 
 static char *trim_bom(char *str)
 {
-    if (strlen(str) >= 3) {
-        if ((uint8_t) str[0] == 0xEF && (uint8_t) str[1] == 0xBB &&
-            (uint8_t) str[2] == 0xBF) {
-            str += 3;
-        }
-    }
+	if (strlen(str) >= 3) {
+		if ((uint8_t) str[0] == 0xEF && (uint8_t) str[1] == 0xBB &&
+		    (uint8_t) str[2] == 0xBF) {
+			str += 3;
+		}
+	}
 
-    return str;
+	return str;
 }
 
 int sc_ini_parse(void *arg, sc_ini_on_item cb, void *arg1,
-                 char *(*next_line)(void *, char *, size_t))
+		 char *(*next_line)(void *, char *, size_t))
 {
-    int rc = 0, line = 0;
-    char buf[SC_INI_MAX_LINE_LEN];
-    char section[256] = {0}, key[256] = {0};
-    char *head, *end;
+	int rc = 0, line = 0;
+	char buf[SC_INI_MAX_LINE_LEN];
+	char section[256] = {0}, key[256] = {0};
+	char *head, *end;
 
-    while ((head = next_line(arg1, buf, sizeof(buf) - 1)) != NULL) {
-        if (++line == 1) {
-            head = trim_bom(head);
-        }
+	while ((head = next_line(arg1, buf, sizeof(buf) - 1)) != NULL) {
+		if (++line == 1) {
+			head = trim_bom(head);
+		}
 
-        head = trim_space(trim_comment(head));
-        if (*head == '\0') {
-            continue;
-        }
+		head = trim_space(trim_comment(head));
+		if (*head == '\0') {
+			continue;
+		}
 
-        if (head > buf && *key) {
-            rc = cb(arg, line, section, key, head);
-        } else if (*head == '[') {
-            if ((end = strchr(head, ']')) == NULL) {
-                return line;
-            }
+		if (head > buf && *key) {
+			rc = cb(arg, line, section, key, head);
+		} else if (*head == '[') {
+			if ((end = strchr(head, ']')) == NULL) {
+				return line;
+			}
 
-            *key = '\0';
-            *end = '\0';
-            strncpy(section, head + 1, sizeof(section) - 1);
-        } else {
-            if ((end = strpbrk(head, "=:")) == NULL) {
-                return line;
-            }
+			*key = '\0';
+			*end = '\0';
+			strncpy(section, head + 1, sizeof(section) - 1);
+		} else {
+			if ((end = strpbrk(head, "=:")) == NULL) {
+				return line;
+			}
 
-            *end = '\0';
-            trim_space(head);
-            strncpy(key, head, sizeof(key) - 1);
-            rc = cb(arg, line, section, head, trim_space(end + 1));
-        }
+			*end = '\0';
+			trim_space(head);
+			strncpy(key, head, sizeof(key) - 1);
+			rc = cb(arg, line, section, head, trim_space(end + 1));
+		}
 
-        if (rc != 0) {
-            return line;
-        }
-    }
+		if (rc != 0) {
+			return line;
+		}
+	}
 
-    return 0;
+	return 0;
 }
 
 static char *file_next_line(void *p, char *buf, size_t size)
 {
-    return fgets(buf, (int) size, (FILE *) p);
+	return fgets(buf, (int) size, (FILE *) p);
 }
 
 static char *string_next_line(void *p, char *buf, size_t size)
 {
-    size_t len, diff;
-    char *t, *str = (*(char **) p);
+	size_t len, diff;
+	char *t, *str = (*(char **) p);
 
-    if (str == NULL || *str == '\0') {
-        return NULL;
-    }
+	if (str == NULL || *str == '\0') {
+		return NULL;
+	}
 
-    t = strchr(str, '\n');
-    if (t == NULL) {
-        t = str + strlen(str);
-    }
+	t = strchr(str, '\n');
+	if (t == NULL) {
+		t = str + strlen(str);
+	}
 
-    diff = (size_t)(t - str);
-    len = diff < size ? diff : size;
-    memcpy(buf, str, len);
-    buf[len] = '\0';
+	diff = (size_t)(t - str);
+	len = diff < size ? diff : size;
+	memcpy(buf, str, len);
+	buf[len] = '\0';
 
-    *(char **) p = (*t == '\0') ? '\0' : t + 1;
+	*(char **) p = (*t == '\0') ? '\0' : t + 1;
 
-    return buf;
+	return buf;
 }
 
 int sc_ini_parse_file(void *arg, sc_ini_on_item cb, const char *filename)
 {
-    int rc;
-    FILE *file;
+	int rc;
+	FILE *file;
 
-    file = fopen(filename, "rb");
-    if (!file) {
-        return -1;
-    }
+	file = fopen(filename, "rb");
+	if (!file) {
+		return -1;
+	}
 
-    rc = sc_ini_parse(arg, cb, file, file_next_line);
-    if (rc == 0) {
-        rc = ferror(file) != 0 ? -1 : 0;
-    }
+	rc = sc_ini_parse(arg, cb, file, file_next_line);
+	if (rc == 0) {
+		rc = ferror(file) != 0 ? -1 : 0;
+	}
 
-    fclose(file);
+	fclose(file);
 
-    return rc;
+	return rc;
 }
 
 int sc_ini_parse_string(void *arg, sc_ini_on_item cb, const char *str)
 {
-    char *ptr = (char *) str;
-
-    return sc_ini_parse(arg, cb, &ptr, string_next_line);
+	char *ptr = (char *) str;
+	return sc_ini_parse(arg, cb, &ptr, string_next_line);
 }

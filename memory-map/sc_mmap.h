@@ -33,9 +33,8 @@
 
 #if defined(_WIN32)
 
-#include <windows.h>
 #include <memoryapi.h>
-
+#include <windows.h>
 
 #define PROT_READ  FILE_MAP_READ
 #define PROT_WRITE FILE_MAP_WRITE
@@ -50,12 +49,11 @@
 
 #endif
 
-struct sc_mmap
-{
-    int fd;
-    unsigned char* ptr; // memory map start address
-    size_t len;         // memory map length
-    char err[128];
+struct sc_mmap {
+	int fd;
+	unsigned char *ptr; // memory map start address
+	size_t len;	    // memory map length
+	char err[128];
 };
 
 /**
@@ -73,13 +71,13 @@ struct sc_mmap
  * @return            '0' on success, negative on failure,
  *                    call sc_mmap_err() for error string.
  */
-int sc_mmap_init(struct sc_mmap* m, const char* name, int file_flags, int prot,
-                 int map_flags, size_t offset, size_t len);
+int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
+		 int map_flags, size_t offset, size_t len);
 /**
  * @param m mmap
  * @return       '0' on success, '-1' on error, call sc_mmap_err() for details.
  */
-int sc_mmap_term(struct sc_mmap* m);
+int sc_mmap_term(struct sc_mmap *m);
 
 /**
  * @param m      mmap
@@ -88,7 +86,7 @@ int sc_mmap_term(struct sc_mmap* m);
  * @return      '0' on success, negative on failure,
  *              call sc_mmap_err() for error string.
  */
-int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len);
+int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len);
 
 /**
  * @param m       mmap
@@ -97,7 +95,7 @@ int sc_mmap_msync(struct sc_mmap* m, size_t offset, size_t len);
  * @return        '0' on success, negative on failure,
  *                call sc_mmap_err() for error string.
  */
-int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len);
+int sc_mmap_mlock(struct sc_mmap *m, size_t offset, size_t len);
 
 /**
  * @param m       mmap
@@ -106,13 +104,12 @@ int sc_mmap_mlock(struct sc_mmap* m, size_t offset, size_t len);
  * @return        '0' on success, negative on failure,
  *                call sc_mmap_err() for error string.
  */
-int sc_mmap_munlock(struct sc_mmap* m, size_t offset, size_t len);
+int sc_mmap_munlock(struct sc_mmap *m, size_t offset, size_t len);
 
 /**
  * @param m mmap
  * @return  last error string.
  */
 const char *sc_mmap_err(struct sc_mmap *m);
-
 
 #endif
