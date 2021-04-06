@@ -30,7 +30,7 @@
 #define SC_SIZE_MAX UINT32_MAX
 #endif
 
-#define sc_map_impl_of_strkey(name, K, V, cmp, hash_fn)                        \
+#define sc_map_def_strkey(name, K, V, cmp, hash_fn)                        \
 	bool sc_map_cmp_##name(struct sc_map_item_##name *t, K key,            \
 			       uint32_t hash)                                  \
 	{                                                                      \
@@ -50,9 +50,9 @@
 		return t->hash;                                                \
 	}                                                                      \
                                                                                \
-	sc_map_impl_of(name, K, V, cmp, hash_fn)
+	sc_map_def(name, K, V, cmp, hash_fn)
 
-#define sc_map_impl_of_scalar(name, K, V, cmp, hash_fn)                        \
+#define sc_map_def_scalar(name, K, V, cmp, hash_fn)                        \
 	bool sc_map_cmp_##name(struct sc_map_item_##name *t, K key,            \
 			       uint32_t hash)                                  \
 	{                                                                      \
@@ -73,9 +73,9 @@
 		return hash_fn(t->key);                                        \
 	}                                                                      \
                                                                                \
-	sc_map_impl_of(name, K, V, cmp, hash_fn)
+	sc_map_def(name, K, V, cmp, hash_fn)
 
-#define sc_map_impl_of(name, K, V, cmp, hash_fn)                               \
+#define sc_map_def(name, K, V, cmp, hash_fn)                               \
                                                                                \
 	static const struct sc_map_item_##name empty_items_##name[2];          \
                                                                                \
@@ -179,8 +179,7 @@
                                                                                \
 		for (uint32_t i = 0; i < m->cap; i++) {                        \
 			if (m->mem[i].key != 0) {                              \
-				pos = sc_map_hashof_##name(&m->mem[i]) &       \
-				      (mod);                                   \
+				pos = sc_map_hashof_##name(&m->mem[i]) & mod;  \
                                                                                \
 				while (true) {                                 \
 					if (new[pos].key == 0) {               \
@@ -376,16 +375,16 @@ uint32_t murmurhash(const char *key)
     	return (uint32_t) h;
 }
 
-#define sc_map_varcmp(a, b) ((a) == (b))
-#define sc_map_strcmp(a, b) (!strcmp(a, b))
+#define sc_map_eq(a, b) ((a) == (b))
+#define sc_map_streq(a, b) (!strcmp(a, b))
 
-//                   name, key type,     value type,        cmp           hash
-sc_map_impl_of_scalar(32,  uint32_t,     uint32_t,     sc_map_varcmp, sc_map_hash_32)
-sc_map_impl_of_scalar(64,  uint64_t,     uint64_t,     sc_map_varcmp, sc_map_hash_64)
-sc_map_impl_of_scalar(64v, uint64_t,     void *,       sc_map_varcmp, sc_map_hash_64)
-sc_map_impl_of_scalar(64s, uint64_t,     const char *, sc_map_varcmp, sc_map_hash_64)
-sc_map_impl_of_strkey(str, const char *, const char *, sc_map_strcmp, murmurhash)
-sc_map_impl_of_strkey(sv,  const char *, void *,       sc_map_strcmp, murmurhash)
-sc_map_impl_of_strkey(s64, const char *, uint64_t,     sc_map_strcmp, murmurhash)
+//              name,  key type,   value type,     cmp           hash
+sc_map_def_scalar(32,  uint32_t,     uint32_t,     sc_map_eq,    sc_map_hash_32)
+sc_map_def_scalar(64,  uint64_t,     uint64_t,     sc_map_eq,    sc_map_hash_64)
+sc_map_def_scalar(64v, uint64_t,     void *,       sc_map_eq,    sc_map_hash_64)
+sc_map_def_scalar(64s, uint64_t,     const char *, sc_map_eq,    sc_map_hash_64)
+sc_map_def_strkey(str, const char *, const char *, sc_map_streq, murmurhash)
+sc_map_def_strkey(sv,  const char *, void *,       sc_map_streq, murmurhash)
+sc_map_def_strkey(s64, const char *, uint64_t,     sc_map_streq, murmurhash)
 
 	// clang-format on

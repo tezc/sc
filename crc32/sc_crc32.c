@@ -275,10 +275,10 @@ uint32_t crc32_hw(uint32_t crc, const uint8_t *buf, uint32_t len)
 #ifndef HAVE_BIG_ENDIAN
 
 /* Table for a quadword-at-a-time software crc. */
-static uint32_t crc32c_table_little[8][256];
+static uint32_t crc32c_table_le[8][256];
 
 /* Construct table for software CRC-32C calculation. */
-static void crc32_init_sw_little(void)
+static void crc32_init_sw_le(void)
 {
 	for (unsigned n = 0; n < 256; n++) {
 		uint32_t crc = n;
@@ -290,13 +290,13 @@ static void crc32_init_sw_little(void)
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-		crc32c_table_little[0][n] = crc;
+		crc32c_table_le[0][n] = crc;
 	}
 	for (unsigned n = 0; n < 256; n++) {
-		uint32_t crc = crc32c_table_little[0][n];
+		uint32_t crc = crc32c_table_le[0][n];
 		for (unsigned k = 1; k < 8; k++) {
-			crc = crc32c_table_little[0][crc & 0xff] ^ (crc >> 8);
-			crc32c_table_little[k][n] = crc;
+			crc = crc32c_table_le[0][crc & 0xff] ^ (crc >> 8);
+			crc32c_table_le[k][n] = crc;
 		}
 	}
 }
@@ -304,36 +304,34 @@ static void crc32_init_sw_little(void)
 /* Table-driven software version as a fall-back.  This is about 15 times slower
    than using the hardware instructions.  This assumes little-endian integers,
    as is the case on Intel processors that the assembler code here is for. */
-static uint32_t crc32_sw_little(uint32_t crc, const void *buf, size_t len)
+static uint32_t crc32_sw_le(uint32_t crc, const void *buf, size_t len)
 {
 	unsigned char const *next = buf;
 
 	crc = ~crc;
 	while (len && ((uintptr_t) next & 7) != 0) {
-		crc = crc32c_table_little[0][(crc ^ *next++) & 0xff] ^
-		      (crc >> 8);
+		crc = crc32c_table_le[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
 		len--;
 	}
 	if (len >= 8) {
-		uint64_t crcw = crc;
+		uint64_t crcw = (uint64_t) crc;
 		do {
 			crcw ^= *(uint64_t const *) next;
-			crcw = crc32c_table_little[7][crcw & 0xff] ^
-			       crc32c_table_little[6][(crcw >> 8) & 0xff] ^
-			       crc32c_table_little[5][(crcw >> 16) & 0xff] ^
-			       crc32c_table_little[4][(crcw >> 24) & 0xff] ^
-			       crc32c_table_little[3][(crcw >> 32) & 0xff] ^
-			       crc32c_table_little[2][(crcw >> 40) & 0xff] ^
-			       crc32c_table_little[1][(crcw >> 48) & 0xff] ^
-			       crc32c_table_little[0][crcw >> 56];
+			crcw = crc32c_table_le[7][crcw & 0xff] ^
+			       crc32c_table_le[6][(crcw >> 8) & 0xff] ^
+			       crc32c_table_le[5][(crcw >> 16) & 0xff] ^
+			       crc32c_table_le[4][(crcw >> 24) & 0xff] ^
+			       crc32c_table_le[3][(crcw >> 32) & 0xff] ^
+			       crc32c_table_le[2][(crcw >> 40) & 0xff] ^
+			       crc32c_table_le[1][(crcw >> 48) & 0xff] ^
+			       crc32c_table_le[0][crcw >> 56];
 			next += 8;
 			len -= 8;
 		} while (len >= 8);
-		crc = crcw;
+		crc = (uint32_t) crcw;
 	}
 	while (len) {
-		crc = crc32c_table_little[0][(crc ^ *next++) & 0xff] ^
-		      (crc >> 8);
+		crc = crc32c_table_le[0][(crc ^ *next++) & 0xff] ^ (crc >> 8);
 		len--;
 	}
 	return ~crc;
@@ -357,11 +355,11 @@ static inline uint64_t swap(uint64_t x)
 
 #endif
 
-static uint32_t crc32c_table_big_byte[256];
-static uint64_t crc32c_table_big[8][256];
+static uint32_t crc32c_table_be_byte[256];
+static uint64_t crc32c_table_be[8][256];
 
 /* Construct table for software CRC-32C calculation. */
-static void crc32_init_sw_big(void)
+static void crc32_init_sw_be(void)
 {
 	for (unsigned n = 0; n < 256; n++) {
 		uint32_t crc = n;
@@ -373,50 +371,48 @@ static void crc32_init_sw_big(void)
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
 		crc = crc & 1 ? (crc >> 1) ^ POLY : crc >> 1;
-		crc32c_table_big_byte[n] = crc;
+		crc32c_table_be_byte[n] = crc;
 	}
 	for (unsigned n = 0; n < 256; n++) {
-		uint32_t crc = crc32c_table_big_byte[n];
-		crc32c_table_big[0][n] = swap(crc);
+		uint32_t crc = crc32c_table_be_byte[n];
+		crc32c_table_be[0][n] = swap(crc);
 		for (unsigned k = 1; k < 8; k++) {
-			crc = crc32c_table_big_byte[crc & 0xff] ^ (crc >> 8);
-			crc32c_table_big[k][n] = swap(crc);
+			crc = crc32c_table_be_byte[crc & 0xff] ^ (crc >> 8);
+			crc32c_table_be[k][n] = swap(crc);
 		}
 	}
 }
 
 /* Table-driven software version as a fall-back.  This is about 15 times slower
    than using the hardware instructions.  This assumes big-endian integers */
-static uint32_t crc32_sw_big(uint32_t crc, const void *buf, size_t len)
+static uint32_t crc32_sw_be(uint32_t crc, const void *buf, size_t len)
 {
 	unsigned char const *next = buf;
 
 	crc = ~crc;
 	while (len && ((uintptr_t) next & 7) != 0) {
-		crc = crc32c_table_big_byte[(crc ^ *next++) & 0xff] ^
-		      (crc >> 8);
+		crc = crc32c_table_be_byte[(crc ^ *next++) & 0xff] ^ (crc >> 8);
 		len--;
 	}
 	if (len >= 8) {
 		uint64_t crcw = swap(crc);
 		do {
 			crcw ^= *(uint64_t const *) next;
-			crcw = crc32c_table_big[0][crcw & 0xff] ^
-			       crc32c_table_big[1][(crcw >> 8) & 0xff] ^
-			       crc32c_table_big[2][(crcw >> 16) & 0xff] ^
-			       crc32c_table_big[3][(crcw >> 24) & 0xff] ^
-			       crc32c_table_big[4][(crcw >> 32) & 0xff] ^
-			       crc32c_table_big[5][(crcw >> 40) & 0xff] ^
-			       crc32c_table_big[6][(crcw >> 48) & 0xff] ^
-			       crc32c_table_big[7][(crcw >> 56)];
+			crcw = crc32c_table_be[0][crcw & 0xff] ^
+			       crc32c_table_be[1][(crcw >> 8) & 0xff] ^
+			       crc32c_table_be[2][(crcw >> 16) & 0xff] ^
+			       crc32c_table_be[3][(crcw >> 24) & 0xff] ^
+			       crc32c_table_be[4][(crcw >> 32) & 0xff] ^
+			       crc32c_table_be[5][(crcw >> 40) & 0xff] ^
+			       crc32c_table_be[6][(crcw >> 48) & 0xff] ^
+			       crc32c_table_be[7][(crcw >> 56)];
 			next += 8;
 			len -= 8;
 		} while (len >= 8);
-		crc = swap(crcw);
+		crc = (uint32_t) swap(crcw);
 	}
 	while (len) {
-		crc = crc32c_table_big_byte[(crc ^ *next++) & 0xff] ^
-		      (crc >> 8);
+		crc = crc32c_table_be_byte[(crc ^ *next++) & 0xff] ^ (crc >> 8);
 		len--;
 	}
 	return ~crc;
@@ -431,9 +427,9 @@ uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len)
 	return crc32_hw(crc, buf, len);
 #else
 #ifdef HAVE_BIG_ENDIAN
-	return crc32_sw_big(crc, buf, len);
+	return crc32_sw_be(crc, buf, len);
 #else
-	return crc32_sw_little(crc, buf, len);
+	return crc32_sw_le(crc, buf, len);
 #endif
 #endif
 }
@@ -444,9 +440,9 @@ void sc_crc32_init()
 	crc32_init_hw();
 #else
 #ifdef HAVE_BIG_ENDIAN
-	crc32_init_sw_big();
+	crc32_init_sw_be();
 #else
-	crc32_init_sw_little();
+	crc32_init_sw_le();
 #endif
 #endif
 }

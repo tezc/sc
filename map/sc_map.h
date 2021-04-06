@@ -40,7 +40,7 @@
 #define sc_map_free   free
 #endif
 
-#define sc_map_of_strkey(name, K, V)                                           \
+#define sc_map_dec_strkey(name, K, V)                                          \
 	struct sc_map_item_##name {                                            \
 		K key;                                                         \
 		V value;                                                       \
@@ -49,7 +49,7 @@
                                                                                \
 	sc_map_of(name, K, V)
 
-#define sc_map_of_scalar(name, K, V)                                           \
+#define sc_map_dec_scalar(name, K, V)                                          \
 	struct sc_map_item_##name {                                            \
 		K key;                                                         \
 		V value;                                                       \
@@ -215,13 +215,13 @@
 // clang-format off
 
 //              name  key type      value type
-sc_map_of_scalar(32,  uint32_t,     uint32_t)
-sc_map_of_scalar(64,  uint64_t,     uint64_t)
-sc_map_of_scalar(64v, uint64_t,     void *)
-sc_map_of_scalar(64s, uint64_t,     const char *)
-sc_map_of_strkey(str, const char *, const char *)
-sc_map_of_strkey(sv,  const char *, void*)
-sc_map_of_strkey(s64, const char *, uint64_t)
+sc_map_dec_scalar(32,  uint32_t,     uint32_t)
+sc_map_dec_scalar(64,  uint64_t,     uint64_t)
+sc_map_dec_scalar(64v, uint64_t,     void *)
+sc_map_dec_scalar(64s, uint64_t,     const char *)
+sc_map_dec_strkey(str, const char *, const char *)
+sc_map_dec_strkey(sv,  const char *, void*)
+sc_map_dec_strkey(s64, const char *, uint64_t)
 
 // clang-format on
 

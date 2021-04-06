@@ -69,7 +69,7 @@ void *sc_cond_wait(struct sc_cond *c)
 
 	EnterCriticalSection(&c->mtx);
 
-	while (cond->done == false) {
+	while (c->done == false) {
 		// This should not fail as we pass INFINITE.
 		rc = SleepConditionVariableCS(&c->cond, &c->mtx, INFINITE);
 		assert(rc != 0);
