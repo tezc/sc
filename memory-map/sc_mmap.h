@@ -25,6 +25,7 @@
 #ifndef SC_MMAP_H
 #define SC_MMAP_H
 
+#include <fcntl.h>
 #include <stdbool.h>
 #include <stdlib.h>
 

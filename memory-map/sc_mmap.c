@@ -29,7 +29,6 @@
 #include "sc_mmap.h"
 
 #include <errno.h>
-#include <fcntl.h>
 #include <string.h>
 #include <sys/stat.h>
 
@@ -180,7 +179,6 @@ int sc_mmap_term(struct sc_mmap *m)
 
 #else
 
-#include <sys/mman.h>
 #include <unistd.h>
 
 int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
