@@ -39,8 +39,6 @@ if (SC_BUILD_TEST)
 
     add_executable(${PROJECT_NAME}_test mmap_test.c sc_mmap.c)
 
-    target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
-
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
                 "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
@@ -49,8 +47,9 @@ if (SC_BUILD_TEST)
             target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
             target_link_options(${PROJECT_NAME}_test PRIVATE
                     -Wl,--wrap=open,--wrap=stat,--wrap=mmap,--wrap=mlock
+                    -Wl,--wrap=open64,--wrap=stat64,--wrap=mmap64
                     -Wl,--wrap=msync,--wrap=munlock,--wrap=munmap
-                    -Wl,--wrap=posix_fallocate)
+                    -Wl,--wrap=posix_fallocate,--wrap=posix_fallocate64)
         endif ()
     endif ()
 

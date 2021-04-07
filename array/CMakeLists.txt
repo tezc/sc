@@ -39,7 +39,7 @@ if (SC_BUILD_TEST)
 
     add_executable(${PROJECT_NAME}_test array_test.c sc_array.c)
 
-    target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=140000ul)
+    target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_ARRAY_MAX=140000ul)
 
     message(STATUS "Compiler is ${CMAKE_C_COMPILER_ID}")
 

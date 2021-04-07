@@ -50,19 +50,19 @@ struct sc_str {
 
 #define sc_str_bytes(n) ((n) + sizeof(struct sc_str) + 1)
 
-#ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX (UINT32_MAX - sizeof(struct sc_str) - 1)
+#ifndef SC_STR_MAX
+#define SC_STR_MAX (UINT32_MAX - sizeof(struct sc_str) - 1)
 #endif
 
 char *sc_str_create(const char *str)
 {
-	size_t size;
+	size_t len;
 
-	if (str == NULL || (size = strlen(str)) > SC_SIZE_MAX) {
+	if (str == NULL || (len = strlen(str)) > SC_STR_MAX) {
 		return NULL;
 	}
 
-	return sc_str_create_len(str, (uint32_t) size);
+	return sc_str_create_len(str, (uint32_t) len);
 }
 
 char *sc_str_create_len(const char *str, uint32_t len)
@@ -155,11 +155,14 @@ int64_t sc_str_len(const char *str)
 
 char *sc_str_dup(const char *str)
 {
+	struct sc_str *m;
+
 	if (str == NULL) {
 		return NULL;
 	}
 
-	return sc_str_create_len(str, sc_str_meta(str)->len);
+	m = sc_str_meta(str);
+	return sc_str_create_len(str, m->len);
 }
 
 bool sc_str_set(char **str, const char *param)
@@ -200,14 +203,15 @@ bool sc_str_append(char **str, const char *param)
 	struct sc_str *m;
 
 	if (*str == NULL) {
-		return (*str = sc_str_create(param)) != NULL;
+		*str = sc_str_create(param);
+		return *str != NULL;
 	}
 
 	m = sc_str_meta(*str);
 	len = strlen(param);
 	alloc = sc_str_bytes(m->len + len);
 
-	if (len > SC_SIZE_MAX - m->len ||
+	if (len > SC_STR_MAX - m->len ||
 	    (m = sc_str_realloc(m, alloc)) == NULL) {
 		return false;
 	}
@@ -279,18 +283,19 @@ void sc_str_token_end(char *str, char **save)
 
 bool sc_str_trim(char **str, const char *list)
 {
+	uint32_t diff;
 	size_t len;
-	char *start, *end;
+	char *head, *end;
 
 	if (*str == NULL) {
 		return true;
 	}
 
 	len = sc_str_meta(*str)->len;
-	start = *str + strspn(*str, list);
+	head = *str + strspn(*str, list);
 	end = (*str) + len;
 
-	while (end > start) {
+	while (end > head) {
 		end--;
 		if (!strchr(list, *end)) {
 			end++;
@@ -298,14 +303,15 @@ bool sc_str_trim(char **str, const char *list)
 		}
 	}
 
-	if (start != *str || end != (*str) + len) {
-		start = sc_str_create_len(start, (uint32_t)(end - start));
-		if (start == NULL) {
+	if (head != *str || end != (*str) + len) {
+		diff = (uint32_t)(end - head);
+		head = sc_str_create_len(head, diff);
+		if (head == NULL) {
 			return false;
 		}
 
 		sc_str_destroy(*str);
-		*str = start;
+		*str = head;
 	}
 
 	return true;
@@ -340,32 +346,33 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 {
 	assert(replace != NULL && with != NULL);
 
+	int64_t diff;
+	size_t rep_len, with_len;
+	size_t len_unmatch, count, size;
+	struct sc_str *dest, *meta;
+	char *tmp, *orig, *orig_end;
+
 	if (*str == NULL) {
 		return true;
 	}
 
-	size_t replace_len = strlen(replace);
-	size_t with_len = strlen(with);
-	int64_t diff;
-	size_t len_unmatch;
-	size_t count, size;
-	struct sc_str *dest;
-	struct sc_str *meta = sc_str_meta(*str);
-	char *orig = *str;
-	char *orig_end = *str + meta->len;
-	char *tmp;
+	rep_len = strlen(replace);
+	with_len = strlen(with);
 
-	if (replace_len >= UINT32_MAX || with_len >= UINT32_MAX) {
+	if (rep_len >= UINT32_MAX || with_len >= UINT32_MAX) {
 		return false;
 	}
 
-	diff = (int64_t) with_len - (int64_t) replace_len;
+	meta = sc_str_meta(*str);
+	orig = *str;
+	orig_end = *str + meta->len;
+	diff = (int64_t) with_len - (int64_t) rep_len;
 
 	// Fast path, same size replacement.
 	if (diff == 0) {
 		while ((orig = strstr(orig, replace)) != NULL) {
-			memcpy(orig, with, replace_len);
-			orig += replace_len;
+			memcpy(orig, with, rep_len);
+			orig += rep_len;
 		}
 
 		return true;
@@ -375,9 +382,9 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 	tmp = orig;
 	size = meta->len;
 	for (count = 0; (tmp = strstr(tmp, replace)) != NULL; count++) {
-		tmp += replace_len;
+		tmp += rep_len;
 		// Check overflow.
-		if ((int64_t) size > (int64_t) SC_SIZE_MAX - diff) {
+		if ((int64_t) size > (int64_t) SC_STR_MAX - diff) {
 			return false;
 		}
 		size += diff;
@@ -404,7 +411,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 		// Copy extra '\0' byte just to silence sanitizer.
 		memcpy(tmp, with, with_len + 1);
 		tmp += with_len;
-		orig += len_unmatch + replace_len;
+		orig += len_unmatch + rep_len;
 	}
 
 	memcpy(tmp, orig, orig_end - orig + 1);

@@ -1016,7 +1016,7 @@ void fail_test_32()
 	fail_calloc = false;
 	assert(sc_map_put_32(&map, 44444, 44444));
 
-	for (size_t i = 0; i < SC_SIZE_MAX; i++) {
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		success = sc_map_put_32(&map, i, i);
 	}
 	assert(!success);
@@ -1043,7 +1043,7 @@ void fail_test_64()
 	fail_calloc = false;
 	assert(sc_map_put_64(&map, 44444, 44444));
 
-	for (size_t i = 0; i < SC_SIZE_MAX; i++) {
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		success = sc_map_put_64(&map, i, i);
 	}
 	assert(!success);
@@ -1070,7 +1070,7 @@ void fail_test_64v()
 	fail_calloc = false;
 	assert(sc_map_put_64v(&map, 44444, NULL));
 
-	for (size_t i = 0; i < SC_SIZE_MAX; i++) {
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		success = sc_map_put_64v(&map, i, NULL);
 	}
 	assert(!success);
@@ -1097,7 +1097,7 @@ void fail_test_64s()
 	fail_calloc = false;
 	assert(sc_map_put_64s(&map, 44444, NULL));
 
-	for (size_t i = 0; i < SC_SIZE_MAX; i++) {
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		success = sc_map_put_64s(&map, i, NULL);
 	}
 	assert(!success);
@@ -1127,7 +1127,7 @@ void fail_test_str()
 	assert(sc_map_put_str(&map, &s[21], NULL));
 	sc_map_clear_str(&map);
 
-	for (size_t i = 0; i < SC_SIZE_MAX; i++) {
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		char *c = str_random(32);
 		success = sc_map_put_str(&map, c, NULL);
 		if (!success) {
@@ -1166,7 +1166,7 @@ void fail_test_sv()
 	assert(sc_map_put_sv(&map, &s[21], NULL));
 	sc_map_clear_sv(&map);
 
-	for (size_t i = 0; i < SC_SIZE_MAX; i++) {
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		char *c = str_random(32);
 		success = sc_map_put_sv(&map, c, NULL);
 		if (!success) {
@@ -1205,7 +1205,7 @@ void fail_test_s64()
 	assert(sc_map_put_s64(&map, &s[21], 0));
 	sc_map_clear_s64(&map);
 
-	for (size_t i = 0; i < SC_SIZE_MAX; i++) {
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		char *c = str_random(32);
 		success = sc_map_put_s64(&map, c, 0);
 		if (!success) {

@@ -70,6 +70,16 @@ int __wrap_open(const char *pathname, int flags, mode_t mode)
 	return __real_open(pathname, flags, mode);
 }
 
+extern int __real_open64(const char *pathname, int flags, mode_t mode);
+int __wrap_open64(const char *pathname, int flags, mode_t mode)
+{
+	if (fail_open) {
+		return -1;
+	}
+
+	return __real_open64(pathname, flags, mode);
+}
+
 bool fail_stat;
 extern int __real_stat(const char *pathname, struct stat *statbuf);
 int __wrap_stat(const char *pathname, struct stat *statbuf)
@@ -79,6 +89,16 @@ int __wrap_stat(const char *pathname, struct stat *statbuf)
 	}
 
 	return __real_stat(pathname, statbuf);
+}
+
+extern int __real_stat64(const char *pathname, struct stat *statbuf);
+int __wrap_stat64(const char *pathname, struct stat *statbuf)
+{
+	if (fail_stat) {
+		return -1;
+	}
+
+	return __real_stat64(pathname, statbuf);
 }
 
 bool fail_mmap;
@@ -92,6 +112,18 @@ void *__wrap_mmap(void *addr, size_t length, int prot, int flags, int fd,
 	}
 
 	return __real_mmap(addr, length, prot, flags, fd, offset);
+}
+
+extern void *__real_mmap64(void *addr, size_t length, int prot, int flags, int fd,
+			 off_t offset);
+void *__wrap_mmap64(void *addr, size_t length, int prot, int flags, int fd,
+		  off_t offset)
+{
+	if (fail_mmap) {
+		return MAP_FAILED;
+	}
+
+	return __real_mmap64(addr, length, prot, flags, fd, offset);
 }
 
 bool fail_mlock;
@@ -150,6 +182,18 @@ int __wrap_posix_fallocate(int fd, off_t offset, off_t len)
 	}
 
 	return __real_posix_fallocate(fd, offset, len);
+}
+
+extern int __real_posix_fallocate64(int fd, off_t offset, off_t len);
+int __wrap_posix_fallocate64(int fd, off_t offset, off_t len)
+{
+	fail_posix_fallocate--;
+	if (fail_posix_fallocate == 0) {
+		errno = fail_posix_fallocate_errno;
+		return fail_posix_fallocate_errno;
+	}
+
+	return __real_posix_fallocate64(fd, offset, len);
 }
 
 void fail_test()

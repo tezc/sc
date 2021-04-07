@@ -39,7 +39,7 @@ if (SC_BUILD_TEST)
 
     add_executable(${PROJECT_NAME}_test heap_test.c sc_heap.c)
 
-    target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=140000ul)
+    target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HEAP_MAX=140000ul)
 
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR

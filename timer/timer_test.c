@@ -253,7 +253,7 @@ void *__wrap_malloc(size_t n)
 
 void fail_test(void)
 {
-	size_t max = SC_SIZE_MAX / sizeof(struct sc_timer_data);
+	size_t max = 50000;
 	struct sc_timer timer;
 
 	fail_malloc = true;

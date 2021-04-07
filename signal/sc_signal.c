@@ -38,6 +38,12 @@
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef SC_SIGNAL_TEST
+#define sc_exit(n) return
+#else
+#define sc_exit(n) _Exit(n)
+#endif
+
 #if defined(_WIN32)
 #include <WinSock2.h>
 volatile SOCKET sc_signal_shutdown_fd;
@@ -50,8 +56,8 @@ volatile sig_atomic_t sc_signal_shutdown_fd;
 #endif
 
 /**
- * Set log file fd here, logging will be redirected to this fd, otherwise
- * STDERR_FILENO or STDOUT_FILENO will be used.
+ * Set log file fd here, logging will be redirected to this fd,
+ * otherwise STDERR_FILENO or STDOUT_FILENO will be used.
  */
 volatile sig_atomic_t sc_signal_log_fd;
 
@@ -112,7 +118,7 @@ int sc_signal_vsnprintf(char *buf, size_t sz, const char *fmt, va_list va)
 					u = get_uint(va, pos - orig);
 
 					do {
-						c = (char)('0' +  (u % 10));
+						c = (char) ('0' + (u % 10));
 						dst[31 - (len++)] = c;
 					} while (u /= 10UL);
 
@@ -121,7 +127,7 @@ int sc_signal_vsnprintf(char *buf, size_t sz, const char *fmt, va_list va)
 					u = (uint64_t)(i < 0 ? -i : i);
 
 					do {
-						c = (char)('0' +  (u % 10));
+						c = (char) ('0' + (u % 10));
 						dst[31 - (len++)] = c;
 					} while (u /= 10UL);
 
@@ -382,10 +388,7 @@ static void sc_signal_on_shutdown(int sig)
 
 	if (sc_signal_will_shutdown != 0) {
 		sc_signal_log(fd, buf, sizeof(buf), "Forcing shut down! \n");
-#ifdef SC_SIGNAL_TEST
-		return;
-#endif
-		_Exit(1);
+		sc_exit(1);
 	}
 
 	sc_signal_will_shutdown = 1;
@@ -398,18 +401,12 @@ static void sc_signal_on_shutdown(int sig)
 			sc_signal_log(fd, buf, sizeof(buf),
 				      "Failed to send shutdown command, "
 				      "shutting down immediately! \n");
-#ifdef SC_SIGNAL_TEST
-			return;
-#endif
-			_Exit(1);
+			sc_exit(1);
 		}
 	} else {
 		sc_signal_log(fd, buf, sizeof(buf),
 			      "No shutdown handler, shutting down! \n");
-#ifdef SC_SIGNAL_TEST
-		return;
-#endif
-		_Exit(0);
+		sc_exit(0);
 	}
 
 	errno = saved_errno;

@@ -30,11 +30,10 @@
 #define TICK	    16u
 #define WHEEL_COUNT 16u
 
-#ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX UINT32_MAX
+#ifndef SC_TIMER_MAX
+#define SC_TIMER_MAX (UINT32_MAX / sizeof(struct sc_timer_data)) / WHEEL_COUNT
 #endif
 
-#define SC_CAP_MAX (SC_SIZE_MAX / sizeof(struct sc_timer_data)) / WHEEL_COUNT
 
 bool sc_timer_init(struct sc_timer *t, uint64_t timestamp)
 {
@@ -86,7 +85,7 @@ static bool expand(struct sc_timer *t)
 
 	assert(size != 0);
 
-	if (t->wheel > SC_CAP_MAX / 2) {
+	if (t->wheel >= SC_TIMER_MAX / 2) {
 		return false;
 	}
 
@@ -125,7 +124,6 @@ uint64_t sc_timer_add(struct sc_timer *t, uint64_t timeout, uint64_t type,
 	uint64_t id;
 	uint32_t seq, index, wheel_pos;
 
-	t->count++;
 
 	wheel_pos = (pos * t->wheel);
 	for (seq = 0; seq < t->wheel; seq++) {
@@ -143,6 +141,7 @@ uint64_t sc_timer_add(struct sc_timer *t, uint64_t timeout, uint64_t type,
 	assert(t->list[index].timeout == UINT64_MAX);
 
 out:
+	t->count++;
 	t->list[index].timeout = timeout + t->timestamp;
 	t->list[index].type = type;
 	t->list[index].data = data;
@@ -178,6 +177,7 @@ uint64_t sc_timer_timeout(struct sc_timer *t, uint64_t timestamp, void *arg,
 	uint32_t wheel, base;
 	uint32_t head = t->head;
 	uint32_t wheels = (uint32_t)(sc_timer_min(time / TICK, WHEEL_COUNT));
+	struct sc_timer_data *item;
 
 	if (wheels == 0) {
 		return sc_timer_min(TICK - time, TICK);
@@ -191,7 +191,7 @@ uint64_t sc_timer_timeout(struct sc_timer *t, uint64_t timestamp, void *arg,
 		base = wheel * head;
 
 		for (uint32_t i = 0; i < wheel; i++) {
-			struct sc_timer_data *item = &t->list[base + i];
+			item = &t->list[base + i];
 
 			if (item->timeout <= t->timestamp) {
 				uint64_t timeout = item->timeout;

@@ -93,7 +93,7 @@ bool sc_array_expand(void *a, size_t elem_size);
  *   @return     'true' on success, 'false' on out of memory.
  */
 #define sc_array_add(a, elem)                                                  \
-	sc_array_expand(&((a)), sc_array_sizeof(*(a))) == true ?               \
+	sc_array_expand(&(a), sc_array_sizeof(*(a))) == true ?                 \
 		      (a)[sc_array_meta(a)->size++] = (elem), true : false
 
 /**
@@ -103,10 +103,9 @@ bool sc_array_expand(void *a, size_t elem_size);
 #define sc_array_del(a, i)                                                     \
 	do {                                                                   \
 		assert((i) < sc_array_meta(a)->size);                          \
-		const size_t to_move = sc_array_size(a) - (i) -1;              \
-		if (to_move > 0) {                                             \
-			memmove(&(a)[i], &(a)[(i) + 1],                        \
-				to_move * sizeof(*(a)));                       \
+		const size_t cnt = sc_array_size(a) - (i) -1;                  \
+		if (cnt > 0) {                                                 \
+			memmove(&(a)[i], &(a)[(i) + 1], cnt * sizeof(*(a)));   \
 		}                                                              \
 		sc_array_meta((a))->size--;                                    \
 	} while (0)

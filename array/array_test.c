@@ -207,7 +207,7 @@ void fail_test()
 	assert(arr == NULL);
 	assert(sc_array_create(arr, 0) == true);
 
-	size_t count = SC_SIZE_MAX / sizeof(*arr);
+	size_t count = SC_ARRAY_MAX / sizeof(*arr);
 	bool success = false;
 
 	for (size_t i = 0; i < count + 5; i++) {

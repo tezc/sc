@@ -76,9 +76,10 @@ static char *trim_comment(char *str)
 
 static char *trim_bom(char *str)
 {
+	unsigned char *p = (unsigned char *) str;
+
 	if (strlen(str) >= 3) {
-		if ((uint8_t) str[0] == 0xEF && (uint8_t) str[1] == 0xBB &&
-		    (uint8_t) str[2] == 0xBF) {
+		if (p[0] == 0xEF && p[1] == 0xBB && p[2] == 0xBF) {
 			str += 3;
 		}
 	}
@@ -133,12 +134,12 @@ int sc_ini_parse(void *arg, sc_ini_on_item cb, void *arg1,
 	return 0;
 }
 
-static char *file_next_line(void *p, char *buf, size_t size)
+static char *file_line(void *p, char *buf, size_t size)
 {
 	return fgets(buf, (int) size, (FILE *) p);
 }
 
-static char *string_next_line(void *p, char *buf, size_t size)
+static char *string_line(void *p, char *buf, size_t size)
 {
 	size_t len, diff;
 	char *t, *str = (*(char **) p);
@@ -172,7 +173,7 @@ int sc_ini_parse_file(void *arg, sc_ini_on_item cb, const char *filename)
 		return -1;
 	}
 
-	rc = sc_ini_parse(arg, cb, file, file_next_line);
+	rc = sc_ini_parse(arg, cb, file, file_line);
 	if (rc == 0) {
 		rc = ferror(file) != 0 ? -1 : 0;
 	}
@@ -185,5 +186,5 @@ int sc_ini_parse_file(void *arg, sc_ini_on_item cb, const char *filename)
 int sc_ini_parse_string(void *arg, sc_ini_on_item cb, const char *str)
 {
 	char *ptr = (char *) str;
-	return sc_ini_parse(arg, cb, &ptr, string_next_line);
+	return sc_ini_parse(arg, cb, &ptr, string_line);
 }
