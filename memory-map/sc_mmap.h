@@ -33,8 +33,8 @@
 
 #if defined(_WIN32)
 
-#include <memoryapi.h>
 #include <windows.h>
+#include <memoryapi.h>
 
 #define PROT_READ  FILE_MAP_READ
 #define PROT_WRITE FILE_MAP_WRITE
