@@ -25,7 +25,6 @@
 #ifndef SC_MMAP_H
 #define SC_MMAP_H
 
-#include <fcntl.h>
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -33,8 +32,8 @@
 
 #if defined(_WIN32)
 
-#include <windows.h>
 #include <memoryapi.h>
+#include <windows.h>
 
 #define PROT_READ  FILE_MAP_READ
 #define PROT_WRITE FILE_MAP_WRITE
@@ -44,6 +43,10 @@
 #define MAP_SHARED    0x04
 
 #else /*POSIX*/
+
+#ifndef _FILE_OFFSET_BITS
+#define _FILE_OFFSET_BITS 64
+#endif
 
 #include <sys/mman.h>
 

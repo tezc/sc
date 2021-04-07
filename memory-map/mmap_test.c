@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <fcntl.h>
 
 void test1()
 {
