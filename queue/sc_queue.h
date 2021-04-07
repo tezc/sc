@@ -54,36 +54,36 @@ struct sc_queue {
 
 static inline size_t sc_queue_inc_first(void *q)
 {
-	struct sc_queue *meta = sc_queue_meta(q);
-	size_t tmp = meta->first;
+	struct sc_queue *m = sc_queue_meta(q);
+	size_t tmp = m->first;
 
-	meta->first = (meta->first + 1) & (meta->cap - 1);
+	m->first = (m->first + 1) & (m->cap - 1);
 	return tmp;
 }
 
 static inline size_t sc_queue_inc_last(void *q)
 {
-	struct sc_queue *meta = sc_queue_meta(q);
-	size_t tmp = meta->last;
+	struct sc_queue *m = sc_queue_meta(q);
+	size_t tmp = m->last;
 
-	meta->last = (meta->last + 1) & (meta->cap - 1);
+	m->last = (m->last + 1) & (m->cap - 1);
 	return tmp;
 }
 
 static inline size_t sc_queue_dec_first(void *q)
 {
-	struct sc_queue *meta = sc_queue_meta(q);
+	struct sc_queue *m = sc_queue_meta(q);
 
-	meta->first = (meta->first - 1) & (meta->cap - 1);
-	return meta->first;
+	m->first = (m->first - 1) & (m->cap - 1);
+	return m->first;
 }
 
 static inline size_t sc_queue_dec_last(void *q)
 {
-	struct sc_queue *meta = sc_queue_meta(q);
+	struct sc_queue *m = sc_queue_meta(q);
 
-	meta->last = (meta->last - 1) & (meta->cap - 1);
-	return meta->last;
+	m->last = (m->last - 1) & (m->cap - 1);
+	return m->last;
 }
 
 bool sc_queue_init(void *q, size_t elem_size, size_t cap);

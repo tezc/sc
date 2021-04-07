@@ -186,9 +186,9 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 {
 	const int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
-	struct stat st;
 	int fd, rc, saved_errno;
 	void *p = NULL;
+	struct stat st;
 
 	*m = (struct sc_mmap){0};
 

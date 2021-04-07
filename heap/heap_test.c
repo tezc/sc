@@ -189,7 +189,7 @@ void fail_test(void)
 
 	assert(sc_heap_init(&heap, 2) == true);
 
-	size_t count = SC_SIZE_MAX / sizeof(struct sc_heap_data);
+	size_t count = SC_HEAP_MAX;
 	bool success = false;
 
 	for (size_t i = 0; i < count + 5; i++) {

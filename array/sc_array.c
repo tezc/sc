@@ -24,8 +24,8 @@
 
 #include "sc_array.h"
 
-#ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX SIZE_MAX
+#ifndef SC_ARRAY_MAX
+#define SC_ARRAY_MAX SIZE_MAX
 #endif
 
 /**
@@ -37,7 +37,7 @@ static const struct sc_array sc_empty = {.size = 0, .cap = 0};
 
 bool sc_array_init(void *a, size_t elem_size, size_t cap)
 {
-	const size_t max = SC_SIZE_MAX / elem_size;
+	const size_t max = SC_ARRAY_MAX / elem_size;
 	const size_t bytes = sizeof(struct sc_array) + (elem_size * cap);
 
 	void **p = a;
@@ -80,7 +80,7 @@ void sc_array_term(void *a)
 
 bool sc_array_expand(void *a, size_t elem_size)
 {
-	const size_t max = SC_SIZE_MAX / elem_size;
+	const size_t max = SC_ARRAY_MAX / elem_size;
 
 	size_t size, cap, bytes;
 	void **p = a;

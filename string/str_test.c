@@ -86,9 +86,9 @@ void test1()
 	assert(sc_str_create("test") == NULL);
 	fail_malloc = false;
 
-	s1 = malloc(SC_SIZE_MAX + 2);
-	memset(s1, 'c', SC_SIZE_MAX + 1);
-	s1[SC_SIZE_MAX + 1] = '\0';
+	s1 = malloc(SC_STR_MAX + 2);
+	memset(s1, 'c', SC_STR_MAX + 1);
+	s1[SC_STR_MAX + 1] = '\0';
 	assert(sc_str_create(s1) == NULL);
 	free(s1);
 

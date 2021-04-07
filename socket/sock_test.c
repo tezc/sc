@@ -1468,11 +1468,11 @@ void *server(void *arg)
 				}
 			} else {
 				if (ev & SC_SOCK_READ) {
-					char b[6];
+					char b;
 
-					rc = sc_sock_recv(&in, b, sizeof(b), 0);
-					if (rc == 6) {
-						assert(strcmp(b, "datax") == 0);
+					rc = sc_sock_recv(&in, &b, 1, 0);
+					if (rc == 1) {
+						assert(b == 'd');
 						received++;
 					} else if (rc == 0 || rc < 0) {
 						int fl = SC_SOCK_READ |
@@ -1535,8 +1535,8 @@ void *client(void *arg)
 		}
 
 		for (int j = 0; j < 10000; j++) {
-			rc = sc_sock_send(&sock, "datax", 6, 0);
-			assert(rc == 6);
+			rc = sc_sock_send(&sock, "d", 1, 0);
+			assert(rc == 1);
 		}
 
 		rc = sc_sock_term(&sock);

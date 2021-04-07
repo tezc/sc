@@ -261,7 +261,16 @@ int sc_log_set_file(const char *prev, const char *current)
 	}
 
 	fp = fopen(sc_log.current_file, "a+");
-	if (fp == NULL || fprintf(fp, "\n") < 0 || (size = ftell(fp)) < 0) {
+	if (fp == NULL) {
+		goto error;
+	}
+
+	if (fprintf(fp, "\n") < 0) {
+		goto error;
+	}
+
+	size = ftell(fp);
+	if (size < 0) {
 		goto error;
 	}
 

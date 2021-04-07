@@ -46,7 +46,7 @@ void fail_test(void)
 
 	fail_realloc = false;
 
-	size_t max = SC_SIZE_MAX / 2;
+	size_t max = SC_QUEUE_MAX;
 	success = true;
 	for (size_t i = 0; i < max + 500; i++) {
 		success = sc_queue_add_last(q, i);

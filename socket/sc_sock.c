@@ -134,11 +134,21 @@ int sc_sock_notify_systemd(const char *msg)
 
 	int fd, rc;
 	const char *s;
-	struct sockaddr_un addr = {.sun_family = AF_UNIX};
-	struct iovec iovec = {.iov_base = (char *) msg, .iov_len = strlen(msg)};
-	struct msghdr msghdr = {.msg_name = &addr,
-				.msg_iov = &iovec,
-				.msg_iovlen = 1};
+
+	struct sockaddr_un addr = {
+		.sun_family = AF_UNIX,
+	};
+
+	struct iovec iovec = {
+		.iov_base = (char *) msg,
+		.iov_len = strlen(msg),
+	};
+
+	struct msghdr msghdr = {
+		.msg_name = &addr,
+		.msg_iov = &iovec,
+		.msg_iovlen = 1,
+	};
 
 	s = getenv("NOTIFY_SOCKET");
 	if (!s) {
@@ -290,7 +300,9 @@ int sc_sock_set_sndtimeo(struct sc_sock *s, int ms)
 static int sc_sock_bind_unix(struct sc_sock *s, const char *host)
 {
 	int rc;
-	struct sockaddr_un addr = {.sun_family = AF_UNIX};
+	struct sockaddr_un addr = {
+		.sun_family = AF_UNIX,
+	};
 
 	strncpy(addr.sun_path, host, sizeof(addr.sun_path) - 1);
 	sc_unlink(host);
@@ -307,8 +319,10 @@ static int sc_sock_bind(struct sc_sock *s, const char *host, const char *port)
 
 	int rc, rv = 0;
 	struct addrinfo *servinfo = NULL;
-	struct addrinfo hints = {.ai_family = s->family,
-				 .ai_socktype = SOCK_STREAM};
+	struct addrinfo hints = {
+		.ai_family = s->family,
+		.ai_socktype = SOCK_STREAM,
+	};
 
 	*s->err = '\0';
 
@@ -436,7 +450,9 @@ static int sc_sock_connect_unix(struct sc_sock *s, const char *addr)
 
 	int rc;
 	sc_sock_int fd;
-	struct sockaddr_un un = {.sun_family = AF_UNIX};
+	struct sockaddr_un un = {
+		.sun_family = AF_UNIX,
+	};
 
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd == SC_INVALID) {
@@ -521,13 +537,14 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 	const int bf = SC_SOCK_BUF_SIZE;
 
 	int rc, rv = SC_SOCK_OK;
-	void *tmp;
 	sc_sock_int fd;
+	void *tmp;
+	struct addrinfo *sinfo = NULL, *p;
+
 	struct addrinfo inf = {
 		.ai_family = AF_UNSPEC,
 		.ai_socktype = SOCK_STREAM,
 	};
-	struct addrinfo *sinfo = NULL, *p;
 
 	if (s->family == AF_UNIX) {
 		return sc_sock_connect_unix(s, dst_addr);
@@ -1176,8 +1193,10 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
 	int rc, op;
-	struct epoll_event ep_ev = {.data.ptr = data,
-				    .events = EPOLLERR | EPOLLHUP | EPOLLRDHUP};
+	struct epoll_event ep_ev = {
+		.data.ptr = data,
+		.events = EPOLLERR | EPOLLHUP | EPOLLRDHUP,
+	};
 
 	if ((fdt->op & events) == 0) {
 		return 0;

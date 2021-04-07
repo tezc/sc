@@ -24,11 +24,9 @@
 
 #include "sc_queue.h"
 
-#ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX SIZE_MAX
+#ifndef SC_QUEUE_MAX
+#define SC_QUEUE_MAX ((SIZE_MAX - sizeof(struct sc_queue)) / 2ul)
 #endif
-
-#define SC_MAX_CAP ((SC_SIZE_MAX - sizeof(struct sc_queue)) / 2ul)
 
 static const struct sc_queue sc_empty = {.cap = 1, .first = 0, .last = 0};
 
@@ -36,7 +34,7 @@ static void *queue_alloc(void *prev, size_t elem_size, size_t *cap)
 {
 	size_t alloc, v = *cap;
 
-	if (*cap > SC_MAX_CAP) {
+	if (*cap > SC_QUEUE_MAX) {
 		return NULL;
 	}
 

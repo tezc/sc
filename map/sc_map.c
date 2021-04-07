@@ -26,11 +26,11 @@
 
 #include <string.h>
 
-#ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX UINT32_MAX
+#ifndef SC_MAP_MAX
+#define SC_MAP_MAX UINT32_MAX
 #endif
 
-#define sc_map_def_strkey(name, K, V, cmp, hash_fn)                        \
+#define sc_map_def_strkey(name, K, V, cmp, hash_fn)                            \
 	bool sc_map_cmp_##name(struct sc_map_item_##name *t, K key,            \
 			       uint32_t hash)                                  \
 	{                                                                      \
@@ -52,7 +52,7 @@
                                                                                \
 	sc_map_def(name, K, V, cmp, hash_fn)
 
-#define sc_map_def_scalar(name, K, V, cmp, hash_fn)                        \
+#define sc_map_def_scalar(name, K, V, cmp, hash_fn)                            \
 	bool sc_map_cmp_##name(struct sc_map_item_##name *t, K key,            \
 			       uint32_t hash)                                  \
 	{                                                                      \
@@ -75,7 +75,7 @@
                                                                                \
 	sc_map_def(name, K, V, cmp, hash_fn)
 
-#define sc_map_def(name, K, V, cmp, hash_fn)                               \
+#define sc_map_def(name, K, V, cmp, hash_fn)                                   \
                                                                                \
 	static const struct sc_map_item_##name empty_items_##name[2];          \
                                                                                \
@@ -88,7 +88,7 @@
 		uint32_t v = *cap;                                             \
 		struct sc_map_item_##name *t;                                  \
                                                                                \
-		if (*cap > SC_SIZE_MAX / factor) {                             \
+		if (*cap > SC_MAP_MAX / factor) {                              \
 			return NULL;                                           \
 		}                                                              \
                                                                                \

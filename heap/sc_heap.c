@@ -26,11 +26,9 @@
 
 #include <stdlib.h>
 
-#ifndef SC_SIZE_MAX
-#define SC_SIZE_MAX SIZE_MAX
+#ifndef SC_HEAP_MAX
+#define SC_HEAP_MAX SIZE_MAX / sizeof(struct sc_heap_data)
 #endif
-
-#define SC_CAP_MAX SC_SIZE_MAX / sizeof(struct sc_heap_data)
 
 bool sc_heap_init(struct sc_heap *h, size_t cap)
 {
@@ -43,7 +41,7 @@ bool sc_heap_init(struct sc_heap *h, size_t cap)
 		return true;
 	}
 
-	if (cap > SC_CAP_MAX || (e = sc_heap_malloc(sz)) == NULL) {
+	if (cap > SC_HEAP_MAX || (e = sc_heap_malloc(sz)) == NULL) {
 		return false;
 	}
 
@@ -70,14 +68,14 @@ void sc_heap_clear(struct sc_heap *h)
 
 bool sc_heap_add(struct sc_heap *h, int64_t key, void *data)
 {
-	size_t i;
+	size_t i, cap, m;
 	void *exp;
 
 	if (++h->size >= h->cap) {
-		const size_t cap = h->cap != 0 ? h->cap * 2 : 4;
-		const size_t m = cap * 2 * sizeof(struct sc_heap_data);
+		cap = h->cap != 0 ? h->cap * 2 : 4;
+		m = cap * 2 * sizeof(*h->elems);
 
-		if (h->cap >= SC_CAP_MAX / 2 ||
+		if (h->cap >= SC_HEAP_MAX / 2 ||
 		    (exp = sc_heap_realloc(h->elems, m)) == NULL) {
 			return false;
 		}
