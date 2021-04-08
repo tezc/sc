@@ -19,6 +19,12 @@ void test1()
 	sc_buf_term(&buf);
 
 	sc_buf_init(&buf, 100);
+	sc_buf_put_32(&buf, 1000);
+	assert(sc_buf_get_str(&buf) == NULL);
+	assert(sc_buf_valid(&buf) == false);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf, 100);
 	sc_buf_init(&buf2, 100);
 	sc_buf_put_str(&buf, "s");
 	sc_buf_move(&buf2, &buf);
