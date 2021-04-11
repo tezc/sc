@@ -216,12 +216,12 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 
 			ssize_t seek = lseek(fd, pos, SEEK_SET);
 			if (seek == -1) {
-				return -1;
+				goto cleanup_fd;
 			}
 
 			ssize_t written = write(fd, "", 1);
 			if (written != 1) {
-				return -1;
+				goto cleanup_fd;
 			}
 		}
 #else
