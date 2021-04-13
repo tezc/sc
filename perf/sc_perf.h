@@ -28,7 +28,7 @@
 #include <linux/perf_event.h>
 #include <stdint.h>
 
-#define SC_PERF_VERSION "1.0.0"
+#define SC_PERF_VERSION "2.0.0"
 
 #define SC_PERF_HW_CACHE(CACHE, OP, RESULT)                                    \
 	((PERF_COUNT_HW_CACHE_##CACHE) | (PERF_COUNT_HW_CACHE_OP_##OP << 8u) | \

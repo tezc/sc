@@ -27,41 +27,27 @@
 #include <assert.h>
 #include <memory.h>
 
-#define TICK	    16u
+#define TICK 16u
 #define WHEEL_COUNT 16u
 
 #ifndef SC_TIMER_MAX
 #define SC_TIMER_MAX (UINT32_MAX / sizeof(struct sc_timer_data)) / WHEEL_COUNT
 #endif
 
-
-bool sc_timer_init(struct sc_timer *t, uint64_t timestamp)
+void sc_timer_init(struct sc_timer *t, uint64_t timestamp)
 {
-	const uint32_t wheel_cap = 4;
-	const uint32_t cap = WHEEL_COUNT * wheel_cap;
-	const size_t size = cap * sizeof(struct sc_timer_data);
-
-	t->count = 0;
-	t->head = 0;
-	t->wheel = wheel_cap;
-	t->timestamp = timestamp;
-
-	t->list = sc_timer_malloc(size);
-	if (t->list == NULL) {
-		return false;
-	}
-
-	for (uint32_t i = 0; i < cap; i++) {
-		t->list[i].timeout = UINT64_MAX;
-		t->list[i].data = NULL;
-	}
-
-	return true;
+	*t = (struct sc_timer){
+		.timestamp = timestamp,
+	};
 }
 
 void sc_timer_term(struct sc_timer *t)
 {
 	sc_timer_free(t->list);
+
+	*t = (struct sc_timer){
+		.timestamp = t->timestamp,
+	};
 }
 
 void sc_timer_clear(struct sc_timer *t)
@@ -79,7 +65,8 @@ void sc_timer_clear(struct sc_timer *t)
 
 static bool expand(struct sc_timer *t)
 {
-	uint32_t cap = t->wheel * WHEEL_COUNT * 2;
+	uint32_t wheel = t->wheel != 0 ? t->wheel * 2 : 4;
+	uint32_t cap = wheel * WHEEL_COUNT * 2;
 	size_t size = cap * sizeof(struct sc_timer_data);
 	struct sc_timer_data *alloc;
 
@@ -111,7 +98,7 @@ static bool expand(struct sc_timer *t)
 	sc_timer_free(t->list);
 
 	t->list = alloc;
-	t->wheel *= 2;
+	t->wheel = wheel;
 
 	return true;
 }
@@ -119,11 +106,10 @@ static bool expand(struct sc_timer *t)
 uint64_t sc_timer_add(struct sc_timer *t, uint64_t timeout, uint64_t type,
 		      void *data)
 {
-	const uint32_t offset = (uint32_t)(timeout / TICK + t->head);
+	const uint32_t offset = (uint32_t) (timeout / TICK + t->head);
 	const uint32_t pos = offset & (WHEEL_COUNT - 1);
 	uint64_t id;
 	uint32_t seq, index, wheel_pos;
-
 
 	wheel_pos = (pos * t->wheel);
 	for (seq = 0; seq < t->wheel; seq++) {
@@ -176,7 +162,7 @@ uint64_t sc_timer_timeout(struct sc_timer *t, uint64_t timestamp, void *arg,
 	const uint64_t time = timestamp - t->timestamp;
 	uint32_t wheel, base;
 	uint32_t head = t->head;
-	uint32_t wheels = (uint32_t)(sc_timer_min(time / TICK, WHEEL_COUNT));
+	uint32_t wheels = (uint32_t) (sc_timer_min(time / TICK, WHEEL_COUNT));
 	struct sc_timer_data *item;
 
 	if (wheels == 0) {

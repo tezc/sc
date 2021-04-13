@@ -29,7 +29,7 @@
 #include <stdbool.h>
 #include <stdint.h>
 
-#define SC_STR_VERSION "1.0.0"
+#define SC_STR_VERSION "2.0.0"
 
 #ifdef SC_HAVE_CONFIG_H
 #include "config.h"
@@ -82,7 +82,7 @@ char *sc_str_create_va(const char *fmt, va_list va);
  * Deallocate length prefixed string.
  * @param str length prefixed string. str may be NULL.
  */
-void sc_str_destroy(char *str);
+void sc_str_destroy(char **str);
 
 /**
  * @param str length prefixed string. NULL values are accepted.

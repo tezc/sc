@@ -25,7 +25,7 @@
 #ifndef SC_TIMER_H
 #define SC_TIMER_H
 
-#define SC_TIMER_VERSION "1.0.0"
+#define SC_TIMER_VERSION "2.0.0"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -60,9 +60,8 @@ struct sc_timer {
  *
  * @param t         timer
  * @param timestamp current timestamp. Use monotonic timer source.
- * @return          'false' on out of memory.
  */
-bool sc_timer_init(struct sc_timer *t, uint64_t timestamp);
+void sc_timer_init(struct sc_timer *t, uint64_t timestamp);
 
 /**
  * Destroy timer.

@@ -29,7 +29,6 @@
 #include "sc_ini.h"
 
 #include <ctype.h>
-#include <stdint.h>
 #include <string.h>
 
 #if defined(_WIN32) || defined(_WIN64)

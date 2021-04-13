@@ -28,7 +28,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
-#define SC_LIST_VERSION "1.0.0"
+#define SC_LIST_VERSION "2.0.0"
 
 struct sc_list {
 	struct sc_list *next;

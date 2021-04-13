@@ -54,6 +54,10 @@ bool sc_heap_init(struct sc_heap *h, size_t cap)
 void sc_heap_term(struct sc_heap *h)
 {
 	sc_heap_free(h->elems);
+
+	*h = (struct sc_heap){
+		.elems = NULL,
+	};
 }
 
 size_t sc_heap_size(struct sc_heap *h)

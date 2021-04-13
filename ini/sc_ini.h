@@ -29,7 +29,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define SC_INI_VERSION "1.0.0"
+#define SC_INI_VERSION "2.0.0"
 
 // Set max line length. If a line is longer, it will be truncated silently.
 #define SC_INI_MAX_LINE_LEN 1024

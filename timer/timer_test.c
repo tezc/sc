@@ -81,7 +81,8 @@ void test1(void)
 {
 	struct sc_timer timer;
 
-	assert(sc_timer_init(&timer, time_ms()));
+	sc_timer_init(&timer, time_ms());
+
 	for (int i = 0; i < 1000; i++) {
 		ids[i] = sc_timer_add(&timer, rand() % 100, i,
 				      (void *) (uintptr_t) i);
@@ -105,13 +106,37 @@ void test1(void)
 	}
 
 	sc_timer_term(&timer);
+
+	for (int i = 0; i < 1000; i++) {
+		ids[i] = sc_timer_add(&timer, rand() % 100, i,
+				      (void *) (uintptr_t) i);
+		assert(ids[i] != SC_TIMER_INVALID);
+	}
+
+	t = 10000;
+	while (t > 0) {
+		n = sc_timer_timeout(&timer, time_ms(),
+				     (void *) (uintptr_t) 333, callback);
+		if (timer.count == 0) {
+			break;
+		}
+		t -= n;
+		sleep_ms(n);
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		assert(ids[i] == SC_TIMER_INVALID);
+	}
+
+	sc_timer_term(&timer);
 }
 
 void test2(void)
 {
 	struct sc_timer timer;
 
-	assert(sc_timer_init(&timer, time_ms()));
+	sc_timer_init(&timer, time_ms());
+
 	for (int i = 0; i < 1000; i++) {
 		ids[i] = SC_TIMER_INVALID;
 		sc_timer_add(&timer, rand() % 100, i, (void *) (uintptr_t) i);
@@ -164,7 +189,8 @@ void test3(void)
 {
 	struct sc_timer timer;
 
-	assert(sc_timer_init(&timer, time_ms()));
+	sc_timer_init(&timer, time_ms());
+
 	for (int i = 0; i < 1000; i++) {
 		ids[i] = sc_timer_add(&timer, rand() % 20, i,
 				      (void *) (uintptr_t) i);
@@ -202,7 +228,8 @@ void test4(void)
 {
 	struct sc_timer timer;
 
-	assert(sc_timer_init(&timer, 0));
+	sc_timer_init(&timer, 0);
+
 	for (int i = 0; i < 1000; i++) {
 		ids[i] = sc_timer_add(&timer, rand() % 20, i,
 				      (void *) (uintptr_t) i);
@@ -256,10 +283,7 @@ void fail_test(void)
 	size_t max = 50000;
 	struct sc_timer timer;
 
-	fail_malloc = true;
-	assert(sc_timer_init(&timer, time_ms()) == false);
-	fail_malloc = false;
-	assert(sc_timer_init(&timer, time_ms()) == true);
+	sc_timer_init(&timer, time_ms());
 
 	uint64_t id;
 	for (size_t i = 0; i < max + 100; i++) {

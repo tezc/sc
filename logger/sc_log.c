@@ -186,9 +186,12 @@ int sc_log_term(void)
 		if (rc != 0) {
 			rc = -1;
 		}
+		sc_log_mutex_term(&sc_log.mtx);
 	}
 
-	sc_log_mutex_term(&sc_log.mtx);
+	sc_log = (struct sc_log){
+		.fp = NULL,
+	};
 
 	return rc;
 }

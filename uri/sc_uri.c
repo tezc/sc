@@ -174,7 +174,12 @@ error:
 	return NULL;
 }
 
-void sc_uri_destroy(struct sc_uri *uri)
+void sc_uri_destroy(struct sc_uri **uri)
 {
-	sc_uri_free(uri);
+	if (uri == NULL || *uri == NULL) {
+		return;
+	}
+
+	sc_uri_free(*uri);
+	*uri = NULL;
 }

@@ -165,16 +165,27 @@ int sc_mmap_munlock(struct sc_mmap *m, size_t offset, size_t len)
 int sc_mmap_term(struct sc_mmap *m)
 {
 	BOOL b;
+	int rc = 0;
+
+	if (m->fd == -1) {
+		return 0;
+	}
 
 	_close(m->fd);
 
 	b = UnmapViewOfFile(m->ptr);
 	if (b == 0) {
 		sc_mmap_errstr(m);
-		return -1;
+		rc = -1;
 	}
 
-	return 0;
+	*m = (struct sc_mmap){
+		.ptr = NULL,
+		.fd = -1,
+		.len = 0,
+	};
+
+	return rc;
 }
 
 #else
@@ -261,12 +272,22 @@ int sc_mmap_term(struct sc_mmap *m)
 {
 	int rc;
 
+	if (m->fd == -1) {
+		return 0;
+	}
+
 	close(m->fd);
 
 	rc = munmap(m->ptr, m->len);
 	if (rc != 0) {
 		strncpy(m->err, strerror(errno), sizeof(m->err) - 1);
 	}
+
+	*m = (struct sc_mmap){
+		.ptr = NULL,
+		.fd = -1,
+		.len = 0,
+	};
 
 	return rc;
 }

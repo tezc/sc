@@ -28,7 +28,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#define SC_OPTION_VERSION "1.0.0"
+#define SC_OPTION_VERSION "2.0.0"
 
 struct sc_option_item {
 	const char letter;
