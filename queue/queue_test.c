@@ -103,8 +103,13 @@ void test1(void)
 	int i = 0;
 	int *p;
 
+	p = NULL;
+	sc_queue_destroy(p);
+
 	assert(sc_queue_create(p, 2) == true);
 	sc_queue_destroy(p);
+	sc_queue_destroy(p);
+
 	sc_queue_add_first(p, 1);
 	sc_queue_add_first(p, 2);
 	sc_queue_add_first(p, 3);
