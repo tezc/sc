@@ -49,7 +49,15 @@ static void test1(void)
 	sc_array_create(arr, 10);
 	assert(arr != NULL);
 	sc_array_destroy(arr);
-	assert(arr == NULL);
+	assert(sc_array_cap(arr) == 0);
+	assert(sc_array_size(arr) == 0);
+	sc_array_add(arr, 1);
+	sc_array_add(arr, 2);
+	sc_array_add(arr, 3);
+	assert(arr[0] == 1);
+	assert(arr[1] == 2);
+	assert(arr[2] == 3);
+	sc_array_destroy(arr);
 
 	sc_array_create(arr, 5);
 	sc_array_add(arr, 3);
@@ -209,7 +217,13 @@ void fail_test()
 	assert(sc_array_create(arr, 0) == true);
 	assert(arr != NULL);
 	sc_array_destroy(arr);
-	assert(arr == NULL);
+	assert(sc_array_cap(arr) == 0);
+	assert(sc_array_size(arr) == 0);
+
+	sc_array_foreach (arr, tmp) {
+		assert(false);
+	}
+
 	assert(sc_array_create(arr, 0) == true);
 
 	size_t count = SC_ARRAY_MAX / sizeof(*arr);

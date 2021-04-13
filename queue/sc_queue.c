@@ -92,7 +92,7 @@ void sc_queue_term(void *q)
 		sc_queue_free(meta);
 	}
 
-	*ptr = NULL;
+	*ptr = (void *) sc_empty.elems;
 }
 
 bool sc_queue_expand(void *q, size_t elem_size)

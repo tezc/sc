@@ -75,7 +75,7 @@ void sc_array_term(void *a)
 		sc_array_free(m);
 	}
 
-	*p = NULL;
+	*p = (void *) sc_empty.elems;
 }
 
 bool sc_array_expand(void *a, size_t elem_size)
