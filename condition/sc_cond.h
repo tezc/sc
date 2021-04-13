@@ -27,7 +27,7 @@
 
 #include <stdbool.h>
 
-#define SC_COND_VERSION "1.0.0"
+#define SC_COND_VERSION "2.0.0"
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>

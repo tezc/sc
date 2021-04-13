@@ -24,7 +24,7 @@
 #ifndef SC_URI_H
 #define SC_URI_H
 
-#define SC_URI_VERSION "1.0.0"
+#define SC_URI_VERSION "2.0.0"
 
 #ifdef SC_HAVE_CONFIG_H
 #include "config.h"

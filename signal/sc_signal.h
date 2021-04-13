@@ -29,7 +29,7 @@
 #include <stdarg.h>
 #include <stddef.h>
 
-#define SC_SIGNAL_VERSION "1.0.0"
+#define SC_SIGNAL_VERSION "2.0.0"
 
 /**
  * Set shutdown fd here. When shutdown signal is received e.g SIGINT, SIGTERM.

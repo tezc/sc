@@ -24,7 +24,7 @@
 #ifndef SC_THREAD_H
 #define SC_THREAD_H
 
-#define SC_THREAD_VERSION "1.0.0"
+#define SC_THREAD_VERSION "2.0.0"
 
 #if defined(_WIN32) || defined(_WIN64)
 

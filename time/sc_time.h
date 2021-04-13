@@ -24,7 +24,7 @@
 #ifndef SC_TIME_H
 #define SC_TIME_H
 
-#define SC_TIME_VERSION "1.0.0"
+#define SC_TIME_VERSION "2.0.0"
 
 #include <stdint.h>
 
