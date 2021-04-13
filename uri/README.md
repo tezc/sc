@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
     printf("%s \n", uri->query);     // prints "name=jane"
     printf("%s \n", uri->fragment);  // prints "doe"
 
-    sc_uri_destroy(uri);
+    sc_uri_destroy(&uri);
 
     return 0;
 }

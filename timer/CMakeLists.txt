@@ -82,7 +82,7 @@ if (SC_BUILD_TEST)
             ${CMAKE_CTEST_COMMAND} -C $<CONFIG> --verbose
             WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
 
-    # ----------------------- - Code Coverage Start ----------------------------- #
+# ----------------------- - Code Coverage Start ----------------------------- #
 
     if (${CMAKE_BUILD_TYPE} MATCHES "Coverage")
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
@@ -105,7 +105,7 @@ if (SC_BUILD_TEST)
 
     add_dependencies(coverage_${PROJECT_NAME} check_${PROJECT_NAME})
 
-    # -------------------------- Code Coverage End ------------------------------ #
+# -------------------------- Code Coverage End ------------------------------ #
 endif ()
 # ----------------------- Test Configuration End ---------------------------- #
 
