@@ -21,7 +21,7 @@ int main()
 	sc_str_substring(&s1, 0, 5);
 	printf("%s \n", s1); // prints hello
 
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	return 0;
 }
