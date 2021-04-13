@@ -26,7 +26,9 @@ void test1()
 	assert(strcmp((char *) ret, "first") == 0);
 
 	rc = sc_thread_term(&thread);
-	assert(rc == -1);
+	assert(rc == 0);
+	rc = sc_thread_term(&thread);
+	assert(rc == 0);
 
 	sc_thread_init(&thread);
 	rc = sc_thread_start(&thread, fn, "first");

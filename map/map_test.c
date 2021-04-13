@@ -518,6 +518,17 @@ void test1()
 		values[i] = str_random((rand() % 64) + 32);
 	}
 
+	sc_map_init_str(&map, 0, 0);
+	sc_map_put_str(&map, "100", "200");
+	sc_map_get_str(&map, "100", &value);
+	assert(strcmp(value, "200") == 0);
+	sc_map_term_str(&map);
+	sc_map_put_str(&map, "100", "200");
+	sc_map_get_str(&map, "100", &value);
+	assert(strcmp(value, "200") == 0);
+	sc_map_term_str(&map);
+
+
 	assert(!sc_map_init_str(&map, 0, -1));
 	assert(!sc_map_init_str(&map, 0, 24));
 	assert(!sc_map_init_str(&map, 0, 96));

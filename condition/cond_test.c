@@ -113,16 +113,17 @@ int sc_thread_start(struct sc_thread *thread, void *(*fn)(void *), void *arg)
 
 int sc_thread_join(struct sc_thread *thread, void **ret)
 {
-	int rc;
-	void *val;
+	int rc = 0;
+	void *val = NULL;
 
 	if (thread->id == 0) {
-		return -1;
+		goto out;
 	}
 
 	rc = pthread_join(thread->id, &val);
 	thread->id = 0;
 
+out:
 	if (ret != NULL) {
 		*ret = val;
 	}

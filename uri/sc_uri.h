@@ -100,6 +100,6 @@ struct sc_uri *sc_uri_create(const char *str);
 /**
  * @param uri uri
  */
-void sc_uri_destroy(struct sc_uri *uri);
+void sc_uri_destroy(struct sc_uri **uri);
 
 #endif

@@ -4,6 +4,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <string.h>
 
 int example(void)
 {
@@ -54,6 +55,19 @@ void test1(void)
 	void *data;
 	struct sc_heap heap;
 
+	sc_heap_init(&heap, 0);
+	sc_heap_add(&heap, 100, "test");
+	sc_heap_pop(&heap, &key, &data);
+	assert(key == 100);
+	assert(strcmp("test", data) == 0);
+	sc_heap_term(&heap);
+
+	sc_heap_add(&heap, 100, "test");
+	sc_heap_pop(&heap, &key, &data);
+	assert(key == 100);
+	assert(strcmp("test", data) == 0);
+	sc_heap_term(&heap);
+
 	assert(sc_heap_init(&heap, SIZE_MAX / 2) == false);
 	assert(sc_heap_init(&heap, 3) == true);
 
@@ -67,7 +81,7 @@ void test1(void)
 
 	for (int i = 0; i < 10; i++) {
 		assert(sc_heap_add(&heap, arr[i],
-				   (void *) (uintptr_t)(arr[i] * 2)) == true);
+				   (void *) (uintptr_t) (arr[i] * 2)) == true);
 	}
 
 	for (int i = 0; i < 10; i++) {
@@ -97,7 +111,7 @@ void test2(void)
 
 	for (int i = 0; i < 10; i++) {
 		assert(sc_heap_add(&heap, -arr[i],
-				   (void *) (uintptr_t)(arr[i] * 2)) == true);
+				   (void *) (uintptr_t) (arr[i] * 2)) == true);
 	}
 
 	for (int i = 0; i < 10; i++) {

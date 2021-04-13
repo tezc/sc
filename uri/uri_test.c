@@ -12,6 +12,11 @@ void test1(void)
 	const char *f = "foo://user:password@example.com:8042/over/"
 			"there?name=ferret#nose";
 
+	uri = sc_uri_create("");
+	assert(uri == NULL);
+	sc_uri_destroy(&uri);
+	sc_uri_destroy(NULL);
+
 	uri = sc_uri_create(f);
 	assert(uri != NULL);
 	assert(strcmp(uri->str, f) == 0);
@@ -23,7 +28,7 @@ void test1(void)
 	assert(strcmp(uri->query, "name=ferret") == 0);
 	assert(strcmp(uri->fragment, "nose") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test2(void)
@@ -43,7 +48,7 @@ void test2(void)
 	assert(strcmp(uri->query, "tag=networking&order=newest") == 0);
 	assert(strcmp(uri->fragment, "top") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test3(void)
@@ -62,7 +67,7 @@ void test3(void)
 	assert(strcmp(uri->query, "objectClass?one") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test4(void)
@@ -81,7 +86,7 @@ void test4(void)
 	assert(strcmp(uri->query, "") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test5(void)
@@ -100,7 +105,7 @@ void test5(void)
 	assert(strcmp(uri->query, "") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test6(void)
@@ -119,7 +124,7 @@ void test6(void)
 	assert(strcmp(uri->query, "") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test7(void)
@@ -138,7 +143,7 @@ void test7(void)
 	assert(strcmp(uri->query, "") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test8(void)
@@ -158,7 +163,7 @@ void test8(void)
 	assert(strcmp(uri->query, "") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test9(void)
@@ -177,7 +182,7 @@ void test9(void)
 	assert(strcmp(uri->query, "fred") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test10(void)
@@ -196,7 +201,7 @@ void test10(void)
 	assert(strcmp(uri->query, "") == 0);
 	assert(strcmp(uri->fragment, "") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test11(void)
@@ -213,7 +218,7 @@ void test11(void)
 	       NULL);
 	assert(sc_uri_create("ldap://[2001:db8::7") == NULL);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test12(void)
@@ -232,7 +237,7 @@ void test12(void)
 	assert(strcmp(uri->query, "x") == 0);
 	assert(strcmp(uri->fragment, "3") == 0);
 
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 }
 
 void test13(void)
@@ -321,13 +326,13 @@ void fail_test()
 
 	uri = sc_uri_create("tcp://127.0.0.1");
 	assert(uri != NULL);
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 
 	uri = sc_uri_create("tcp:/127.0.0.1");
 	assert(uri != NULL);
 	assert(strcmp(uri->scheme, "tcp") == 0);
 	assert(strcmp(uri->path, "/127.0.0.1") == 0);
-	sc_uri_destroy(uri);
+	sc_uri_destroy(&uri);
 
 	fail_snprintf = -1;
 	assert(sc_uri_create("tcp://127.0.0.1") == NULL);

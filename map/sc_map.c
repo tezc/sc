@@ -131,7 +131,7 @@
 		m->used = false;                                               \
 		m->cap = cap;                                                  \
 		m->load_fac = f;                                               \
-		m->remap = (uint32_t)(m->cap * ((double) m->load_fac / 100));  \
+		m->remap = (uint32_t) (m->cap * ((double) m->load_fac / 100)); \
                                                                                \
 		return true;                                                   \
 	}                                                                      \
@@ -140,6 +140,7 @@
 	{                                                                      \
 		if (m->mem != sc_map_empty_##name.mem) {                       \
 			sc_map_free(&m->mem[-1]);                              \
+			*m = sc_map_empty_##name;                              \
 		}                                                              \
 	}                                                                      \
                                                                                \
@@ -199,7 +200,7 @@
                                                                                \
 		m->mem = new;                                                  \
 		m->cap = cap;                                                  \
-		m->remap = (uint32_t)(m->cap * ((double) m->load_fac / 100));  \
+		m->remap = (uint32_t) (m->cap * ((double) m->load_fac / 100)); \
                                                                                \
 		return true;                                                   \
 	}                                                                      \
@@ -330,7 +331,7 @@ static uint32_t sc_map_hash_32(uint32_t a)
 
 static uint32_t sc_map_hash_64(uint64_t a)
 {
-	return ((uint32_t) a) ^ (uint32_t)(a >> 32u);
+	return ((uint32_t) a) ^ (uint32_t) (a >> 32u);
 }
 
 // clang-format off

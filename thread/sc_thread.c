@@ -78,12 +78,12 @@ int sc_thread_start(struct sc_thread *t, void *(*fn)(void *), void *arg)
 int sc_thread_join(struct sc_thread *t, void **ret)
 {
 	int rc = 0;
+	void* val = NULL;
 	DWORD rv;
 	BOOL brc;
 
 	if (t->id == 0) {
-		strncpy(t->err, "Already stopped.", sizeof(t->err));
-		return -1;
+		goto out;
 	}
 
 	rv = WaitForSingleObject(t->id, INFINITE);
@@ -98,7 +98,10 @@ int sc_thread_join(struct sc_thread *t, void **ret)
 		rc = -1;
 	}
 
+	val = t->ret;
 	t->id = 0;
+
+out:
 	if (ret != NULL) {
 		*ret = t->ret;
 	}
@@ -134,20 +137,17 @@ int sc_thread_start(struct sc_thread *t, void *(*fn)(void *), void *arg)
 
 int sc_thread_join(struct sc_thread *t, void **ret)
 {
-	int rc;
-	void *val;
+	int rc = 0;
+	void *val = NULL;
 
 	if (t->id == 0) {
-		return -1;
+		goto out;
 	}
 
 	rc = pthread_join(t->id, &val);
-	if (rc != 0) {
-		strncpy(t->err, strerror(rc), sizeof(t->err) - 1);
-	}
-
 	t->id = 0;
 
+out:
 	if (ret != NULL) {
 		*ret = val;
 	}

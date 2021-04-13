@@ -135,13 +135,14 @@ char *sc_str_create_fmt(const char *fmt, ...)
 	return str;
 }
 
-void sc_str_destroy(char *str)
+void sc_str_destroy(char **str)
 {
-	if (str == NULL) {
+	if (str == NULL || *str == NULL) {
 		return;
 	}
 
-	sc_str_free(sc_str_meta(str));
+	sc_str_free(sc_str_meta(*str));
+	*str = NULL;
 }
 
 int64_t sc_str_len(const char *str)
@@ -174,7 +175,7 @@ bool sc_str_set(char **str, const char *param)
 		return false;
 	}
 
-	sc_str_destroy(*str);
+	sc_str_destroy(str);
 	*str = c;
 
 	return true;
@@ -190,7 +191,7 @@ bool sc_str_set_fmt(char **str, const char *fmt, ...)
 	va_end(args);
 
 	if (ret != NULL) {
-		sc_str_destroy(*str);
+		sc_str_destroy(str);
 		*str = ret;
 	}
 
@@ -310,7 +311,7 @@ bool sc_str_trim(char **str, const char *list)
 			return false;
 		}
 
-		sc_str_destroy(*str);
+		sc_str_destroy(str);
 		*str = head;
 	}
 
@@ -336,7 +337,7 @@ bool sc_str_substring(char **str, uint32_t start, uint32_t end)
 		return false;
 	}
 
-	sc_str_destroy(*str);
+	sc_str_destroy(str);
 	*str = c;
 
 	return true;
@@ -416,7 +417,7 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 
 	memcpy(tmp, orig, orig_end - orig + 1);
 
-	sc_str_destroy(*str);
+	sc_str_destroy(str);
 	*str = dest->buf;
 
 	return true;

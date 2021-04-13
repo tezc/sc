@@ -10,6 +10,24 @@ void test1()
 	struct sc_buf buf, buf2;
 
 	sc_buf_init(&buf, 100);
+	assert(buf.mem != NULL);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf2, 0);
+	assert(buf.mem == buf2.mem);
+	assert(buf.limit == buf2.limit);
+	assert(buf.wpos == buf2.wpos);
+	assert(buf.rpos == buf2.rpos);
+	assert(buf.ref == buf2.ref);
+	assert(buf.cap == buf2.cap);
+	assert(buf.err == buf2.err);
+	sc_buf_term(&buf2);
+
+	sc_buf_put_64(&buf, 100);
+	assert(sc_buf_get_64(&buf) == 100);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf, 100);
 	sc_buf_set_rpos(&buf, 1);
 	assert(sc_buf_valid(&buf) == false);
 	sc_buf_clear(&buf);

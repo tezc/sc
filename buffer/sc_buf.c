@@ -69,6 +69,8 @@ void sc_buf_term(struct sc_buf *b)
 	if (!b->ref) {
 		sc_buf_free(b->mem);
 	}
+
+	sc_buf_init(b, 0);
 }
 
 void sc_buf_limit(struct sc_buf *b, uint32_t limit)

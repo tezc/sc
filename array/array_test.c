@@ -46,6 +46,11 @@ static void test1(void)
 {
 	int *arr, total = 0;
 
+	sc_array_create(arr, 10);
+	assert(arr != NULL);
+	sc_array_destroy(arr);
+	assert(arr == NULL);
+
 	sc_array_create(arr, 5);
 	sc_array_add(arr, 3);
 	sc_array_add(arr, 4);

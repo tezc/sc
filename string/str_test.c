@@ -62,6 +62,13 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 
 void test1()
 {
+	char* m = sc_str_create(NULL);
+	sc_str_destroy(&m);
+	sc_str_append(&m, "test");
+	sc_str_append_fmt(&m, "%d", 3);
+	assert(strcmp(m, "test3") == 0);
+	sc_str_destroy(&m);
+
 	assert(sc_str_len(NULL) == -1);
 	sc_str_destroy(NULL);
 	assert(sc_str_dup(NULL) == NULL);
@@ -79,8 +86,8 @@ void test1()
 	assert(strcmp(s1, "test3") == 0);
 	fail_malloc = false;
 
-	sc_str_destroy(s1);
-	sc_str_destroy(s2);
+	sc_str_destroy(&s1);
+	sc_str_destroy(&s2);
 
 	fail_malloc = true;
 	assert(sc_str_create("test") == NULL);
@@ -96,8 +103,8 @@ void test1()
 	assert(strcmp(s1, "5test5") == 0);
 	s2 = sc_str_dup(s1);
 	assert(sc_str_cmp(s1, s2) == true);
-	sc_str_destroy(s1);
-	sc_str_destroy(s2);
+	sc_str_destroy(&s1);
+	sc_str_destroy(&s2);
 
 	fail_malloc = true;
 	s1 = sc_str_create_fmt("%dtest%d", 5, 5);
@@ -152,7 +159,7 @@ void test1()
 	assert(strcmp(s1, "test") == 0);
 	fail_vsnprintf_at = -1;
 	free(s2);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	fail_vsnprintf = true;
 	assert(!sc_str_set_fmt(&s1, "test%d", 3));
@@ -201,7 +208,7 @@ void test2()
 	fail_strlen = 2;
 	assert(sc_str_replace(&c, "*", "2") == false);
 	fail_strlen = INT32_MAX;
-	sc_str_destroy(c);
+	sc_str_destroy(&c);
 
 	c = sc_str_create("n1n1");
 	assert(sc_str_substring(&c, -1, -3) == false);
@@ -218,7 +225,7 @@ void test2()
 	assert(sc_str_append(&c, "12") == false);
 	fail_realloc = false;
 
-	sc_str_destroy(c);
+	sc_str_destroy(&c);
 
 	fail_vsnprintf_at = 2;
 	fail_vnsprintf_value = -1;
@@ -243,7 +250,7 @@ void test2()
 		assert(tmp[i] == x1[i]);
 	}
 
-	sc_str_destroy(x1);
+	sc_str_destroy(&x1);
 	free(tmp);
 
 	x1 = NULL;
@@ -255,7 +262,7 @@ void test2()
 		assert(x1[i] == 'x');
 	}
 	assert(sc_str_len(x1) == 4000);
-	sc_str_destroy(x1);
+	sc_str_destroy(&x1);
 }
 
 #endif
@@ -308,7 +315,7 @@ void test3()
 	while ((token = sc_str_token_begin(str, &save, "-")) != NULL) {
 	}
 	sc_str_token_end(str, &save);
-	sc_str_destroy(str);
+	sc_str_destroy(&str);
 
 	str = sc_str_create(NULL);
 	save = NULL;
@@ -316,21 +323,12 @@ void test3()
 		assert(strcmp(token, "token") == 0);
 	}
 	sc_str_token_end(str, &save);
-	sc_str_destroy(str);
+	sc_str_destroy(&str);
 
 	str = sc_str_create("x,x");
 	save = NULL;
 	sc_str_token_end(str, &save);
-	sc_str_destroy(str);
-
-	str = sc_str_create("x,x");
-	save = NULL;
-	while ((token = sc_str_token_begin(str, &save, ",")) != NULL) {
-		assert(strcmp(token, "x") == 0);
-		break;
-	}
-	sc_str_token_end(str, &save);
-	sc_str_destroy(str);
+	sc_str_destroy(&str);
 
 	str = sc_str_create("x,x");
 	save = NULL;
@@ -339,8 +337,17 @@ void test3()
 		break;
 	}
 	sc_str_token_end(str, &save);
+	sc_str_destroy(&str);
+
+	str = sc_str_create("x,x");
+	save = NULL;
+	while ((token = sc_str_token_begin(str, &save, ",")) != NULL) {
+		assert(strcmp(token, "x") == 0);
+		break;
+	}
 	sc_str_token_end(str, &save);
-	sc_str_destroy(str);
+	sc_str_token_end(str, &save);
+	sc_str_destroy(&str);
 }
 
 void test4()
@@ -405,7 +412,7 @@ void test4()
 	sc_str_token_end(str, &save);
 	assert(strcmp(str, "tk1;tk2-tk3 tk4  tk5*tk6") == 0);
 
-	sc_str_destroy(str);
+	sc_str_destroy(&str);
 }
 
 void test5()
@@ -419,7 +426,7 @@ void test5()
 	assert(strcmp(s2, "test") == 0);
 	assert(sc_str_len(s2) == 4);
 	assert(strcmp(s1, s2) == 0);
-	sc_str_destroy(s2);
+	sc_str_destroy(&s2);
 
 	sc_str_set(&s1, "test2");
 	assert(strcmp(s1, "test2") == 0);
@@ -452,7 +459,7 @@ void test5()
 	assert(strcmp(s1, "longeRlongeR") == 0);
 	assert(sc_str_replace(&s1, "longeR", ""));
 	assert(strcmp(s1, "") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create("*test * test*");
 	sc_str_trim(&s1, "*");
@@ -465,29 +472,29 @@ void test5()
 	sc_str_set(&s1, "testtx");
 	sc_str_trim(&s1, "a");
 
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create("   elem1,elem2, elem3   ");
 	sc_str_trim(&s1, " ");
 	assert(strcmp(s1, "elem1,elem2, elem3") == 0);
 	sc_str_replace(&s1, " ", "");
 	assert(strcmp(s1, "elem1,elem2,elem3") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create("elem1,elem2,elem3");
 	sc_str_replace(&s1, "elem", "item");
 	assert(strcmp(s1, "item1,item2,item3") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create(NULL);
 	assert(sc_str_append_fmt(&s1, "%s", "string") == true);
 	assert(strcmp(s1, "string") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create(NULL);
 	sc_str_append(&s1, "string");
 	assert(strcmp(s1, "string") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create(NULL);
 	assert(sc_str_trim(&s1, "x") == true);
@@ -499,17 +506,17 @@ void test5()
 	assert(sc_str_dup(s1) == NULL);
 	assert(sc_str_set(&s1, "string") == true);
 	assert(strcmp(s1, "string") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create(NULL);
 	assert(sc_str_set_fmt(&s1, "%s", "string") == true);
 	assert(strcmp(s1, "string") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create(NULL);
 	assert(sc_str_set(&s1, "string") == true);
 	assert(strcmp(s1, "string") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 }
 
 void test6()
@@ -521,47 +528,47 @@ void test6()
 
 	s1 = sc_str_create(NULL);
 	assert(s1 == NULL);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create_len(NULL, 100);
 	assert(s1 == NULL);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = NULL;
 	b = sc_str_set(&s1, "test");
 	assert(b);
 	assert(strcmp(s1, "test") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = NULL;
 	b = sc_str_set_fmt(&s1, "test");
 	assert(b);
 	assert(strcmp(s1, "test") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = NULL;
 	b = sc_str_append(&s1, "test");
 	assert(b);
 	assert(strcmp(s1, "test") == 0);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = NULL;
 	b = sc_str_trim(&s1, "*");
 	assert(b);
 	assert(s1 == NULL);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = NULL;
 	b = sc_str_substring(&s1, 0, 0);
 	assert(!b);
 	assert(s1 == NULL);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = NULL;
 	b = sc_str_replace(&s1, "s", "a");
 	assert(b);
 	assert(s1 == NULL);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = NULL;
 	while ((token = sc_str_token_begin(s1, &save, ";")) != NULL) {
@@ -570,15 +577,15 @@ void test6()
 	}
 
 	sc_str_token_end(s1, &save);
-	sc_str_destroy(s1);
+	sc_str_destroy(&s1);
 
 	s1 = sc_str_create("de1");
 	s2 = sc_str_create("de2");
 	assert(!sc_str_cmp(s1, s2));
 	sc_str_set(&s1, "dee2");
 	assert(!sc_str_cmp(s1, s2));
-	sc_str_destroy(s1);
-	sc_str_destroy(s2);
+	sc_str_destroy(&s1);
+	sc_str_destroy(&s2);
 }
 
 int main()
