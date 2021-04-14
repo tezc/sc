@@ -46,12 +46,12 @@ int sc_cond_init(struct sc_cond *c)
 
 int sc_cond_term(struct sc_cond *c)
 {
-	if (!c.init) {
+	if (!c->init) {
 		return 0;
 	}
 
 	DeleteCriticalSection(&c->mtx);
-	c.init = false;
+	c->init = false;
 
 	return 0;
 }
