@@ -8,6 +8,7 @@
 ### Features
 
 ### Comment example
+
 ```ini
 #Comment
 ;Another comment
@@ -17,8 +18,8 @@
 hostname = github.com #Line comments start with space. Either " ;" or " #"  
 ```
 
-
 ### No section
+
 Possible to use without sections
 
 ```ini
@@ -26,6 +27,7 @@ key1 = value1  ;Comment x
 key2 = value2  ;Comment y
 key3 = value3  #Comment z
 ```
+
 ```
 - Item 1 : ""(Section), "key1"(Key), "value1"(Value)
 - Item 2 : ""(Section), "key2"(Key), "value2"(Value)
@@ -33,7 +35,9 @@ key3 = value3  #Comment z
 ```
 
 ### Multi-value
-Values without keys in the next line will be reported as if belongs to previous   
+
+Values without keys in the next line will be reported as if belongs to
+previous   
 key. Those values should be indented at least with a single space character.
 
 ```ini
@@ -46,6 +50,7 @@ hostname = github.com
  github.io
  github.org 
 ```
+
 ```
 - Item 1 : "Network"(Section), "hostname"(Key), "github.com"(Value)
 - Item 2 : "Network"(Section), "hostname"(Key), "github.io"(Value)
@@ -53,7 +58,6 @@ hostname = github.com
 ```
 
 ### Usage
-
 
 ```c
 #include "sc_ini.h"

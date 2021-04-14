@@ -34,9 +34,9 @@
 #ifdef SC_HAVE_CONFIG_H
 #include "config.h"
 #else
-#define sc_str_malloc  malloc
+#define sc_str_malloc malloc
 #define sc_str_realloc realloc
-#define sc_str_free    free
+#define sc_str_free free
 #endif
 
 /**

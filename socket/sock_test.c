@@ -1409,8 +1409,6 @@ void sock_fail_test3()
 	assert(sc_sock_notify_systemd("test") == 0);
 	success_sendmsg = 0;
 	unsetenv("NOTIFY_SOCKET");
-
-
 }
 
 #else

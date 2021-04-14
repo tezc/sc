@@ -37,7 +37,7 @@
 #include "config.h"
 #else
 #define sc_map_calloc calloc
-#define sc_map_free   free
+#define sc_map_free free
 #endif
 
 #define sc_map_dec_strkey(name, K, V)                                          \

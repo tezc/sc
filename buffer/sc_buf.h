@@ -36,15 +36,15 @@
 #ifdef SC_HAVE_CONFIG_H
 #include "config.h"
 #else
-#define sc_buf_calloc  calloc
+#define sc_buf_calloc calloc
 #define sc_buf_realloc realloc
-#define sc_buf_free    free
+#define sc_buf_free free
 #endif
 
 #define SC_BUF_CORRUPT 1u
-#define SC_BUF_OOM     3u
+#define SC_BUF_OOM 3u
 
-#define SC_BUF_REF  8
+#define SC_BUF_REF 8
 #define SC_BUF_DATA 16
 #define SC_BUF_READ (SC_BUF_REF | SC_BUF_DATA)
 

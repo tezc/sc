@@ -62,7 +62,7 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 
 void test1()
 {
-	char* m = sc_str_create(NULL);
+	char *m = sc_str_create(NULL);
 	sc_str_destroy(&m);
 	sc_str_append(&m, "test");
 	sc_str_append_fmt(&m, "%d", 3);

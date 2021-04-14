@@ -305,7 +305,7 @@ bool sc_str_trim(char **str, const char *list)
 	}
 
 	if (head != *str || end != (*str) + len) {
-		diff = (uint32_t)(end - head);
+		diff = (uint32_t) (end - head);
 		head = sc_str_create_len(head, diff);
 		if (head == NULL) {
 			return false;

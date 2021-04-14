@@ -7,7 +7,7 @@
   copy/compare function pointers, memcpy calls etc..
 
 - Comes with predefined key value pairs :
-  
+
 ```
                   name  key type      value type
   sc_map_of_scalar(32,  uint32_t,     uint32_t)
@@ -19,14 +19,14 @@
   sc_map_of_strkey(s64, const char *, uint64_t)
 ```
 
-- This is a very fast hashmap. 
-  - Single array allocation for all data. 
-  - Linear probing over an array.
-  - Deletion without tombstones.
-  - Macros generate functions in sc_map.c. So, inlining is upto the compiler.
-
+- This is a very fast hashmap.
+    - Single array allocation for all data.
+    - Linear probing over an array.
+    - Deletion without tombstones.
+    - Macros generate functions in sc_map.c. So, inlining is upto the compiler.
 
 ### Note
+
 Key and value types can be integers(32bit/64bit) or pointers only.  
 Other types can be added but must be scalar types, not structs. This is a   
 design decision, I don't remember when was the last time I wanted to store  
@@ -34,9 +34,7 @@ struct as a key or value. I use hashmap for fast look-ups and small key-value
 pairs with linear probing play well with cache lines and hardware prefetcher.  
 If you want to use structs anyway, you need to change the code a little bit.
 
-
 ### Usage
-
 
 ```c
 

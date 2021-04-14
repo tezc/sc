@@ -59,14 +59,14 @@ uint64_t time_ms()
 	}
 	LARGE_INTEGER count;
 	QueryPerformanceCounter(&count);
-	return (int64_t)(count.QuadPart * 1000) / frequency;
+	return (int64_t) (count.QuadPart * 1000) / frequency;
 #else
 	struct timespec ts;
 
 	clock_gettime(CLOCK_MONOTONIC, &ts);
 
-	return (int64_t)((int64_t) ts.tv_sec * 1000 +
-			 (int64_t) ts.tv_nsec / 1000000);
+	return (int64_t) ((int64_t) ts.tv_sec * 1000 +
+			  (int64_t) ts.tv_nsec / 1000000);
 #endif
 }
 

@@ -33,8 +33,8 @@ static char *str_random(size_t size)
 	char *dest = malloc(size + 1);
 
 	for (size_t i = 0; i < size; ++i) {
-		index = (uint32_t)((double) rand() / RAND_MAX *
-				   (sizeof(ch) - 1));
+		index = (uint32_t) ((double) rand() / RAND_MAX *
+				    (sizeof(ch) - 1));
 		dest[i] = ch[index];
 	}
 
@@ -527,7 +527,6 @@ void test1()
 	sc_map_get_str(&map, "100", &value);
 	assert(strcmp(value, "200") == 0);
 	sc_map_term_str(&map);
-
 
 	assert(!sc_map_init_str(&map, 0, -1));
 	assert(!sc_map_init_str(&map, 0, 24));

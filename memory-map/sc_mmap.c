@@ -61,7 +61,11 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 	int fd, rc, saved_err = 0;
 	void *p = NULL;
 
-	*m = (struct sc_mmap){0};
+	*m = (struct sc_mmap){
+		.ptr = NULL,
+		.fd = -1,
+		.len = 0,
+	};
 
 	fd = _open(name, file_flags, mode);
 	if (fd == -1) {
@@ -179,11 +183,9 @@ int sc_mmap_term(struct sc_mmap *m)
 		rc = -1;
 	}
 
-	*m = (struct sc_mmap){
-		.ptr = NULL,
-		.fd = -1,
-		.len = 0,
-	};
+	m->fd = -1;
+	m->ptr = NULL;
+	m->len = 0;
 
 	return rc;
 }
@@ -201,7 +203,11 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 	void *p = NULL;
 	struct stat st;
 
-	*m = (struct sc_mmap){0};
+	*m = (struct sc_mmap){
+		.ptr = NULL,
+		.fd = -1,
+		.len = 0,
+	};
 
 	fd = open(name, file_flags, mode);
 	if (fd == -1) {
@@ -283,11 +289,9 @@ int sc_mmap_term(struct sc_mmap *m)
 		strncpy(m->err, strerror(errno), sizeof(m->err) - 1);
 	}
 
-	*m = (struct sc_mmap){
-		.ptr = NULL,
-		.fd = -1,
-		.len = 0,
-	};
+	m->fd = -1;
+	m->ptr = NULL;
+	m->len = 0;
 
 	return rc;
 }

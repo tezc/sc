@@ -6,7 +6,6 @@
 
 ### Usage
 
-
 ```c
 
 #include "sc_heap.h"

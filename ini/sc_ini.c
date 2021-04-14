@@ -152,7 +152,7 @@ static char *string_line(void *p, char *buf, size_t size)
 		t = str + strlen(str);
 	}
 
-	diff = (size_t)(t - str);
+	diff = (size_t) (t - str);
 	len = diff < size ? diff : size;
 	memcpy(buf, str, len);
 	buf[len] = '\0';

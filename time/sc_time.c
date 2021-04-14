@@ -56,7 +56,7 @@ uint64_t sc_time_ms()
 	assert(rc == 0);
 	(void) rc;
 
-	return ts.tv_sec * 1000 + (uint64_t)(ts.tv_nsec / 10e6);
+	return ts.tv_sec * 1000 + (uint64_t) (ts.tv_nsec / 10e6);
 #endif
 }
 
@@ -96,7 +96,7 @@ uint64_t sc_time_mono_ms()
 	}
 	LARGE_INTEGER count;
 	QueryPerformanceCounter(&count);
-	return (int64_t)(count.QuadPart * 1000) / frequency;
+	return (int64_t) (count.QuadPart * 1000) / frequency;
 #else
 	int rc;
 	struct timespec ts;
@@ -105,8 +105,8 @@ uint64_t sc_time_mono_ms()
 	assert(rc == 0);
 	(void) rc;
 
-	return (uint64_t)((uint64_t) ts.tv_sec * 1000 +
-			  (uint64_t) ts.tv_nsec / 1000000);
+	return (uint64_t) ((uint64_t) ts.tv_sec * 1000 +
+			   (uint64_t) ts.tv_nsec / 1000000);
 #endif
 }
 
@@ -122,7 +122,7 @@ uint64_t sc_time_mono_ns()
 	}
 	LARGE_INTEGER count;
 	QueryPerformanceCounter(&count);
-	return (uint64_t)(count.QuadPart * 1000000000) / frequency;
+	return (uint64_t) (count.QuadPart * 1000000000) / frequency;
 #else
 	int rc;
 	struct timespec ts;

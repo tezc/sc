@@ -36,7 +36,7 @@
 #include "config.h"
 #else
 #define sc_timer_malloc malloc
-#define sc_timer_free	free
+#define sc_timer_free free
 #endif
 
 #define SC_TIMER_INVALID UINT64_MAX

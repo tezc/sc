@@ -159,7 +159,7 @@ static inline uint32_t crc32_shift(uint32_t zeros[][256], uint32_t crc)
    must both be powers of two.  The associated string constants must be
    set
    accordingly, for use in constructing the assembler instructions. */
-#define CRC32_LONG  2048
+#define CRC32_LONG 2048
 #define CRC32_SHORT 256
 
 static uint32_t crc32c_long[4][256];

@@ -151,7 +151,7 @@ static uint64_t sy_time_nano(void)
 		abort();
 	}
 
-	return ((uint64_t)(ts.tv_nsec + (ts.tv_sec * 1000 * 1000 * 1000)));
+	return ((uint64_t) (ts.tv_nsec + (ts.tv_sec * 1000 * 1000 * 1000)));
 }
 
 void sc_perf_start(void)

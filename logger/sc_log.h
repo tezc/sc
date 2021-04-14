@@ -118,8 +118,8 @@ void sc_log_set_callback(void *arg,
 
 // e.g : sc_log_error("Errno : %d, reason : %s", errno, strerror(errno));
 #define sc_log_debug(...) (sc_log_log(SC_LOG_DEBUG, sc_log_ap(__VA_ARGS__, "")))
-#define sc_log_info(...)  (sc_log_log(SC_LOG_INFO, sc_log_ap(__VA_ARGS__, "")))
-#define sc_log_warn(...)  (sc_log_log(SC_LOG_WARN, sc_log_ap(__VA_ARGS__, "")))
+#define sc_log_info(...) (sc_log_log(SC_LOG_INFO, sc_log_ap(__VA_ARGS__, "")))
+#define sc_log_warn(...) (sc_log_log(SC_LOG_WARN, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_error(...) (sc_log_log(SC_LOG_ERROR, sc_log_ap(__VA_ARGS__, "")))
 
 #endif

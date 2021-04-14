@@ -5,9 +5,7 @@
 - Type generic array/vector.
 - Index access is possible (e.g float* arr; 'printf("%f", arr[i]')).
 
-
 ### Usage
-
 
 ```c
 #include "sc_array.h"

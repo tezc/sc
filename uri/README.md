@@ -6,9 +6,7 @@
 - Internally, it does a single allocation but each part is represented as null  
   ended string, so it plays nicely with C string functions.
 
-
 ### Usage
-
 
 ```c
 #include "sc_uri.h"

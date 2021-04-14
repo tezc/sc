@@ -7,11 +7,11 @@
   Otherwise, use <i>perf</i> itself.
 - Linux only.
 - All predefined hardware and software counters are generated in the header  
-  file, you can uncomment counters as you wish. 
+  file, you can uncomment counters as you wish.
 - If some counters or combination of counters don't work or don't work as  
   expected, don't be surprised and check out performance counter register   
   allocation algorithm of Linux. CPUs have limited registers for performance  
-  counters and some counters can use specific registers only. 
+  counters and some counters can use specific registers only.
 - Golang version : https://github.com/tezc/goperf
 
 ### Usage
@@ -32,7 +32,9 @@ int main(int argc, char *argv[])
 }
 
 ```
+
 ##### Output will be like
+
 ```
 | Event                     | Value              | Measurement time  
 ---------------------------------------------------------------
@@ -51,6 +53,7 @@ int main(int argc, char *argv[])
 ```
 
 ##### Pause example
+
 ```c
 
 #include "sc_perf.h"

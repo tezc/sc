@@ -33,15 +33,15 @@
 #ifdef SC_HAVE_CONFIG_H
 #include "config.h"
 #else
-#define sc_sock_malloc	malloc
+#define sc_sock_malloc malloc
 #define sc_sock_realloc realloc
-#define sc_sock_free	free
+#define sc_sock_free free
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <Ws2tcpip.h>
 #include <windows.h>
 #include <winsock2.h>
+#include <Ws2tcpip.h>
 #pragma comment(lib, "ws2_32.lib")
 
 typedef SOCKET sc_sock_int;

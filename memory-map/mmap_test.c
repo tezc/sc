@@ -5,8 +5,8 @@
 #include "sc_mmap.h"
 
 #include <assert.h>
-#include <stdio.h>
 #include <fcntl.h>
+#include <stdio.h>
 
 void test1()
 {
@@ -117,10 +117,10 @@ void *__wrap_mmap(void *addr, size_t length, int prot, int flags, int fd,
 	return __real_mmap(addr, length, prot, flags, fd, offset);
 }
 
-extern void *__real_mmap64(void *addr, size_t length, int prot, int flags, int fd,
-			 off_t offset);
+extern void *__real_mmap64(void *addr, size_t length, int prot, int flags,
+			   int fd, off_t offset);
 void *__wrap_mmap64(void *addr, size_t length, int prot, int flags, int fd,
-		  off_t offset)
+		    off_t offset)
 {
 	if (fail_mmap) {
 		return MAP_FAILED;

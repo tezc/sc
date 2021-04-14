@@ -34,9 +34,9 @@
 #ifdef SC_HAVE_CONFIG_H
 #include "config.h"
 #else
-#define sc_heap_malloc	malloc
+#define sc_heap_malloc malloc
 #define sc_heap_realloc realloc
-#define sc_heap_free	free
+#define sc_heap_free free
 #endif
 
 struct sc_heap_data {

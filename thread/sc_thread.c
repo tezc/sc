@@ -78,7 +78,7 @@ int sc_thread_start(struct sc_thread *t, void *(*fn)(void *), void *arg)
 int sc_thread_join(struct sc_thread *t, void **ret)
 {
 	int rc = 0;
-	void* val = NULL;
+	void *val = NULL;
 	DWORD rv;
 	BOOL brc;
 
@@ -145,6 +145,10 @@ int sc_thread_join(struct sc_thread *t, void **ret)
 	}
 
 	rc = pthread_join(t->id, &val);
+	if (rc != 0) {
+		strncpy(t->err, strerror(rc), sizeof(t->err) - 1);
+	}
+
 	t->id = 0;
 
 out:

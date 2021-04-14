@@ -1149,7 +1149,10 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 		sc_sock_poll_set_err(p, strerror(errno));
 	}
 
-	*p = (struct sc_sock_poll){0};
+	p->events = NULL;
+	p->fds = SC_INVALID;
+	p->cap = 0;
+	p->count = 0;
 
 	return rc;
 }
@@ -1377,7 +1380,10 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 		sc_sock_poll_set_err(p, strerror(errno));
 	}
 
-	*p = (struct sc_sock_poll){0};
+	p->events = NULL;
+	p->fds = SC_INVALID;
+	p->cap = 0;
+	p->count = 0;
 
 	return rc;
 }
@@ -1535,7 +1541,10 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 	sc_sock_free(p->events);
 	sc_sock_free(p->data);
 
-	*p = (struct sc_sock_poll){0};
+	p->events = NULL;
+	p->fds = SC_INVALID;
+	p->cap = 0;
+	p->count = 0;
 
 	return 0;
 }

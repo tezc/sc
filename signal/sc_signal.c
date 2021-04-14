@@ -124,7 +124,7 @@ int sc_signal_vsnprintf(char *buf, size_t sz, const char *fmt, va_list va)
 
 				} else if (*pos == 'd') {
 					i = get_int(va, pos - orig);
-					u = (uint64_t)(i < 0 ? -i : i);
+					u = (uint64_t) (i < 0 ? -i : i);
 
 					do {
 						c = (char) ('0' + (u % 10));
