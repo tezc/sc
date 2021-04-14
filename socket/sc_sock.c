@@ -974,6 +974,9 @@ int sc_sock_pipe_term(struct sc_sock_pipe *p)
 				     WSAGetLastError());
 	}
 
+	p->fds[0] = SC_INVALID;
+	p->fds[1] = SC_INVALID;
+
 	return rc;
 }
 
@@ -1523,8 +1526,8 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 
 	sc_sock_free(p->events);
 	sc_sock_free(p->data);
-	p->events = NULL;
-	p->data = NULL;
+
+	*p = (struct sc_sock_poll){0};
 
 	return 0;
 }
