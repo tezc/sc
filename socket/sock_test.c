@@ -1296,6 +1296,13 @@ void sock_fail_test2()
 void sock_fail_test3()
 {
 	struct sc_sock client;
+	struct sc_sock_poll poll;
+
+	sc_sock_poll_init(&poll);
+	fail_close = true;
+	assert(sc_sock_poll_term(&poll) == -1);
+	fail_close = false;
+	assert(sc_sock_poll_term(&poll) == 0);
 
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_send = 1;
@@ -1402,6 +1409,8 @@ void sock_fail_test3()
 	assert(sc_sock_notify_systemd("test") == 0);
 	success_sendmsg = 0;
 	unsetenv("NOTIFY_SOCKET");
+
+
 }
 
 #else
