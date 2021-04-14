@@ -1143,7 +1143,11 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 	}
 
 	sc_sock_free(p->events);
+
 	rc = close(p->fds);
+	if (rc != 0) {
+		sc_sock_poll_set_err(p, strerror(errno));
+	}
 
 	*p = (struct sc_sock_poll){0};
 
@@ -1367,7 +1371,11 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 	}
 
 	sc_sock_free(p->events);
+
 	rc = close(p->fds);
+	if (rc != 0) {
+		sc_sock_poll_set_err(p, strerror(errno));
+	}
 
 	*p = (struct sc_sock_poll){0};
 
