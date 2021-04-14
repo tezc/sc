@@ -36,6 +36,7 @@
 #endif
 
 struct sc_cond {
+	bool init;
 	bool done;
 	void *data;
 

@@ -36,7 +36,7 @@
 
 int sc_cond_init(struct sc_cond *c)
 {
-	*c = (struct sc_cond){0};
+	*c = (struct sc_cond){.init = true};
 
 	InitializeCriticalSection(&c->mtx);
 	InitializeConditionVariable(&c->cond);
@@ -46,7 +46,12 @@ int sc_cond_init(struct sc_cond *c)
 
 int sc_cond_term(struct sc_cond *c)
 {
+	if (!c.init) {
+		return 0;
+	}
+
 	DeleteCriticalSection(&c->mtx);
+	c.init = false;
 
 	return 0;
 }
@@ -117,6 +122,7 @@ int sc_cond_init(struct sc_cond *c)
 	}
 
 	pthread_mutexattr_destroy(&attr);
+	c->init = true;
 
 	return 0;
 
@@ -135,6 +141,10 @@ int sc_cond_term(struct sc_cond *c)
 
 	errno = 0;
 
+	if (!c->init) {
+		return 0;
+	}
+
 	rc = pthread_mutex_destroy(&c->mtx);
 	if (rc != 0) {
 		errno = rc;
@@ -144,6 +154,8 @@ int sc_cond_term(struct sc_cond *c)
 	if (rc != 0 && errno == 0) {
 		errno = rc;
 	}
+
+	c->init = false;
 
 	return errno;
 }

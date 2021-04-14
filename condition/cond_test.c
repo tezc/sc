@@ -299,6 +299,7 @@ void test1()
 	assert(sc_thread_term(&thread1) == 0);
 	assert(sc_thread_term(&thread2) == 0);
 	assert(sc_cond_term(&cond) == 0);
+	assert(sc_cond_term(&cond) == 0);
 
 	assert(sc_cond_init(&cond) == 0);
 	sc_thread_init(&thread1);
@@ -308,6 +309,7 @@ void test1()
 	assert(sc_thread_term(&thread1) == 0);
 	assert(sc_thread_term(&thread2) == 0);
 	assert(sc_cond_term(&cond) == 0);
+	assert(sc_cond_term(&cond) == 0);
 
 	assert(sc_cond_init(&cond) == 0);
 	sc_thread_init(&thread1);
@@ -316,6 +318,7 @@ void test1()
 	assert(sc_thread_start(&thread2, thread2a_fn, &cond) == 0);
 	assert(sc_thread_term(&thread1) == 0);
 	assert(sc_thread_term(&thread2) == 0);
+	assert(sc_cond_term(&cond) == 0);
 	assert(sc_cond_term(&cond) == 0);
 }
 

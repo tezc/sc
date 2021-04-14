@@ -411,8 +411,10 @@ void test_poll_mass(void)
 		assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ,
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
+		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 	}
 	assert(poll.count == 0);
+	assert(sc_sock_poll_term(&poll) == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 
 	assert(sc_sock_poll_init(&poll) == 0);
@@ -427,6 +429,7 @@ void test_poll_mass(void)
 					NULL) == 0);
 		assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_WRITE,
 					NULL) == 0);
+		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 	}
 	assert(poll.count == 0);
@@ -445,8 +448,10 @@ void test_poll_mass(void)
 		assert(sc_sock_poll_del(&poll, &pipe[i].fdt, SC_SOCK_READ,
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
+		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 	}
 	assert(poll.count == 0);
+	assert(sc_sock_poll_term(&poll) == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 
 	assert(sc_sock_poll_init(&poll) == 0);
@@ -841,6 +846,7 @@ void poll_fail_test()
 	assert(sc_sock_poll_init(&poll) == 0);
 	fail_epoll_wait = 1;
 	assert(sc_sock_poll_wait(&poll, 10) == 0);
+	assert(sc_sock_poll_term(&poll) == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 
 	assert(sc_sock_poll_init(&poll) == 0);
