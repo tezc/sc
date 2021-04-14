@@ -1542,7 +1542,6 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 	sc_sock_free(p->data);
 
 	p->events = NULL;
-	p->fds = SC_INVALID;
 	p->cap = 0;
 	p->count = 0;
 
