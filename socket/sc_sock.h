@@ -39,9 +39,10 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
+#include <Ws2tcpip.h>
 #include <windows.h>
 #include <winsock2.h>
-#include <Ws2tcpip.h>
+
 #pragma comment(lib, "ws2_32.lib")
 
 typedef SOCKET sc_sock_int;
