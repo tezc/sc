@@ -74,7 +74,9 @@ void example_int_to_str()
 	sc_map_put_64s(&map, 300, "atlanta");
 
 	value = sc_map_del_64s(&map, 100);
-	printf("Deleted : %s \n", value);
+	if (sc_map_found(&map)) {
+	    printf("Deleted : %s \n", value);
+	}
 
 	sc_map_foreach (&map, key, value) {
 			printf("Key:[%d], Value:[%s] \n", key, value);

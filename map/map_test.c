@@ -37,7 +37,9 @@ void example_int_to_str()
 	sc_map_put_64s(&map, 300, "atlanta");
 
 	value = sc_map_del_64s(&map, 100);
-	printf("Deleted : %s \n", value);
+	if (sc_map_found(&map)) {
+		printf("Deleted : %s \n", value);
+	}
 
 	sc_map_foreach (&map, key, value) {
 			printf("Key:[%d], Value:[%s] \n", key, value);
@@ -683,6 +685,54 @@ void test_s64()
 	assert(sc_map_found(&map));
 	
 	sc_map_term_s64(&map);
+}
+
+void test0()
+{
+	uint64_t val;
+	struct sc_map_64 map;
+
+	sc_map_init_64(&map, 128, 0);
+
+	sc_map_put_64(&map, 100, 100);
+	assert(!sc_map_oom(&map));
+	assert(!sc_map_found(&map));
+
+	val = sc_map_get_64(&map, 100);
+	assert(val == 100);
+	assert(sc_map_found(&map));
+
+	val = sc_map_put_64(&map, 100, 200);
+	assert(sc_map_found(&map));
+	assert(val == 100);
+
+	val = sc_map_get_64(&map, 100);
+	assert(val == 200);
+	assert(sc_map_found(&map));
+
+	val = sc_map_del_64(&map, 100);
+	assert(sc_map_found(&map));
+	assert(val == 200);
+
+	val = sc_map_put_64(&map, 1, 1);
+	assert(!sc_map_found(&map));
+	val = sc_map_del_64(&map, 2);
+	assert(!sc_map_found(&map));
+	val = sc_map_get_64(&map, 1);
+	assert(sc_map_found(&map));
+	assert(val == 1);
+	val = sc_map_put_64(&map, 2, 2);
+	assert(!sc_map_found(&map));
+
+	val = sc_map_del_64(&map, 1);
+	assert(sc_map_found(&map));
+	assert(val == 1);
+
+	val = sc_map_del_64(&map, 2);
+	assert(sc_map_found(&map));
+	assert(val == 2);
+
+	sc_map_term_64(&map);
 }
 
 void test1()
@@ -1473,6 +1523,7 @@ int main()
 	fail_test_str();
 	fail_test_sv();
 	fail_test_s64();
+	test0();
 	test1();
 	test2();
 	test3();
