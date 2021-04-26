@@ -5,10 +5,10 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_library(
-        sc_array SHARED
-        sc_array.c
+add_library(sc_array SHARED
         sc_array.h)
+set_target_properties(sc_array PROPERTIES LINKER_LANGUAGE C)
+
 
 target_include_directories(sc_array PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
@@ -37,7 +37,7 @@ if (SC_BUILD_TEST)
 
     enable_testing()
 
-    add_executable(${PROJECT_NAME}_test array_test.c sc_array.c)
+    add_executable(${PROJECT_NAME}_test array_test.c)
 
     target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_ARRAY_MAX=140000ul)
 

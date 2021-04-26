@@ -4,34 +4,42 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int example()
+void example_str()
 {
-	int *p;
-	int val;
+	const char *it;
+	struct sc_array_str arr;
 
-	sc_array_create(p, 0);
+	sc_array_init(&arr);
 
-	sc_array_add(p, 0);
-	sc_array_add(p, 1);
-	sc_array_add(p, 3);
+	sc_array_add(&arr, "item0");
+	sc_array_add(&arr, "item1");
+	sc_array_add(&arr, "item2");
 
-	printf("\nRemoving first element \n\n");
-	sc_array_del(p, 0);
+	printf("\nDelete first element \n\n");
+	sc_array_del(&arr, 0);
 
-	printf("Capacity %zu \n", sc_array_cap(p));
-	printf("Element count %zu \n", sc_array_size(p));
-
-	for (size_t i = 0; i < sc_array_size(p); i++) {
-		printf("Elem = %d \n", p[i]);
+	sc_array_foreach (&arr, it) {
+		printf("Elem = %s \n", it);
 	}
 
-	sc_array_foreach (p, val) {
-		printf("Elem = %d \n", val);
+	sc_array_term(&arr);
+}
+
+void example_int()
+{
+	struct sc_array_int arr;
+
+	sc_array_init(&arr);
+
+	sc_array_add(&arr, 0);
+	sc_array_add(&arr, 1);
+	sc_array_add(&arr, 2);
+
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		printf("Elem = %d \n", arr.elems[i]);
 	}
 
-	sc_array_destroy(p);
-
-	return 0;
+	sc_array_term(&arr);
 }
 
 static int compare(const void *a, const void *b)
@@ -44,154 +52,164 @@ static int compare(const void *a, const void *b)
 
 static void test1(void)
 {
-	int *arr, total = 0;
 
-	sc_array_create(arr, 10);
-	assert(arr != NULL);
-	sc_array_destroy(arr);
-	assert(sc_array_cap(arr) == 0);
-	assert(sc_array_size(arr) == 0);
-	sc_array_add(arr, 1);
-	sc_array_add(arr, 2);
-	sc_array_add(arr, 3);
-	assert(arr[0] == 1);
-	assert(arr[1] == 2);
-	assert(arr[2] == 3);
-	sc_array_destroy(arr);
+	int total = 0;
+	struct sc_array_int arr;
 
-	sc_array_create(arr, 5);
-	sc_array_add(arr, 3);
-	sc_array_add(arr, 4);
-	sc_array_add(arr, 5);
+	sc_array_init(&arr);
+	sc_array_term(&arr);
+	assert(sc_array_size(&arr) == 0);
+	sc_array_add(&arr, 1);
+	sc_array_add(&arr, 2);
+	sc_array_add(&arr, 3);
+	assert(arr.elems[0] == 1);
+	assert(arr.elems[1] == 2);
+	assert(arr.elems[2] == 3);
+	sc_array_term(&arr);
 
-	assert(sc_array_size(arr) == 3);
+	sc_array_init(&arr);
+	sc_array_add(&arr, 3);
+	sc_array_add(&arr, 4);
+	sc_array_add(&arr, 5);
 
-	sc_array_del(arr, 0);
-	assert(arr[0] == 4);
-	sc_array_del_last(arr);
-	assert(arr[0] == 4);
+	assert(sc_array_size(&arr) == 3);
 
-	sc_array_add(arr, 1);
-	sc_array_add(arr, 3);
-	sc_array_add(arr, 2);
-	sc_array_add(arr, 0);
+	sc_array_del(&arr, 0);
+	assert(arr.elems[0] == 4);
+	sc_array_del_last(&arr);
+	assert(arr.elems[0] == 4);
 
-	assert(sc_array_last(arr) == 0);
+	sc_array_add(&arr, 1);
+	sc_array_add(&arr, 3);
+	sc_array_add(&arr, 2);
+	sc_array_add(&arr, 0);
 
-	sc_array_sort(arr, compare);
+	assert(sc_array_last(&arr) == 0);
 
-	for (size_t i = 0; i < sc_array_size(arr); i++) {
-		total += arr[i];
+	sc_array_sort(&arr, compare);
+
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		total += arr.elems[i];
 	}
 
 	assert(total == 10);
 
-	for (size_t i = 0; i < sc_array_size(arr); i++) {
-		assert(arr[i] == (int) i);
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		assert(arr.elems[i] == (int) i);
 	}
 
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
 }
 
 void test2()
 {
-	int *arr;
 	int val;
-	bool b;
+	struct sc_array_int arr;
 
-	b = sc_array_create(arr, 0);
-	assert(b);
+	sc_array_init(&arr);
 
-	sc_array_foreach (arr, val) {
+	sc_array_foreach (&arr, val) {
 		assert(true);
 	}
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
 
-	b = sc_array_create(arr, 2);
-	assert(b);
+	sc_array_init(&arr);
 
-	sc_array_foreach (arr, val) {
+	sc_array_foreach (&arr, val) {
 		assert(true);
 	}
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
 
-	b = sc_array_create(arr, 2);
-	assert(b);
+	sc_array_init(&arr);
 
-	b = sc_array_add(arr, 1);
-	assert(b);
+	sc_array_add(&arr, 1);
+	assert(!sc_array_oom(&arr));
 
-	sc_array_foreach (arr, val) {
+	sc_array_foreach (&arr, val) {
 		assert(val == 1);
 	}
-	sc_array_del_last(arr);
-	sc_array_foreach (arr, val) {
+	sc_array_del_last(&arr);
+	sc_array_foreach (&arr, val) {
 		assert(true);
 	}
 
-	b = sc_array_add(arr, 1);
-	assert(b == true);
-	sc_array_del_unordered(arr, 0);
-	sc_array_foreach (arr, val) {
+	sc_array_add(&arr, 1);
+	assert(!sc_array_oom(&arr));
+
+	sc_array_del_unordered(&arr, 0);
+
+	sc_array_foreach (&arr, val) {
 		assert(true);
 	}
 
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
+
+	sc_array_init(&arr);
+	sc_array_add(&arr, 100);
+	sc_array_add(&arr, 200);
+	sc_array_add(&arr, 300);
+	assert(sc_array_at(&arr, 0) == 100);
+	sc_array_del_last(&arr);
+	assert(sc_array_at(&arr, 0) == 100);
+	sc_array_del(&arr, 0);
+	assert(sc_array_at(&arr, 0) == 200);
+	sc_array_term(&arr);
 }
 
 void bounds_test()
 {
-	int *arr, total = 0;
+	int total = 0;
 	int val;
+	struct sc_array_int arr;
 
-	sc_array_create(arr, 2);
-	sc_array_add(arr, 3);
-	sc_array_add(arr, 4);
+	sc_array_init(&arr);
+	sc_array_add(&arr, 3);
+	sc_array_add(&arr, 4);
 
-	sc_array_foreach (arr, val) {
+	sc_array_foreach (&arr, val) {
 		total += val;
 	}
 
 	assert(total == 7);
 
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
 
 	total = 0;
 
-	sc_array_create(arr, 0);
-	sc_array_foreach (arr, val) {
+	sc_array_init(&arr);
+	sc_array_foreach (&arr, val) {
 		total += val;
 	}
 
-	sc_array_foreach (arr, val) {
+	sc_array_foreach (&arr, val) {
 		total += val;
 	}
 
 	assert(total == 0);
 
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
 
-	sc_array_create(arr, 0);
-	sc_array_add(arr, 0);
-	sc_array_add(arr, 1);
-	sc_array_add(arr, 2);
-	sc_array_add(arr, 4);
-	sc_array_add(arr, 3);
+	sc_array_init(&arr);
+	sc_array_add(&arr, 0);
+	sc_array_add(&arr, 1);
+	sc_array_add(&arr, 2);
+	sc_array_add(&arr, 4);
+	sc_array_add(&arr, 3);
 
-	sc_array_del(arr, 3);
-	for (size_t i = 0; i < sc_array_size(arr); i++) {
-		assert((int) i == arr[i]);
+	sc_array_del(&arr, 3);
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		assert((int) i == arr.elems[i]);
 	}
 
-	sc_array_add(arr, 3);
-	sc_array_add(arr, 4);
+	sc_array_add(&arr, 3);
+	sc_array_add(&arr, 4);
 
-	sc_array_del(arr, 3);
-	for (size_t i = 0; i < sc_array_size(arr); i++) {
-		assert((int) i == arr[i]);
+	sc_array_del(&arr, 3);
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		assert((int) i == arr.elems[i]);
 	}
 
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
 }
 
 #ifdef SC_HAVE_WRAP
@@ -210,99 +228,108 @@ void *__wrap_realloc(void *p, size_t n)
 void fail_test()
 {
 	int tmp;
-	int *arr, total = 0;
+	int total = 0;
+	struct sc_array_int arr;
 
-	assert(sc_array_create(arr, SIZE_MAX) == false);
-	assert(arr == NULL);
-	assert(sc_array_create(arr, 0) == true);
-	assert(arr != NULL);
-	sc_array_destroy(arr);
-	assert(sc_array_cap(arr) == 0);
-	assert(sc_array_size(arr) == 0);
+	sc_array_init(&arr);
 
-	sc_array_foreach (arr, tmp) {
+	sc_array_add(&arr, 0);
+	assert(!sc_array_oom(&arr));
+	sc_array_term(&arr);
+
+	sc_array_init(&arr);
+	assert(sc_array_size(&arr) == 0);
+
+	sc_array_foreach (&arr, tmp) {
 		assert(false);
 	}
 
-	assert(sc_array_create(arr, 0) == true);
-
-	size_t count = SC_ARRAY_MAX / sizeof(*arr);
-	bool success = false;
+	size_t count = SC_ARRAY_MAX / sizeof(int);
 
 	for (size_t i = 0; i < count + 5; i++) {
-		success = sc_array_add(arr, i);
+		sc_array_add(&arr, i);
 	}
 
-	assert(!success);
+	assert(sc_array_oom(&arr));
+	sc_array_del(&arr, 0);
+	sc_array_add(&arr, 400);
+	assert(sc_array_oom(&arr) == false);
 
-	sc_array_destroy(arr);
-	sc_array_create(arr, 0);
-	assert(sc_array_size(arr) == 0);
+	sc_array_term(&arr);
 
-	fail_realloc = true;
-	success = sc_array_add(arr, 0);
-	assert(!success);
-
-	fail_realloc = false;
-	success = sc_array_add(arr, 222);
-	assert(success);
-	sc_array_destroy(arr);
+	sc_array_init(&arr);
+	assert(sc_array_size(&arr) == 0);
 
 	fail_realloc = true;
-	assert(sc_array_create(arr, 222) == false);
-	fail_realloc = false;
+	sc_array_add(&arr, 0);
+	assert(sc_array_oom(&arr));
 
-	assert(sc_array_create(arr, 0) == true);
+	fail_realloc = false;
+	sc_array_add(&arr, 222);
+	assert(!sc_array_oom(&arr));
+	sc_array_term(&arr);
+
 	fail_realloc = true;
-	success = sc_array_add(arr, 222);
-	assert(!success);
+	sc_array_init(&arr);
+	sc_array_add(&arr, 3);
+	assert(sc_array_oom(&arr));
+	fail_realloc = false;
+	sc_array_add(&arr, 3);
+	assert(sc_array_size(&arr) == 1);
+	assert(sc_array_oom(&arr) == false);
+	sc_array_term(&arr);
+
+	sc_array_init(&arr);
+	fail_realloc = true;
+	sc_array_add(&arr, 222);
+	assert(sc_array_oom(&arr));
 	fail_realloc = false;
 
-	sc_array_add(arr, 3);
-	sc_array_add(arr, 4);
-	sc_array_add(arr, 5);
+	sc_array_add(&arr, 3);
+	sc_array_add(&arr, 4);
+	sc_array_add(&arr, 5);
 
-	assert(sc_array_size(arr) == 3);
+	assert(sc_array_size(&arr) == 3);
 
-	sc_array_del(arr, 0);
-	assert(arr[0] == 4);
-	sc_array_del_last(arr);
-	assert(arr[0] == 4);
+	sc_array_del(&arr, 0);
+	assert(arr.elems[0] == 4);
+	sc_array_del_last(&arr);
+	assert(arr.elems[0] == 4);
 
-	sc_array_add(arr, 1);
-	sc_array_add(arr, 3);
-	sc_array_add(arr, 2);
-	sc_array_add(arr, 0);
+	sc_array_add(&arr, 1);
+	sc_array_add(&arr, 3);
+	sc_array_add(&arr, 2);
+	sc_array_add(&arr, 0);
 
-	sc_array_sort(arr, compare);
+	sc_array_sort(&arr, compare);
 
-	for (size_t i = 0; i < sc_array_size(arr); i++) {
-		total += arr[i];
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		total += arr.elems[i];
 	}
 
 	assert(total == 10);
 
-	for (size_t i = 0; i < sc_array_size(arr); i++) {
-		assert(arr[i] == (int) i);
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		assert(arr.elems[i] == (int) i);
 	}
 
 	total = 0;
-	sc_array_foreach (arr, tmp) {
+	sc_array_foreach (&arr, tmp) {
 		total += tmp;
 	}
 	assert(total == 10);
 
-	sc_array_sort(arr, compare);
-	sc_array_del_unordered(arr, 0);
-	assert(arr[0] == 4);
-	assert(sc_array_size(arr) == 4);
-	sc_array_clear(arr);
-	assert(sc_array_size(arr) == 0);
-	sc_array_add(arr, 10);
-	assert(sc_array_size(arr) == 1);
-	assert(arr[0] == 10);
+	sc_array_sort(&arr, compare);
+	sc_array_del_unordered(&arr, 0);
+	assert(arr.elems[0] == 4);
+	assert(sc_array_size(&arr) == 4);
+	sc_array_clear(&arr);
+	assert(sc_array_size(&arr) == 0);
+	sc_array_add(&arr, 10);
+	assert(sc_array_size(&arr) == 1);
+	assert(arr.elems[0] == 10);
 
-	sc_array_destroy(arr);
+	sc_array_term(&arr);
 }
 
 #else
@@ -316,7 +343,8 @@ int main(int argc, char *argv[])
 	(void) argc;
 	(void) argv;
 
-	example();
+	example_str();
+	example_int();
 	test1();
 	test2();
 	fail_test();

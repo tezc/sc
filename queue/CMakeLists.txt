@@ -7,8 +7,9 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 add_library(
         sc_queue SHARED
-        sc_queue.c
         sc_queue.h)
+
+set_target_properties(sc_queue PROPERTIES LINKER_LANGUAGE C)
 
 target_include_directories(sc_queue PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
@@ -37,7 +38,7 @@ if (SC_BUILD_TEST)
 
     enable_testing()
 
-    add_executable(${PROJECT_NAME}_test queue_test.c sc_queue.c)
+    add_executable(${PROJECT_NAME}_test queue_test.c)
 
     target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_QUEUE_MAX=1400000ul)
 
@@ -48,7 +49,7 @@ if (SC_BUILD_TEST)
             target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-omit-frame-pointer)
             target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)
             target_compile_options(${PROJECT_NAME}_test PRIVATE -fno-builtin)
-            target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=realloc)
+            target_link_options(${PROJECT_NAME}_test PRIVATE -Wl,--wrap=calloc)
         endif ()
     endif ()
 
