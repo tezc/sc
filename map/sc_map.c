@@ -205,20 +205,26 @@
 		return true;                                                   \
 	}                                                                      \
                                                                                \
-	bool sc_map_put_##name(struct sc_map_##name *m, K key, V value)        \
+	V sc_map_put_##name(struct sc_map_##name *m, K key, V value)           \
 	{                                                                      \
+		V ret;                                                         \
 		uint32_t pos, mod, h;                                          \
                                                                                \
+		m->oom = false;                                                \
+                                                                               \
 		if (!sc_map_remap_##name(m)) {                                 \
-			return false;                                          \
+			m->oom = true;                                         \
+			return 0;                                              \
 		}                                                              \
                                                                                \
 		if (key == 0) {                                                \
+			ret = (m->used) ? m->mem[-1].value : 0;                \
+			m->found = m->used;                                    \
 			m->size += !m->used;                                   \
 			m->used = true;                                        \
 			m->mem[-1].value = value;                              \
                                                                                \
-			return true;                                           \
+			return ret;                                            \
 		}                                                              \
                                                                                \
 		mod = m->cap - 1;                                              \
@@ -233,20 +239,23 @@
 				continue;                                      \
 			}                                                      \
                                                                                \
+			m->found = m->mem[pos].key != 0;                       \
+			ret = m->found ? m->mem[pos].value : 0;                \
 			sc_map_assign_##name(&m->mem[pos], key, value, h);     \
-			return true;                                           \
+                                                                               \
+			return ret;                                            \
 		}                                                              \
 	}                                                                      \
                                                                                \
 	/** NOLINTNEXTLINE */                                                  \
-	bool sc_map_get_##name(struct sc_map_##name *m, K key, V *value)       \
+	V sc_map_get_##name(struct sc_map_##name *m, K key)                    \
 	{                                                                      \
 		const uint32_t mod = m->cap - 1;                               \
 		uint32_t h, pos;                                               \
                                                                                \
 		if (key == 0) {                                                \
-			*value = m->mem[-1].value;                             \
-			return m->used;                                        \
+			m->found = m->used;                                    \
+			return m->used ? m->mem[-1].value : 0;                 \
 		}                                                              \
                                                                                \
 		h = hash_fn(key);                                              \
@@ -254,33 +263,31 @@
                                                                                \
 		while (true) {                                                 \
 			if (m->mem[pos].key == 0) {                            \
-				return false;                                  \
+				m->found = false;                              \
+				return 0;                                      \
 			} else if (!sc_map_cmp_##name(&m->mem[pos], key, h)) { \
 				pos = (pos + 1) & (mod);                       \
 				continue;                                      \
 			}                                                      \
                                                                                \
-			*value = m->mem[pos].value;                            \
-			return true;                                           \
+			m->found = true;                                       \
+			return m->mem[pos].value;                              \
 		}                                                              \
 	}                                                                      \
                                                                                \
 	/** NOLINTNEXTLINE */                                                  \
-	bool sc_map_del_##name(struct sc_map_##name *m, K key, V *value)       \
+	V sc_map_del_##name(struct sc_map_##name *m, K key)                    \
 	{                                                                      \
 		const uint32_t mod = m->cap - 1;                               \
 		uint32_t pos, prev, it, p, h;                                  \
+		V ret;                                                         \
                                                                                \
 		if (key == 0) {                                                \
-			bool ret = m->used;                                    \
+			m->found = m->used;                                    \
 			m->size -= m->used;                                    \
 			m->used = false;                                       \
                                                                                \
-			if (value != NULL) {                                   \
-				*value = m->mem[-1].value;                     \
-			}                                                      \
-                                                                               \
-			return ret;                                            \
+			return m->found ? m->mem[-1].value : 0;                \
 		}                                                              \
                                                                                \
 		h = hash_fn(key);                                              \
@@ -288,15 +295,15 @@
                                                                                \
 		while (true) {                                                 \
 			if (m->mem[pos].key == 0) {                            \
-				return false;                                  \
+				m->found = false;                              \
+				return 0;                                      \
 			} else if (!sc_map_cmp_##name(&m->mem[pos], key, h)) { \
 				pos = (pos + 1) & (mod);                       \
 				continue;                                      \
 			}                                                      \
                                                                                \
-			if (value != NULL) {                                   \
-				*value = m->mem[pos].value;                    \
-			}                                                      \
+			m->found = true;                                       \
+			ret = m->mem[pos].value;                               \
                                                                                \
 			m->size--;                                             \
 			m->mem[pos].key = 0;                                   \
@@ -320,7 +327,7 @@
 				}                                              \
 			}                                                      \
                                                                                \
-			return true;                                           \
+			return ret;                                            \
 		}                                                              \
 	}
 
