@@ -42,8 +42,8 @@ void example_int_to_str()
 	}
 
 	sc_map_foreach (&map, key, value) {
-			printf("Key:[%d], Value:[%s] \n", key, value);
-		}
+		printf("Key:[%d], Value:[%s] \n", key, value);
+	}
 
 	sc_map_term_64s(&map);
 }
@@ -113,10 +113,10 @@ void test_32()
 
 	sc_map_del_32(&map, 4);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_32(&map, 46);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_32(&map, 15);
 	assert(sc_map_found(&map));
 
@@ -134,13 +134,13 @@ void test_32()
 
 	sc_map_del_32(&map, 512);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_32(&map, 1024);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_32(&map, 48);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_term_32(&map);
 }
 
@@ -154,10 +154,10 @@ void test_64()
 	assert(sc_map_init_64(&map, 0, 99) == false);
 
 	assert(sc_map_init_64(&map, 16, 94));
-	
+
 	sc_map_del_64(&map, 0);
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_del_64(&map, 1);
 	assert(!sc_map_found(&map));
 
@@ -187,12 +187,12 @@ void test_64()
 		sc_map_put_64(&map, (5 * i) + i, i);
 	}
 
-	sc_map_del_64(&map, 4) ;
+	sc_map_del_64(&map, 4);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64(&map, 46);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64(&map, 15);
 	assert(sc_map_found(&map));
 
@@ -210,12 +210,12 @@ void test_64()
 
 	sc_map_del_64(&map, 512);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64(&map, 1024);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64(&map, 48);
-	assert(sc_map_found(&map));		    
+	assert(sc_map_found(&map));
 
 	sc_map_term_64(&map);
 }
@@ -232,10 +232,10 @@ void test_64v()
 	assert(sc_map_init_64v(&map, 16, 94));
 	sc_map_del_64v(&map, 0);
 	assert(sc_map_found(&map) == false);
-	
+
 	sc_map_del_64v(&map, 1);
 	assert(sc_map_found(&map) == false);
-	
+
 	for (int i = 0; i < 14; i++) {
 		sc_map_put_64v(&map, i, NULL);
 	}
@@ -265,10 +265,10 @@ void test_64v()
 
 	sc_map_del_64v(&map, 4);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64v(&map, 46);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64v(&map, 15);
 	assert(sc_map_found(&map));
 
@@ -286,10 +286,10 @@ void test_64v()
 
 	sc_map_del_64v(&map, 512);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64v(&map, 1024);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64v(&map, 48);
 	assert(sc_map_found(&map));
 
@@ -310,7 +310,7 @@ void test_64s()
 	assert(!sc_map_found(&map));
 
 	sc_map_del_64s(&map, 1);
-		assert(!sc_map_found(&map));
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
 		sc_map_put_64s(&map, i, NULL);
@@ -340,13 +340,13 @@ void test_64s()
 
 	sc_map_del_64s(&map, 4);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64s(&map, 46);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64s(&map, 15);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_clear_64s(&map);
 	for (int i = 1; i < 4; i++) {
 		sc_map_put_64s(&map, 16 * i, NULL);
@@ -361,10 +361,10 @@ void test_64s()
 
 	sc_map_del_64s(&map, 512);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64s(&map, 1024);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_64s(&map, 48);
 	assert(sc_map_found(&map));
 
@@ -383,10 +383,10 @@ void test_str()
 	assert(sc_map_init_str(&map, 0, 99) == false);
 
 	assert(sc_map_init_str(&map, 16, 94));
-	
+
 	sc_map_del_str(&map, NULL);
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_del_str(&map, "");
 	assert(!sc_map_found(&map));
 
@@ -406,33 +406,33 @@ void test_str()
 	sc_map_put_str(&map, "z", NULL);
 	sc_map_get_str(&map, "13");
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_get_str(&map, NULL);
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_get_str(&map, "h");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_get_str(&map, "z");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_get_str(&map, "x");
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_put_str(&map, NULL, NULL);
-	
+
 	sc_map_get_str(&map, NULL);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_str(&map, NULL);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_str(&map, "h");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_str(&map, "13");
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_clear_str(&map);
 	assert(sc_map_size_str(&map) == 0);
 
@@ -452,10 +452,10 @@ void test_str()
 
 	sc_map_del_str(&map, &arr[4]);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_str(&map, &arr[6]);
 	assert(sc_map_found(&map));
-	       
+
 	sc_map_del_str(&map, &arr[15]);
 	assert(sc_map_found(&map));
 
@@ -464,7 +464,7 @@ void test_str()
 	sc_map_put_str(&map, "z", NULL);
 	sc_map_del_str(&map, "h");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_clear_str(&map);
 
 	sc_map_put_str(&map, "h", NULL);
@@ -490,7 +490,7 @@ void test_sv()
 	assert(sc_map_init_sv(&map, 16, 94));
 	sc_map_del_sv(&map, NULL);
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_del_sv(&map, "");
 	assert(!sc_map_found(&map));
 
@@ -508,35 +508,35 @@ void test_sv()
 
 	sc_map_put_sv(&map, "h", NULL);
 	sc_map_put_sv(&map, "z", NULL);
-	
+
 	sc_map_get_sv(&map, "13");
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_get_sv(&map, NULL);
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_get_sv(&map, "h");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_get_sv(&map, "z");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_get_sv(&map, "x");
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_put_sv(&map, NULL, NULL);
 	sc_map_get_sv(&map, NULL);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_sv(&map, NULL);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_sv(&map, "h");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_sv(&map, "13");
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_clear_sv(&map);
 	assert(sc_map_size_sv(&map) == 0);
 
@@ -556,10 +556,10 @@ void test_sv()
 
 	sc_map_del_sv(&map, &arr[4]);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_sv(&map, &arr[6]);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_sv(&map, &arr[15]);
 	assert(sc_map_found(&map));
 
@@ -570,8 +570,8 @@ void test_sv()
 	assert(sc_map_found(&map));
 	sc_map_clear_sv(&map);
 
-	sc_map_put_sv(&map, "h", NULL) ;
-	sc_map_put_sv(&map, "z", NULL) ;
+	sc_map_put_sv(&map, "h", NULL);
+	sc_map_put_sv(&map, "z", NULL);
 	sc_map_put_sv(&map, "13", NULL);
 	sc_map_del_sv(&map, "z");
 	assert(sc_map_found(&map));
@@ -593,7 +593,7 @@ void test_s64()
 	assert(sc_map_init_s64(&map, 16, 94));
 	sc_map_del_s64(&map, NULL);
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_del_s64(&map, "");
 	assert(!sc_map_found(&map));
 
@@ -611,7 +611,7 @@ void test_s64()
 
 	sc_map_put_s64(&map, "h", 0);
 	sc_map_put_s64(&map, "z", 0);
-	
+
 	sc_map_get_s64(&map, "13");
 	assert(!sc_map_found(&map));
 
@@ -623,22 +623,22 @@ void test_s64()
 
 	sc_map_get_s64(&map, "z");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_get_s64(&map, "x");
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_put_s64(&map, NULL, 0);
 	assert(!sc_map_found(&map));
-	
+
 	sc_map_get_s64(&map, NULL);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_s64(&map, NULL);
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_s64(&map, "h");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_del_s64(&map, "13");
 	assert(!sc_map_found(&map));
 	sc_map_clear_s64(&map);
@@ -675,7 +675,7 @@ void test_s64()
 	sc_map_put_s64(&map, "z", 0);
 	sc_map_del_s64(&map, "h");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_clear_s64(&map);
 
 	sc_map_put_s64(&map, "h", 0);
@@ -683,7 +683,7 @@ void test_s64()
 	sc_map_put_s64(&map, "13", 0);
 	sc_map_del_s64(&map, "z");
 	assert(sc_map_found(&map));
-	
+
 	sc_map_term_s64(&map);
 }
 
@@ -781,7 +781,7 @@ void test1()
 
 	sc_map_put_str(&map, "key", "value");
 	sc_map_put_str(&map, "key", "value2");
-	
+
 	value = sc_map_get_str(&map, "key");
 	assert(sc_map_found(&map));
 	assert(strcmp(value, "value2") == 0);
@@ -920,7 +920,7 @@ retry:
 		assert(sc_map_found(&map));
 		assert(value == values[i]);
 		sc_map_put_32(&map, keys[i], values[i]);
-		
+
 		value = sc_map_del_32(&map, keys[i]);
 		assert(sc_map_found(&map));
 		assert(value == values[i]);
@@ -1112,8 +1112,7 @@ void test4()
 	struct sc_map_str mapstr;
 	assert(sc_map_init_str(&mapstr, 0, 26));
 	for (int i = 0; i < 64; i++) {
-		sc_map_put_str(&mapstr, keys[i],
-				      (void *) (uintptr_t) i);
+		sc_map_put_str(&mapstr, keys[i], (void *) (uintptr_t) i);
 	}
 
 	v = sc_map_get_str(&mapstr, keys[0]);
@@ -1272,7 +1271,7 @@ void fail_test_32()
 	assert(sc_map_init_32(&map, 10, 0));
 
 	fail_calloc = true;
-	
+
 	for (int i = 0; i < 20; i++) {
 		sc_map_put_32(&map, i, i);
 	}
@@ -1299,7 +1298,7 @@ void fail_test_64()
 	assert(sc_map_init_64(&map, 10, 0));
 
 	fail_calloc = true;
-	
+
 	for (int i = 0; i < 20; i++) {
 		sc_map_put_64(&map, i, i);
 	}
@@ -1326,7 +1325,7 @@ void fail_test_64v()
 	assert(sc_map_init_64v(&map, 10, 0));
 
 	fail_calloc = true;
-	
+
 	for (int i = 0; i < 20; i++) {
 		sc_map_put_64v(&map, i, NULL);
 	}
@@ -1353,7 +1352,7 @@ void fail_test_64s()
 	assert(sc_map_init_64s(&map, 10, 0));
 
 	fail_calloc = true;
-	
+
 	for (int i = 0; i < 20; i++) {
 		sc_map_put_64s(&map, i, NULL);
 	}
@@ -1382,7 +1381,7 @@ void fail_test_str()
 	assert(sc_map_init_str(&map, 10, 0));
 
 	fail_calloc = true;
-	
+
 	for (int i = 0; i < 20; i++) {
 		sc_map_put_str(&map, &s[i], NULL);
 	}
@@ -1422,7 +1421,7 @@ void fail_test_sv()
 	assert(sc_map_init_sv(&map, 10, 0));
 
 	fail_calloc = true;
-	
+
 	for (int i = 0; i < 20; i++) {
 		sc_map_put_sv(&map, &s[i], NULL);
 	}
@@ -1461,7 +1460,7 @@ void fail_test_s64()
 	assert(sc_map_init_s64(&map, 10, 0));
 
 	fail_calloc = true;
-	
+
 	for (int i = 0; i < 20; i++) {
 		sc_map_put_s64(&map, &s[i], 0);
 	}

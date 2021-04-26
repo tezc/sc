@@ -17,8 +17,8 @@ void example_str()
 	sc_array_del(&arr, 0);
 
 	sc_array_foreach (&arr, it) {
-			printf("Elem = %s \n", it);
-		}
+		printf("Elem = %s \n", it);
+	}
 
 	sc_array_term(&arr);
 }

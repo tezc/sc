@@ -232,7 +232,7 @@
 		(q)->elems[(q)->first] = elem;                                 \
 	} while (0)
 
-static inline size_t sc_queue_inc_first(size_t* first, size_t cap)
+static inline size_t sc_queue_inc_first(size_t *first, size_t cap)
 {
 	size_t tmp = *first;
 

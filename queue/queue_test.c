@@ -122,6 +122,39 @@ void example(void)
 	sc_queue_term(&queue);
 }
 
+void test0()
+{
+	uint32_t val;
+	struct sc_queue_32 q;
+
+	sc_queue_init(&q);
+
+	for (uint32_t i = 0; i < 10000; i++) {
+		sc_queue_add_last(&q, i);
+	}
+
+	for (uint32_t i = 0; i < 10000; i++) {
+		assert(sc_queue_at(&q, i) == i);
+	}
+
+	assert(sc_queue_peek_first(&q) == 0);
+	assert(sc_queue_peek_last(&q) == 9999);
+
+	uint32_t j = 0;
+	sc_queue_foreach (&q, val) {
+		assert(val == j++);
+	}
+
+
+	j = 10000;
+	while (j-- > 0) {
+		assert(sc_queue_del_last(&q) == j);
+	}
+
+	assert(sc_queue_size(&q) == 0);
+	sc_queue_term(&q);
+}
+
 void test1(void)
 {
 	int count = 0;
@@ -228,6 +261,7 @@ int main()
 {
 	fail_test();
 	example();
+	test0();
 	test1();
 	return 0;
 }

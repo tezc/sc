@@ -14,8 +14,8 @@ void example_str(void)
 	sc_map_put_str(&map, "janie", "atlanta");
 
 	sc_map_foreach (&map, key, value) {
-			printf("Key:[%s], Value:[%s] \n", key, value);
-		}
+		printf("Key:[%s], Value:[%s] \n", key, value);
+	}
 
 	sc_map_term_str(&map);
 }
@@ -38,8 +38,8 @@ void example_int_to_str(void)
 	}
 
 	sc_map_foreach (&map, key, value) {
-			printf("Key:[%d], Value:[%s] \n", key, value);
-		}
+		printf("Key:[%d], Value:[%s] \n", key, value);
+	}
 
 	sc_map_term_64s(&map);
 }
