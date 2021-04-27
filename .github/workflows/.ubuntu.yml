@@ -73,7 +73,7 @@ jobs:
         env:
           CC: gcc
         run: |
-          sudo apt-get install cmake clang-tidy gcc-4.8-multilib
+          sudo apt-get install cmake gcc-multilib
           mkdir build-debug && cd build-debug
           cmake .. -DCMAKE_C_FLAGS=-m32 -DSANITIZER=address
           make -j
@@ -87,7 +87,7 @@ jobs:
         env:
           CC: gcc
         run: |
-          sudo apt-get install cmake clang-tidy
+          sudo apt-get install cmake gcc-multilib
           mkdir build-debug && cd build-debug
           cmake .. -DCMAKE_C_FLAGS=-m32 -DSANITIZER=undefined
           make -j
