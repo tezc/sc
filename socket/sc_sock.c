@@ -1407,7 +1407,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	int mask = fdt->op | events;
 
 	if ((fdt->op & events) == events) {
-		return SC_SOCK_OK;
+		return 0;
 	}
 
 	if (fdt->op == SC_SOCK_NONE) {
@@ -1606,7 +1606,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	int index = fdt->index;
 
 	if ((fdt->op & events) == events) {
-		return SC_SOCK_OK;
+		return 0;
 	}
 
 	if (fdt->op == SC_SOCK_NONE) {
