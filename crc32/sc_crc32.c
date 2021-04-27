@@ -1,8 +1,3 @@
-/* crc32c.c
- * Copyright (C) 2013 Mark Adler
- * Version 1.1  1 Aug 2013  Mark Adler
- */
-
 /*
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the author be held liable for any damages
@@ -24,11 +19,15 @@
   madler@alumni.caltech.edu
  */
 
-/* Version history:
-   1.0  10 Feb 2013  First version
-   1.1   1 Aug 2013  Correct comments on why three crc instructions in parallel
-   1.2         2020  Added gcc intrinsics, fixed undefined behaviour
-   1.3         2021  Added big endian support, added aarch64 crc32c support
+/*
+ * 2013           Mark Adler
+ * 2020 - present Ozan Tezcan
+ *
+ * Version history:
+ * 1.0  10 Feb 2013  First version
+ * 1.1   1 Aug 2013  Correct comments on why three crc instructions in parallel
+ * 1.2         2020  added gcc intrinsics, fixed undefined behaviour
+ * 1.3         2021  Added big endian support, added aarch64 crc32c support
  */
 
 #include "sc_crc32.h"

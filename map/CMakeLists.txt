@@ -10,6 +10,8 @@ add_library(
         sc_map.c
         sc_map.h)
 
+add_executable(test_map sc_map.h sc_map.c map_example.c)
+
 target_include_directories(sc_map PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")

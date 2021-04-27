@@ -16,7 +16,7 @@ int main(int argc, char *argv[])
 
 	sc_queue_foreach (&queue, elem) {
 			printf("elem = [%d] \n", elem);
-		}
+	}
 
 	elem = sc_queue_del_last(&queue);
 	printf("Last element was : [%d] \n", elem);

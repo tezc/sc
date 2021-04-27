@@ -381,7 +381,7 @@ void test1()
 
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc != SC_SOCK_ERROR);
+	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 
 	sleep(2);
 	rc = sc_sock_accept(&sock, &in);
@@ -1179,7 +1179,7 @@ void sock_fail_test2()
 	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == 0);
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc != SC_SOCK_ERROR);
+	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	sleep(2);
 	fail_fcntl = 1;
 	assert(sc_sock_accept(&sock, &in) == -1);
@@ -1192,7 +1192,7 @@ void sock_fail_test2()
 	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == 0);
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc != SC_SOCK_ERROR);
+	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	sleep(2);
 	fail_setsockopt = 1;
 	assert(sc_sock_accept(&sock, &in) == -1);
@@ -1205,7 +1205,7 @@ void sock_fail_test2()
 	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == 0);
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc != SC_SOCK_ERROR);
+	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	sleep(2);
 	fail_setsockopt = 2;
 	assert(sc_sock_accept(&sock, &in) == -1);
@@ -1218,7 +1218,7 @@ void sock_fail_test2()
 	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == 0);
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc != SC_SOCK_ERROR);
+	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	sleep(2);
 	fail_setsockopt = 3;
 	assert(sc_sock_accept(&sock, &in) == -1);
@@ -1232,7 +1232,7 @@ void sock_fail_test2()
 	sc_sock_init(&client, 0, false, SC_SOCK_UNIX);
 	fail_setsockopt = 1;
 	rc = sc_sock_connect(&client, "/tmp/x", "8080", NULL, NULL);
-	assert(rc == SC_SOCK_ERROR);
+	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&sock) == 0);
 	assert(sc_sock_term(&client) == 0);
@@ -1243,7 +1243,7 @@ void sock_fail_test2()
 	sc_sock_init(&client, 0, false, SC_SOCK_UNIX);
 	fail_setsockopt = 2;
 	rc = sc_sock_connect(&client, "/tmp/x", "8080", NULL, NULL);
-	assert(rc == SC_SOCK_ERROR);
+	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&sock) == 0);
 	assert(sc_sock_term(&client) == 0);
@@ -1252,28 +1252,28 @@ void sock_fail_test2()
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_setsockopt = 1;
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc == SC_SOCK_ERROR);
+	assert(rc == -1);
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&client) == 0);
 
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_setsockopt = 2;
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc == SC_SOCK_ERROR);
+	assert(rc == -1);
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&client) == 0);
 
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_setsockopt = 3;
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc == SC_SOCK_ERROR);
+	assert(rc == -1);
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&client) == 0);
 
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_setsockopt = 4;
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
-	assert(rc == SC_SOCK_ERROR);
+	assert(rc == -1);
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&client) == 0);
 
@@ -1308,14 +1308,15 @@ void sock_fail_test3()
 	fail_send = 1;
 	fail_send_errno = EAGAIN;
 	fail_send_err = -1;
-	assert(sc_sock_send(&client, NULL, 10, 0) == SC_SOCK_WANT_WRITE);
+	assert(sc_sock_send(&client, NULL, 10, 0) == -1);
+	assert(errno == EAGAIN);
 	sc_sock_term(&client);
 
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_send = 1;
 	fail_send_err = -1;
 	fail_send_errno = EINTR;
-	assert(sc_sock_send(&client, NULL, 10, 0) == SC_SOCK_ERROR);
+	assert(sc_sock_send(&client, NULL, 10, 0) == -1);
 	sc_sock_term(&client);
 
 	fail_send = INT32_MAX;
@@ -1326,14 +1327,15 @@ void sock_fail_test3()
 	fail_recv = 1;
 	fail_recv_errno = EAGAIN;
 	fail_recv_err = -1;
-	assert(sc_sock_recv(&client, NULL, 10, 0) == SC_SOCK_WANT_READ);
+	assert(sc_sock_recv(&client, NULL, 10, 0) == -1);
+	assert(errno == EAGAIN);
 	sc_sock_term(&client);
 
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_recv = 1;
 	fail_recv_err = -1;
 	fail_recv_errno = EINTR;
-	assert(sc_sock_recv(&client, NULL, 10, 0) == SC_SOCK_ERROR);
+	assert(sc_sock_recv(&client, NULL, 10, 0) == -1);
 	sc_sock_term(&client);
 
 	fail_recv = INT32_MAX;
@@ -1343,8 +1345,9 @@ void sock_fail_test3()
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_connect_err = EINPROGRESS;
 	fail_connect = -1;
-	assert(sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL) ==
-	       SC_SOCK_WANT_WRITE);
+	assert(sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL) == -1);
+	assert(errno == EAGAIN);
+
 	fail_connect_err = 0;
 	fail_connect = 0;
 	assert(sc_sock_term(&client) == 0);
@@ -1360,8 +1363,9 @@ void sock_fail_test3()
 	sc_sock_init(&client, 0, false, SC_SOCK_INET);
 	fail_connect_err = EAGAIN;
 	fail_connect = -1;
-	assert(sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL) ==
-	       SC_SOCK_WANT_WRITE);
+	assert(sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL) ==-1);
+	assert(errno == EAGAIN);
+
 	fail_connect_err = 0;
 	fail_connect = 0;
 	assert(sc_sock_term(&client) == 0);
