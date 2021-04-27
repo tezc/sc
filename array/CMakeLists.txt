@@ -5,8 +5,7 @@ set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
-add_library(sc_array SHARED
-        sc_array.h)
+add_library(sc_array SHARED sc_array.h)
 set_target_properties(sc_array PROPERTIES LINKER_LANGUAGE C)
 
 

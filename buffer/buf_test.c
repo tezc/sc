@@ -525,7 +525,7 @@ void fail_test()
 
 	sc_buf_term(&buf);
 	sc_buf_init(&buf, 0);
-	sc_buf_peek_data(&buf, 100, (unsigned char *) &p, 8);
+	sc_buf_peek_data(&buf, 100, (unsigned char *) &p, sizeof(p));
 	assert(sc_buf_valid(&buf) == false);
 
 	sc_buf_term(&buf);

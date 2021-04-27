@@ -144,8 +144,9 @@ int sc_sock_accept(struct sc_sock *s, struct sc_sock *in);
  * @param dst_port    destination port
  * @param src_addr  source addr (outgoing addr)
  * @param src_port  source port (outgoing port)
- * @return            '0' on success, negative number on failure.
- *                     call sc_sock_error() for error string.
+ * @return            '0' on success
+ *                    negative value if it is non-blocking, errno will be EAGAIN
+ *                    negative value on error, call sc_sock_error() error text.
  */
 int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		    const char *dst_port, const char *src_addr,
@@ -195,8 +196,8 @@ int sc_sock_finish_connect(struct sc_sock *s);
  * @param len   len
  * @param flags normally should be zero, otherwise flags are passed to send().
  * @return      - on success, returns sent byte count.
- *              - SC_SOCK_WANT_WRITE on EAGAIN.
- *              - SC_SOCK_ERROR on error
+ *              - negative value if it fails with errno = EAGAIN.
+ *              - negative value on error
  */
 int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags);
 
@@ -206,8 +207,8 @@ int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags);
  * @param len   len
  * @param flags normally should be zero, otherwise flags are passed to recv().
  * @return      - on success, returns bytes received.
- *              - SC_SOCK_WANT_READ on EAGAIN.
- *              - SC_SOCK_ERROR on error
+ *              - negative value if it fails with errno = EAGAIN.
+ *              - negative value on error
  */
 int sc_sock_recv(struct sc_sock *s, char *buf, int len, int flags);
 
