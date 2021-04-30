@@ -212,20 +212,26 @@
 		return true;                                                   \
 	}                                                                      \
                                                                                \
-	bool sc_map_put_##name(struct sc_map_##name *m, K key, V value)        \
+	V sc_map_put_##name(struct sc_map_##name *m, K key, V value)           \
 	{                                                                      \
+		V ret;                                                         \
 		uint32_t pos, mod, h;                                          \
                                                                                \
+		m->oom = false;                                                \
+                                                                               \
 		if (!sc_map_remap_##name(m)) {                                 \
-			return false;                                          \
+			m->oom = true;                                         \
+			return 0;                                              \
 		}                                                              \
                                                                                \
 		if (key == 0) {                                                \
+			ret = (m->used) ? m->mem[-1].value : 0;                \
+			m->found = m->used;                                    \
 			m->size += !m->used;                                   \
 			m->used = true;                                        \
 			m->mem[-1].value = value;                              \
                                                                                \
-			return true;                                           \
+			return ret;                                            \
 		}                                                              \
                                                                                \
 		mod = m->cap - 1;                                              \
@@ -240,20 +246,23 @@
 				continue;                                      \
 			}                                                      \
                                                                                \
+			m->found = m->mem[pos].key != 0;                       \
+			ret = m->found ? m->mem[pos].value : 0;                \
 			sc_map_assign_##name(&m->mem[pos], key, value, h);     \
                                                                                \
-			return true;                                           \
+			return ret;                                            \
 		}                                                              \
 	}                                                                      \
                                                                                \
 	/** NOLINTNEXTLINE */                                                  \
-	V *sc_map_get_##name(struct sc_map_##name *m, K key)                   \
+	V sc_map_get_##name(struct sc_map_##name *m, K key)                    \
 	{                                                                      \
 		const uint32_t mod = m->cap - 1;                               \
 		uint32_t h, pos;                                               \
                                                                                \
 		if (key == 0) {                                                \
-			return m->used ? &m->mem[-1].value : NULL;             \
+			m->found = m->used;                                    \
+			return m->used ? m->mem[-1].value : 0;                 \
 		}                                                              \
                                                                                \
 		h = hash_fn(key);                                              \
@@ -261,30 +270,31 @@
                                                                                \
 		while (true) {                                                 \
 			if (m->mem[pos].key == 0) {                            \
-				return NULL;                                   \
+				m->found = false;                              \
+				return 0;                                      \
 			} else if (!sc_map_cmp_##name(&m->mem[pos], key, h)) { \
 				pos = (pos + 1) & (mod);                       \
 				continue;                                      \
 			}                                                      \
                                                                                \
-			return &m->mem[pos].value;                             \
+			m->found = true;                                       \
+			return m->mem[pos].value;                              \
 		}                                                              \
 	}                                                                      \
                                                                                \
 	/** NOLINTNEXTLINE */                                                  \
-	V *sc_map_del_##name(struct sc_map_##name *m, K key)                   \
+	V sc_map_del_##name(struct sc_map_##name *m, K key)                    \
 	{                                                                      \
 		const uint32_t mod = m->cap - 1;                               \
 		uint32_t pos, prev, it, p, h;                                  \
-		V *ret; /* NOLINT */                                           \
+		V ret;                                                         \
                                                                                \
 		if (key == 0) {                                                \
-			m->deleted = m->mem[-1].value;                         \
-			ret = m->used ? &m->deleted : NULL;                    \
+			m->found = m->used;                                    \
 			m->size -= m->used;                                    \
 			m->used = false;                                       \
                                                                                \
-			return ret;                                            \
+			return m->found ? m->mem[-1].value : 0;                \
 		}                                                              \
                                                                                \
 		h = hash_fn(key);                                              \
@@ -292,13 +302,16 @@
                                                                                \
 		while (true) {                                                 \
 			if (m->mem[pos].key == 0) {                            \
-				return NULL;                                   \
+				m->found = false;                              \
+				return 0;                                      \
 			} else if (!sc_map_cmp_##name(&m->mem[pos], key, h)) { \
 				pos = (pos + 1) & (mod);                       \
 				continue;                                      \
 			}                                                      \
                                                                                \
-			m->deleted = m->mem[pos].value;                        \
+			m->found = true;                                       \
+			ret = m->mem[pos].value;                               \
+                                                                               \
 			m->size--;                                             \
 			m->mem[pos].key = 0;                                   \
 			prev = pos;                                            \
@@ -321,7 +334,7 @@
 				}                                              \
 			}                                                      \
                                                                                \
-			return &m->deleted;                                    \
+			return ret;                                            \
 		}                                                              \
 	}
 
@@ -361,20 +374,20 @@ uint32_t murmurhash(const char *key)
 	case 7: h ^= (uint64_t) p[6] << 48ul; // fall through
 	case 6: h ^= (uint64_t) p[5] << 40ul; // fall through
 	case 5: h ^= (uint64_t) p[4] << 32ul; // fall through
-    	case 4: h ^= (uint64_t) p[3] << 24ul; // fall through
+	case 4: h ^= (uint64_t) p[3] << 24ul; // fall through
 	case 3: h ^= (uint64_t) p[2] << 16ul; // fall through
 	case 2: h ^= (uint64_t) p[1] << 8ul;  // fall through
 	case 1: h ^= (uint64_t) p[0];         // fall through
 		h *= m;
-    	default:
-        	break;
-    	};
+	default:
+		break;
+	};
 
-    	h ^= h >> 47u;
-    	h *= m;
-    	h ^= h >> 47u;
+	h ^= h >> 47u;
+	h *= m;
+	h ^= h >> 47u;
 
-    	return (uint32_t) h;
+	return (uint32_t) h;
 }
 
 #define sc_map_eq(a, b) ((a) == (b))
@@ -389,4 +402,4 @@ sc_map_def_strkey(str, const char *, const char *, sc_map_streq, murmurhash)
 sc_map_def_strkey(sv,  const char *, void *,       sc_map_streq, murmurhash)
 sc_map_def_strkey(s64, const char *, uint64_t,     sc_map_streq, murmurhash)
 
-	// clang-format on
+// clang-format on

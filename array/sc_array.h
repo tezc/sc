@@ -189,7 +189,8 @@
  * @param a   array
  * @param cmp comparator, check qsort() documentation for details
  */
-#define sc_array_sort(a, cmp) (qsort((a)->elems, (a)->size, *(a)->elems, cmp))
+#define sc_array_sort(a, cmp)                                                  \
+	(qsort((a)->elems, (a)->size, sizeof(*(a)->elems), cmp))
 
 /**
  * Returns last element. If array is empty, result is undefined.

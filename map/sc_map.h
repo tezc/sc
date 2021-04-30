@@ -72,7 +72,8 @@
 		uint32_t load_fac;                                             \
 		uint32_t remap;                                                \
 		bool used;                                                     \
-		V deleted;                                                     \
+		bool oom;                                                      \
+		bool found;                                                    \
 	};                                                                     \
                                                                                \
 	/**                                                                    \
@@ -113,41 +114,55 @@
 	/**                                                                    \
 	 * Put element to the map                                              \
 	 *                                                                     \
+	 * struct sc_map_str map;                                              \
+	 * sc_map_put_str(&map, "key", "value");                               \
+	 *                                                                     \
 	 * @param map map                                                      \
 	 * @param K key                                                        \
 	 * @param V value                                                      \
-	 * @return  'false' on out of memory, otherwise 'true'                 \
+	 * @return previous value if exists                                    \
 	 */                                                                    \
-	bool sc_map_put_##name(struct sc_map_##name *map, K key, V val);       \
+	V sc_map_put_##name(struct sc_map_##name *map, K key, V val);          \
                                                                                \
 	/**                                                                    \
 	 * Get element                                                         \
 	 *                                                                     \
 	 * @param map map                                                      \
-	 * @param K   key                                                      \
-	 * @return    - pointer to current value if exists                     \
-	 *              (pointer is valid until next map operation).           \
-	 *            - NULL if key does not exist                             \
+	 * @param K key                                                        \                                                  \
+	 * @return current value if exists.                                    \
+	 *         call sc_map_found() to see if returned value if valid.      \
 	 */                                                                    \
 	/** NOLINTNEXTLINE */                                                  \
-	V *sc_map_get_##name(struct sc_map_##name *map, K key);                \
+	V sc_map_get_##name(struct sc_map_##name *map, K key);                 \
                                                                                \
 	/**                                                                    \
 	 * Delete element                                                      \
 	 *                                                                     \
 	 * @param map map                                                      \
-	 * @param K   key                                                      \
-	 * @return    - pointer to current value if exists                     \
-	 *              (pointer is valid until next map operation).           \
-	 *            - NULL if key does not exist                             \
+	 * @param K key                                                        \
+	 * @return current value if exists.                                    \
+	 *         call sc_map_found() to see if returned value if valid.      \
 	 */                                                                    \
 	/** NOLINTNEXTLINE */                                                  \
-	V *sc_map_del_##name(struct sc_map_##name *map, K key);
+	V sc_map_del_##name(struct sc_map_##name *map, K key);
+
+/**
+ * @param map map
+ * @return    - if put operation overrides a value, returns true
+ *            - if del operation deletes a key, returns true
+ */
+#define sc_map_found(map) ((map)->found)
+
+/**
+ * @param map map
+ * @return    true if put operation failed with out of memory
+ */
+#define sc_map_oom(map) ((map)->oom)
 
 /**
  * Foreach loop
  *
- * const char *key, *value;
+ * char *key, *value;
  * struct sc_map_str map;
  *
  * sc_map_foreach(&map, key, value) {
@@ -163,7 +178,7 @@
 /**
  * Foreach loop for keys
  *
- * const char *key;
+ * char *key;
  * struct sc_map_str map;
  *
  * sc_map_foreach_key(&map, key) {
@@ -178,7 +193,7 @@
 /**
  * Foreach loop for values
  *
- * const char *value;
+ * char *value;
  * struct sc_map_str map;
  *
  * sc_map_foreach_value(&map, value) {
