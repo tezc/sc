@@ -1,25 +1,32 @@
 /*
- * MIT License
+ * BSD-3-Clause
  *
- * Copyright (c) 2021 Ozan Tezcan
+ * Copyright 2021 Ozan Tezcan
+ * All rights reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef _XOPEN_SOURCE
@@ -274,7 +281,7 @@ int sc_sock_set_rcvtimeo(struct sc_sock *s, int ms)
 		sc_sock_errstr(s, 0);
 	}
 
-	return rc == 0 ? SC_SOCK_OK : SC_SOCK_ERROR;
+	return rc;
 }
 
 int sc_sock_set_sndtimeo(struct sc_sock *s, int ms)
@@ -294,7 +301,7 @@ int sc_sock_set_sndtimeo(struct sc_sock *s, int ms)
 		sc_sock_errstr(s, 0);
 	}
 
-	return rc == 0 ? SC_SOCK_OK : SC_SOCK_ERROR;
+	return rc;
 }
 
 static int sc_sock_bind_unix(struct sc_sock *s, const char *host)
@@ -436,10 +443,10 @@ int sc_sock_finish_connect(struct sc_sock *s)
 	rc = getsockopt(s->fdt.fd, SOL_SOCKET, SO_ERROR, (void *) &ret, &len);
 	if (rc != 0 || ret != 0) {
 		sc_sock_errstr(s, 0);
-		return SC_SOCK_ERROR;
+		return -1;
 	}
 
-	return SC_SOCK_OK;
+	return 0;
 }
 
 static int sc_sock_connect_unix(struct sc_sock *s, const char *addr)
@@ -483,13 +490,13 @@ static int sc_sock_connect_unix(struct sc_sock *s, const char *addr)
 		goto err;
 	}
 
-	return SC_SOCK_OK;
+	return 0;
 
 err:
 	sc_sock_errstr(s, 0);
 	sc_sock_close(s);
 
-	return SC_SOCK_ERROR;
+	return -1;
 }
 
 static int sc_sock_bind_src(struct sc_sock *s, const char *addr,
@@ -520,14 +527,14 @@ static int sc_sock_bind_src(struct sc_sock *s, const char *addr,
 		goto err;
 	}
 
-	return SC_SOCK_OK;
+	return 0;
 
 gai_err:
 	sc_sock_errstr(s, rc);
-	return SC_SOCK_ERROR;
+	return -1;
 err:
 	sc_sock_errstr(s, 0);
-	return SC_SOCK_ERROR;
+	return -1;
 }
 
 int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
@@ -536,7 +543,7 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 {
 	const int bf = SC_SOCK_BUF_SIZE;
 
-	int rc, rv = SC_SOCK_OK;
+	int rc, rv = 0;
 	sc_sock_int fd;
 	void *tmp;
 	struct addrinfo *sinfo = NULL, *p;
@@ -595,7 +602,7 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 
 		if (src_addr || src_port) {
 			rc = sc_sock_bind_src(s, src_addr, src_port);
-			if (rc != SC_SOCK_OK) {
+			if (rc != 0) {
 				goto bind_error;
 			}
 		}
@@ -604,7 +611,8 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		if (rc != 0) {
 			if (!s->blocking && (sc_sock_err() == SC_EINPROGRESS ||
 					     sc_sock_err() == SC_EAGAIN)) {
-				rv = SC_SOCK_WANT_WRITE;
+				errno = EAGAIN;
+				rv = -1;
 				goto end;
 			}
 
@@ -643,11 +651,12 @@ retry:
 		}
 
 		if (err == SC_EAGAIN) {
-			return SC_SOCK_WANT_WRITE;
+			errno = EAGAIN;
+			return -1;
 		}
 
 		sc_sock_errstr(s, 0);
-		n = SC_SOCK_ERROR;
+		n = -1;
 	}
 
 	return n;
@@ -664,7 +673,8 @@ int sc_sock_recv(struct sc_sock *s, char *buf, int len, int flags)
 retry:
 	n = (int) recv(s->fdt.fd, buf, (size_t) len, flags);
 	if (n == 0) {
-		return SC_SOCK_ERROR;
+		errno = EOF;
+		return -1;
 	} else if (n == SC_ERR) {
 		err = sc_sock_err();
 		if (err == SC_EINTR) {
@@ -672,11 +682,12 @@ retry:
 		}
 
 		if (err == SC_EAGAIN) {
-			return SC_SOCK_WANT_READ;
+			errno = EAGAIN;
+			return -1;
 		}
 
 		sc_sock_errstr(s, 0);
-		n = SC_SOCK_ERROR;
+		n = -1;
 	}
 
 	return n;
@@ -694,7 +705,7 @@ int sc_sock_accept(struct sc_sock *s, struct sc_sock *in)
 	fd = accept(s->fdt.fd, NULL, NULL);
 	if (fd == SC_INVALID) {
 		sc_sock_errstr(s, 0);
-		return SC_SOCK_ERROR;
+		return -1;
 	}
 
 	in->fdt.fd = fd;
@@ -723,13 +734,13 @@ int sc_sock_accept(struct sc_sock *s, struct sc_sock *in)
 		goto error;
 	}
 
-	return SC_SOCK_OK;
+	return 0;
 
 error:
 	sc_sock_errstr(s, 0);
 	sc_sock_close(in);
 
-	return SC_SOCK_ERROR;
+	return -1;
 }
 
 int sc_sock_listen(struct sc_sock *s, const char *host, const char *port)
@@ -746,11 +757,11 @@ int sc_sock_listen(struct sc_sock *s, const char *host, const char *port)
 		goto err;
 	}
 
-	return SC_SOCK_OK;
+	return 0;
 err:
 	sc_sock_errstr(s, 0);
 	sc_sock_close(s);
-	return SC_SOCK_ERROR;
+	return -1;
 }
 
 const char *sc_sock_error(struct sc_sock *s)
@@ -1196,7 +1207,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	};
 
 	if ((fdt->op & events) == events) {
-		return SC_SOCK_OK;
+		return 0;
 	}
 
 	if (fdt->op == SC_SOCK_NONE) {
@@ -1396,7 +1407,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	int mask = fdt->op | events;
 
 	if ((fdt->op & events) == events) {
-		return SC_SOCK_OK;
+		return 0;
 	}
 
 	if (fdt->op == SC_SOCK_NONE) {
@@ -1595,7 +1606,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	int index = fdt->index;
 
 	if ((fdt->op & events) == events) {
-		return SC_SOCK_OK;
+		return 0;
 	}
 
 	if (fdt->op == SC_SOCK_NONE) {

@@ -64,3 +64,31 @@ jobs:
           cmake .. -DSC_CLANG_TIDY=1
           make -j
           make check
+  ubuntu-32bit-address:
+    runs-on: ubuntu-latest
+    name: 32bit-address
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        env:
+          CC: gcc
+        run: |
+          sudo apt-get install cmake gcc-multilib
+          mkdir build-debug && cd build-debug
+          cmake .. -DCMAKE_C_FLAGS=-m32 -DSANITIZER=address
+          make -j
+          make check
+  ubuntu-32bit-undefined:
+    runs-on: ubuntu-latest
+    name: 32bit-undefined
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        env:
+          CC: gcc
+        run: |
+          sudo apt-get install cmake gcc-multilib
+          mkdir build-debug && cd build-debug
+          cmake .. -DCMAKE_C_FLAGS=-m32 -DSANITIZER=undefined
+          make -j
+          make check

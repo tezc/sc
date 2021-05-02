@@ -2,8 +2,9 @@
 
 ### Overview
 
-- Type generic array/vector.
-- Index access is possible (e.g float* arr; 'printf("%f", arr[i]')).
+- Growable array/vector.
+- It comes with predefined types, check out at the end of sc_array.h, you can
+  add there (sc_array_def) if you need more.
 
 ### Usage
 
@@ -14,39 +15,40 @@
 
 void example_str()
 {
-    char **p, *it;
+	const char *it;
+	struct sc_array_str arr;
 
-    sc_array_create(p, 0);
-    
-    sc_array_add(p, "item0");
-    sc_array_add(p, "item1");
-    sc_array_add(p, "item2");
+	sc_array_init(&arr);
 
-    printf("\nDelete first element \n\n");
-    sc_array_del(p, 0);
+	sc_array_add(&arr, "item0");
+	sc_array_add(&arr, "item1");
+	sc_array_add(&arr, "item2");
 
-    sc_array_foreach (p, it) {
-        printf("Elem = %s \n", it);
-    }
+	printf("\nDelete first element \n\n");
+	sc_array_del(&arr, 0);
 
-    sc_array_destroy(p);
+	sc_array_foreach (&arr, it) {
+		printf("Elem = %s \n", it);
+	}
+
+	sc_array_term(&arr);
 }
 
 void example_int()
 {
-    int *p;
+	struct sc_array_int arr;
 
-    sc_array_create(p, 0);
+	sc_array_init(&arr);
 
-    sc_array_add(p, 0);
-    sc_array_add(p, 1);
-    sc_array_add(p, 2);
+	sc_array_add(&arr, 0);
+	sc_array_add(&arr, 1);
+	sc_array_add(&arr, 2);
 
-    for (size_t i = 0; i < sc_array_size(p); i++) {
-        printf("Elem = %d \n", p[i]);
-    }
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		printf("Elem = %d \n", arr.elems[i]);
+	}
 
-    sc_array_destroy(p);
+	sc_array_term(&arr);
 }
 
 int main(int argc, char *argv[])
@@ -56,46 +58,4 @@ int main(int argc, char *argv[])
 
     return 0;
 }
-```
-
-##### Note
-
-Array pointer is not stable. If you pass the array to another function which  
-can add items, do it by passing reference of the array pointer :
-
-```c
-void some_function_to_add_elems(long **p)
-{
-    sc_array_add(*p, 500);
-}
-
-int main(int argc, char *argv[])
-{
-    long *p;
-
-    sc_array_create(p, 0);
-    sc_array_add(p, 300);
-    
-    // Pass via address of p
-    some_function_to_add_elems(&p);
-    sc_array_destroy(p);
-}
-
-```
-
-Most probably you will hold array pointer in a struct anyway, so you have a  
-stable address of the pointer, "*numbers" might change but "numbers" is stable :
-
-```c
-struct my_app {
-    int *numbers;
-};
-
-void func(struct my_app* app)
-{
-    sc_array_add(app->numbers, 0);
-    sc_array_add(app->numbers, 1);
-    sc_array_add(app->numbers, 2);
-}
-
 ```

@@ -1,25 +1,32 @@
 /*
- * MIT License
+ * BSD-3-Clause
  *
- * Copyright (c) 2021 Ozan Tezcan
+ * Copyright 2021 Ozan Tezcan
+ * All rights reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 #ifndef SC_SOCK_H
 #define SC_SOCK_H
@@ -54,14 +61,6 @@ typedef int sc_sock_int;
 #endif
 
 #define SC_SOCK_BUF_SIZE 32768
-
-enum sc_sock_rc
-{
-	SC_SOCK_WANT_READ = -4,
-	SC_SOCK_WANT_WRITE = -2,
-	SC_SOCK_ERROR = -1,
-	SC_SOCK_OK = 0
-};
 
 enum sc_sock_ev
 {
@@ -145,8 +144,9 @@ int sc_sock_accept(struct sc_sock *s, struct sc_sock *in);
  * @param dst_port    destination port
  * @param src_addr  source addr (outgoing addr)
  * @param src_port  source port (outgoing port)
- * @return            '0' on success, negative number on failure.
- *                     call sc_sock_error() for error string.
+ * @return            '0' on success
+ *                    negative value if it is non-blocking, errno will be EAGAIN
+ *                    negative value on error, call sc_sock_error() error text.
  */
 int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		    const char *dst_port, const char *src_addr,
@@ -196,8 +196,8 @@ int sc_sock_finish_connect(struct sc_sock *s);
  * @param len   len
  * @param flags normally should be zero, otherwise flags are passed to send().
  * @return      - on success, returns sent byte count.
- *              - SC_SOCK_WANT_WRITE on EAGAIN.
- *              - SC_SOCK_ERROR on error
+ *              - negative value if it fails with errno = EAGAIN.
+ *              - negative value on error
  */
 int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags);
 
@@ -207,8 +207,8 @@ int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags);
  * @param len   len
  * @param flags normally should be zero, otherwise flags are passed to recv().
  * @return      - on success, returns bytes received.
- *              - SC_SOCK_WANT_READ on EAGAIN.
- *              - SC_SOCK_ERROR on error
+ *              - negative value if it fails with errno = EAGAIN.
+ *              - negative value on error
  */
 int sc_sock_recv(struct sc_sock *s, char *buf, int len, int flags);
 

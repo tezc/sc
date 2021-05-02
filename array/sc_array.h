@@ -1,25 +1,32 @@
 /*
- * MIT License
+ * BSD-3-Clause
  *
- * Copyright (c) 2021 Ozan Tezcan
+ * Copyright 2021 Ozan Tezcan
+ * All rights reserved.
  *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
  *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY,
+ * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT
+ * OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
  */
 
 #ifndef SC_ARRAY_H
@@ -38,63 +45,103 @@
 #include "config.h"
 #else
 #define sc_array_realloc realloc
-#define sc_array_free	 free
+#define sc_array_free free
 #endif
 
-// Internals, do not use
-struct sc_array {
-	size_t size;
-	size_t cap;
-	unsigned char elems[];
-};
+#ifndef SC_ARRAY_MAX
+#define SC_ARRAY_MAX SIZE_MAX
+#endif
 
-#define sc_array_meta(a)                                                       \
-	((struct sc_array *) ((char *) (a) -offsetof(struct sc_array, elems)))
-
-bool sc_array_init(void *a, size_t elem_size, size_t cap);
-void sc_array_term(void *a);
-bool sc_array_expand(void *a, size_t elem_size);
-#define sc_array_sizeof(a) (sizeof(a)) // NOLINT
-// Internals end
+#define sc_array_def(T, name)                                                  \
+	struct sc_array_##name {                                               \
+		bool oom;                                                      \
+		size_t cap;                                                    \
+		size_t size;                                                   \
+		/* NOLINTNEXTLINE */                                           \
+		T *elems;                                                      \
+	}
+/**
+ * Init array
+ * @param a array
+ */
+#define sc_array_init(a)                                                       \
+	do {                                                                   \
+		memset((a), 0, sizeof(*(a)));                                  \
+	} while (0)
 
 /**
- *   @param arr array
- *   @param cap initial capacity. '0' is a valid initial capacity.
- *   @return   'true' on success, 'false' on out of memory
+ * Term array
+ * @param a array
  */
-#define sc_array_create(a, cap) sc_array_init(&(a), sc_array_sizeof(*(a)), cap)
+#define sc_array_term(a)                                                       \
+	do {                                                                   \
+		sc_array_free((a)->elems);                                     \
+		sc_array_init(a);                                              \
+	} while (0)
 
 /**
- *   @param a array to be destroyed
+ * Add elem to array, call sc_array_oom(v) to see if 'add' failed because of out
+ * of memory.
+ *
+ * @param a array
+ * @param k elem
  */
-#define sc_array_destroy(a) sc_array_term(&(a));
+#define sc_array_add(a, k)                                                     \
+	do {                                                                   \
+		const size_t _max = SC_ARRAY_MAX / sizeof(*(a)->elems);        \
+		size_t _cap;                                                   \
+		void *_p;                                                      \
+                                                                               \
+		if ((a)->cap == (a)->size) {                                   \
+			if ((a)->cap > _max / 2) {                             \
+				(a)->oom = true;                               \
+				break;                                         \
+			}                                                      \
+			_cap = (a)->cap == 0 ? 8 : (a)->cap * 2;               \
+			_p = sc_array_realloc((a)->elems,                      \
+					      _cap * sizeof(*((a)->elems)));   \
+			if (_p == NULL) {                                      \
+				(a)->oom = true;                               \
+				break;                                         \
+			}                                                      \
+			(a)->cap = _cap;                                       \
+			(a)->elems = _p;                                       \
+		}                                                              \
+		(a)->oom = false;                                              \
+		(a)->elems[(a)->size++] = k;                                   \
+	} while (0)
 
 /**
- *   @param a array
- *   @return  current allocated capacity
+ * Deletes items from the array without deallocating underlying memory
+ * @param a array
  */
-#define sc_array_cap(a) (sc_array_meta((a))->cap)
+#define sc_array_clear(a)                                                      \
+	do {                                                                   \
+		(a)->cap = 0;                                                  \
+		(a)->size = 0;                                                 \
+		(a)->oom = false;                                              \
+	} while (0)
 
 /**
- *   @param a array
- *   @return  current element count
+ * @param a array
+ * @return true if last add operation failed, false otherwise.
  */
-#define sc_array_size(a) (sc_array_meta((a))->size)
+#define sc_array_oom(a) ((a)->oom)
 
 /**
- *   Deletes items from the array without deallocating underlying memory
- *   @param a array
+ * Get element at index i, if 'i' is out of range, result is undefined.
+ *
+ * @param a array
+ * @param i index
+ * @return element at index 'i'
  */
-#define sc_array_clear(a) (sc_array_meta((a))->size = 0)
+#define sc_array_at(a, i) ((a)->elems[i])
 
 /**
- *   @param a    array
- *   @param elem element to be appended
- *   @return     'true' on success, 'false' on out of memory.
+ * @param a array
+ * @return element count
  */
-#define sc_array_add(a, elem)                                                  \
-	sc_array_expand(&(a), sc_array_sizeof(*(a))) == true ?                 \
-		      (a)[sc_array_meta(a)->size++] = (elem), true : false
+#define sc_array_size(a) ((a)->size)
 
 /**
  *   @param a array
@@ -102,61 +149,72 @@ bool sc_array_expand(void *a, size_t elem_size);
  */
 #define sc_array_del(a, i)                                                     \
 	do {                                                                   \
-		assert((i) < sc_array_meta(a)->size);                          \
-		const size_t cnt = sc_array_size(a) - (i) -1;                  \
-		if (cnt > 0) {                                                 \
-			memmove(&(a)[i], &(a)[(i) + 1], cnt * sizeof(*(a)));   \
+		assert((i) < (a)->size);                                       \
+		const size_t _cnt = (a)->size - (i) -1;                        \
+		if (_cnt > 0) {                                                \
+			memmove(&((a)->elems[i]), &((a)->elems[(i) + 1]),      \
+				_cnt * sizeof(*((a)->elems)));                 \
 		}                                                              \
-		sc_array_meta((a))->size--;                                    \
+		(a)->size--;                                                   \
 	} while (0)
 
 /**
- *   Deletes the element at index i, replaces last element with the deleted
- *   element unless deleted element is the last element. This is faster than
- *   moving elements but elements will no longer be in the 'add order'
+ * Deletes the element at index i, replaces last element with the deleted
+ * element unless deleted element is the last element. This is faster than
+ * moving elements but elements will no longer be in the 'add order'
  *
- *   arr[a,b,c,d,e,f] -> sc_array_del_unordered(vec, 2) - > arr[a,b,f,d,e]
+ * arr[a,b,c,d,e,f] -> sc_array_del_unordered(arr, 2) - > arr[a,b,f,d,e]
  *
- *   @param a array
- *   @param i index. If 'i' is out of the range, result is undefined.
+ * @param a array
+ * @param i index. If 'i' is out of the range, result is undefined.
  */
 #define sc_array_del_unordered(a, i)                                           \
 	do {                                                                   \
-		assert((i) < sc_array_meta(a)->size);                          \
-		(a)[i] = (a)[(--sc_array_meta((a))->size)];                    \
+		assert((i) < (a)->size);                                       \
+		(a)->elems[i] = (a)->elems[(--(a)->size)];                     \
 	} while (0)
 
 /**
- *   Deletes the last element. If current size is zero, result is undefined.
- *   @param a array
+ * Deletes the last element. If current size is zero, result is undefined.
+ * @param a array
  */
 #define sc_array_del_last(a)                                                   \
 	do {                                                                   \
-		assert(sc_array_meta(a)->size != 0);                           \
-		sc_array_meta(a)->size--;                                      \
+		assert((a)->size != 0);                                        \
+		(a)->size--;                                                   \
 	} while (0)
 
 /**
- *   Sorts the array using qsort()
- *   @param a   array.
- *   @param cmp comparator, check qsort() documentation for details
+ * Sorts the array using qsort()
+ * @param a   array
+ * @param cmp comparator, check qsort() documentation for details
  */
 #define sc_array_sort(a, cmp)                                                  \
-	(qsort((a), sc_array_size((a)), sc_array_sizeof(*(a)), cmp))
+	(qsort((a)->elems, (a)->size, sizeof(*(a)->elems), cmp))
 
 /**
- *  @param a    array
- *  @param elem elem
+ * Returns last element. If array is empty, result is undefined.
+ * @param a array
+ */
+#define sc_array_last(a) (a)->elems[(a)->size - 1]
+
+/**
+ * @param a    array
+ * @param elem elem
  */
 #define sc_array_foreach(a, elem)                                              \
-	for (size_t _k = 1, _i = 0; _k && _i != sc_array_size(a);              \
-	     _k = !_k, _i++)                                                   \
-		for ((elem) = (a)[_i]; _k; _k = !_k)
+	for (size_t _k = 1, _i = 0; _k && _i != (a)->size; _k = !_k, _i++)     \
+		for ((elem) = (a)->elems[_i]; _k; _k = !_k)
 
-/**
- *  Returns last element. If array is empty, result is undefined.
- *  @param a    array
- */
-#define sc_array_last(a) (a)[sc_array_size(a) - 1]
+//        (type, name)
+sc_array_def(int, int);
+sc_array_def(unsigned int, uint);
+sc_array_def(long, long);
+sc_array_def(unsigned long, ulong);
+sc_array_def(uint32_t, 32);
+sc_array_def(uint64_t, 64);
+sc_array_def(double, double);
+sc_array_def(const char *, str);
+sc_array_def(void *, ptr);
 
 #endif

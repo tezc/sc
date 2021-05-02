@@ -24,6 +24,30 @@ void example(void)
 	sc_map_term_str(&map);
 }
 
+void example_int_to_str()
+{
+	uint32_t key;
+	const char *value;
+	struct sc_map_64s map;
+
+	sc_map_init_64s(&map, 0, 0);
+
+	sc_map_put_64s(&map, 100, "chicago");
+	sc_map_put_64s(&map, 200, "new york");
+	sc_map_put_64s(&map, 300, "atlanta");
+
+	value = sc_map_del_64s(&map, 100);
+	if (sc_map_found(&map)) {
+		printf("Deleted : %s \n", value);
+	}
+
+	sc_map_foreach (&map, key, value) {
+		printf("Key:[%d], Value:[%s] \n", key, value);
+	}
+
+	sc_map_term_64s(&map);
+}
+
 static char *str_random(size_t size)
 {
 	static char ch[] = "0123456789"
@@ -45,7 +69,6 @@ static char *str_random(size_t size)
 
 void test_32()
 {
-	uint32_t val;
 	struct sc_map_32 map;
 
 	assert(sc_map_init_32(&map, 0, 0));
@@ -54,59 +77,75 @@ void test_32()
 	assert(sc_map_init_32(&map, 0, 99) == false);
 
 	assert(sc_map_init_32(&map, 16, 94));
-	assert(sc_map_del_32(&map, 0, NULL) == false);
-	assert(sc_map_del_32(&map, 1, NULL) == false);
+
+	sc_map_del_32(&map, 0);
+	assert(sc_map_found(&map) == false);
+
+	sc_map_del_32(&map, 1);
+	assert(sc_map_found(&map) == false);
 
 	for (int i = 0; i < 14; i++) {
-		assert(sc_map_put_32(&map, i, i) == true);
+		sc_map_put_32(&map, i, i);
+		assert(!sc_map_oom(&map));
 	}
 
 	for (int i = 100; i < 200; i++) {
-		assert(sc_map_del_32(&map, i, NULL) == false);
+		sc_map_del_32(&map, i);
+		assert(sc_map_found(&map) == false);
 	}
 
 	sc_map_clear_32(&map);
 	sc_map_clear_32(&map);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_32(&map, i, i) == true);
+		sc_map_put_32(&map, i, i);
 	}
-	assert(sc_map_put_32(&map, 31, 15) == true);
-	assert(sc_map_put_32(&map, 15, 15) == true);
-	assert(sc_map_put_32(&map, 46, 15) == true);
+	sc_map_put_32(&map, 31, 15);
+	sc_map_put_32(&map, 15, 15);
+	sc_map_put_32(&map, 46, 15);
 
-	assert(sc_map_get_32(&map, 19, &val) == false);
+	sc_map_get_32(&map, 19);
+	assert(sc_map_found(&map) == false);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_32(&map, (5 * i) + i, i) == true);
+		sc_map_put_32(&map, (5 * i) + i, i);
 	}
 
-	assert(sc_map_del_32(&map, 4, NULL) == true);
-	assert(sc_map_del_32(&map, 46, NULL) == true);
-	assert(sc_map_del_32(&map, 15, NULL) == true);
+	sc_map_del_32(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_32(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_32(&map, 15);
+	assert(sc_map_found(&map));
 
 	sc_map_clear_32(&map);
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_32(&map, 16 * i, i) == true);
+		sc_map_put_32(&map, 16 * i, i);
 	}
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_32(&map, 1024 * i, i) == true);
+		sc_map_put_32(&map, 1024 * i, i);
 	}
 
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_32(&map, 512 * i, i) == true);
+		sc_map_put_32(&map, 512 * i, i);
 	}
 
-	assert(sc_map_del_32(&map, 512, NULL) == true);
-	assert(sc_map_del_32(&map, 1024, NULL) == true);
-	assert(sc_map_del_32(&map, 48, NULL) == true);
+	sc_map_del_32(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_32(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_32(&map, 48);
+	assert(sc_map_found(&map));
 
 	sc_map_term_32(&map);
 }
 
 void test_64()
 {
-	uint64_t val;
 	struct sc_map_64 map;
 
 	assert(sc_map_init_64(&map, 0, 0));
@@ -115,59 +154,74 @@ void test_64()
 	assert(sc_map_init_64(&map, 0, 99) == false);
 
 	assert(sc_map_init_64(&map, 16, 94));
-	assert(sc_map_del_64(&map, 0, NULL) == false);
-	assert(sc_map_del_64(&map, 1, NULL) == false);
+
+	sc_map_del_64(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_64(&map, 1);
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
-		assert(sc_map_put_64(&map, i, i) == true);
+		sc_map_put_64(&map, i, i);
 	}
 
 	for (int i = 100; i < 200; i++) {
-		assert(sc_map_del_64(&map, i, NULL) == false);
+		sc_map_del_64(&map, i);
+		assert(!sc_map_found(&map));
 	}
 
 	sc_map_clear_64(&map);
 	sc_map_clear_64(&map);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_64(&map, i, i) == true);
+		sc_map_put_64(&map, i, i);
 	}
-	assert(sc_map_put_64(&map, 31, 15) == true);
-	assert(sc_map_put_64(&map, 15, 15) == true);
-	assert(sc_map_put_64(&map, 46, 15) == true);
+	sc_map_put_64(&map, 31, 15);
+	sc_map_put_64(&map, 15, 15);
+	sc_map_put_64(&map, 46, 15);
 
-	assert(sc_map_get_64(&map, 19, &val) == false);
+	sc_map_get_64(&map, 19);
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_64(&map, (5 * i) + i, i) == true);
+		sc_map_put_64(&map, (5 * i) + i, i);
 	}
 
-	assert(sc_map_del_64(&map, 4, NULL) == true);
-	assert(sc_map_del_64(&map, 46, NULL) == true);
-	assert(sc_map_del_64(&map, 15, NULL) == true);
+	sc_map_del_64(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64(&map, 15);
+	assert(sc_map_found(&map));
 
 	sc_map_clear_64(&map);
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64(&map, 16 * i, i) == true);
+		sc_map_put_64(&map, 16 * i, i);
 	}
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64(&map, 1024 * i, i) == true);
+		sc_map_put_64(&map, 1024 * i, i);
 	}
 
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64(&map, 512 * i, i) == true);
+		sc_map_put_64(&map, 512 * i, i);
 	}
 
-	assert(sc_map_del_64(&map, 512, NULL) == true);
-	assert(sc_map_del_64(&map, 1024, NULL) == true);
-	assert(sc_map_del_64(&map, 48, NULL) == true);
+	sc_map_del_64(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64(&map, 48);
+	assert(sc_map_found(&map));
 
 	sc_map_term_64(&map);
 }
 
 void test_64v()
 {
-	void *val;
 	struct sc_map_64v map;
 
 	assert(sc_map_init_64v(&map, 0, 0));
@@ -176,59 +230,74 @@ void test_64v()
 	assert(sc_map_init_64v(&map, 0, 99) == false);
 
 	assert(sc_map_init_64v(&map, 16, 94));
-	assert(sc_map_del_64v(&map, 0, NULL) == false);
-	assert(sc_map_del_64v(&map, 1, NULL) == false);
+	sc_map_del_64v(&map, 0);
+	assert(sc_map_found(&map) == false);
+
+	sc_map_del_64v(&map, 1);
+	assert(sc_map_found(&map) == false);
 
 	for (int i = 0; i < 14; i++) {
-		assert(sc_map_put_64v(&map, i, NULL) == true);
+		sc_map_put_64v(&map, i, NULL);
 	}
 
 	for (int i = 100; i < 200; i++) {
-		assert(sc_map_del_64v(&map, i, NULL) == false);
+		sc_map_del_64v(&map, i);
+		assert(sc_map_found(&map) == false);
 	}
 
 	sc_map_clear_64v(&map);
 	sc_map_clear_64v(&map);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_64v(&map, i, NULL) == true);
+		sc_map_put_64v(&map, i, NULL);
+		assert(!sc_map_found(&map));
 	}
-	assert(sc_map_put_64v(&map, 31, NULL) == true);
-	assert(sc_map_put_64v(&map, 15, NULL) == true);
-	assert(sc_map_put_64v(&map, 46, NULL) == true);
+	sc_map_put_64v(&map, 31, NULL);
+	sc_map_put_64v(&map, 15, NULL);
+	sc_map_put_64v(&map, 46, NULL);
 
-	assert(sc_map_get_64v(&map, 19, &val) == false);
+	sc_map_get_64v(&map, 19);
+	assert(sc_map_found(&map) == false);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_64v(&map, (5 * i) + i, NULL) == true);
+		sc_map_put_64v(&map, (5 * i) + i, NULL);
 	}
 
-	assert(sc_map_del_64v(&map, 4, NULL) == true);
-	assert(sc_map_del_64v(&map, 46, NULL) == true);
-	assert(sc_map_del_64v(&map, 15, NULL) == true);
+	sc_map_del_64v(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64v(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64v(&map, 15);
+	assert(sc_map_found(&map));
 
 	sc_map_clear_64v(&map);
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64v(&map, 16 * i, NULL) == true);
+		sc_map_put_64v(&map, 16 * i, NULL);
 	}
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64v(&map, 1024 * i, NULL) == true);
+		sc_map_put_64v(&map, 1024 * i, NULL);
 	}
 
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64v(&map, 512 * i, NULL) == true);
+		sc_map_put_64v(&map, 512 * i, NULL);
 	}
 
-	assert(sc_map_del_64v(&map, 512, NULL) == true);
-	assert(sc_map_del_64v(&map, 1024, NULL) == true);
-	assert(sc_map_del_64v(&map, 48, NULL) == true);
+	sc_map_del_64v(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64v(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64v(&map, 48);
+	assert(sc_map_found(&map));
 
 	sc_map_term_64v(&map);
 }
 
 void test_64s()
 {
-	const char *val;
 	struct sc_map_64s map;
 
 	assert(sc_map_init_64s(&map, 0, 0));
@@ -237,52 +306,67 @@ void test_64s()
 	assert(sc_map_init_64s(&map, 0, 99) == false);
 
 	assert(sc_map_init_64s(&map, 16, 94));
-	assert(sc_map_del_64s(&map, 0, NULL) == false);
-	assert(sc_map_del_64s(&map, 1, NULL) == false);
+	sc_map_del_64s(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_64s(&map, 1);
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
-		assert(sc_map_put_64s(&map, i, NULL) == true);
+		sc_map_put_64s(&map, i, NULL);
 	}
 
 	for (int i = 100; i < 200; i++) {
-		assert(sc_map_del_64s(&map, i, NULL) == false);
+		sc_map_del_64s(&map, i);
+		assert(!sc_map_found(&map));
 	}
 
 	sc_map_clear_64s(&map);
 	sc_map_clear_64s(&map);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_64s(&map, i, NULL) == true);
+		sc_map_put_64s(&map, i, NULL);
 	}
-	assert(sc_map_put_64s(&map, 31, NULL) == true);
-	assert(sc_map_put_64s(&map, 15, NULL) == true);
-	assert(sc_map_put_64s(&map, 46, NULL) == true);
+	sc_map_put_64s(&map, 31, NULL);
+	sc_map_put_64s(&map, 15, NULL);
+	sc_map_put_64s(&map, 46, NULL);
 
-	assert(sc_map_get_64s(&map, 19, &val) == false);
+	sc_map_get_64s(&map, 19);
+	assert(sc_map_found(&map) == false);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_64s(&map, (5 * i) + i, NULL) == true);
+		sc_map_put_64s(&map, (5 * i) + i, NULL);
 	}
 
-	assert(sc_map_del_64s(&map, 4, NULL) == true);
-	assert(sc_map_del_64s(&map, 46, NULL) == true);
-	assert(sc_map_del_64s(&map, 15, NULL) == true);
+	sc_map_del_64s(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64s(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64s(&map, 15);
+	assert(sc_map_found(&map));
 
 	sc_map_clear_64s(&map);
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64s(&map, 16 * i, NULL) == true);
+		sc_map_put_64s(&map, 16 * i, NULL);
 	}
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64s(&map, 1024 * i, NULL) == true);
+		sc_map_put_64s(&map, 1024 * i, NULL);
 	}
 
 	for (int i = 1; i < 4; i++) {
-		assert(sc_map_put_64s(&map, 512 * i, NULL) == true);
+		sc_map_put_64s(&map, 512 * i, NULL);
 	}
 
-	assert(sc_map_del_64s(&map, 512, NULL) == true);
-	assert(sc_map_del_64s(&map, 1024, NULL) == true);
-	assert(sc_map_del_64s(&map, 48, NULL) == true);
+	sc_map_del_64s(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64s(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_64s(&map, 48);
+	assert(sc_map_found(&map));
 
 	sc_map_term_64s(&map);
 }
@@ -291,7 +375,6 @@ void test_str()
 {
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
-	const char *val;
 	struct sc_map_str map;
 
 	assert(sc_map_init_str(&map, 0, 0));
@@ -300,62 +383,95 @@ void test_str()
 	assert(sc_map_init_str(&map, 0, 99) == false);
 
 	assert(sc_map_init_str(&map, 16, 94));
-	assert(sc_map_del_str(&map, NULL, NULL) == false);
-	assert(sc_map_del_str(&map, "", NULL) == false);
+
+	sc_map_del_str(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_str(&map, "");
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
-		assert(sc_map_put_str(&map, &arr[i], NULL) == true);
+		sc_map_put_str(&map, &arr[i], NULL);
 	}
 
 	for (int i = 15; i < 30; i++) {
-		assert(sc_map_del_str(&map, &arr[i], NULL) == false);
+		sc_map_del_str(&map, &arr[i]);
+		assert(!sc_map_found(&map));
 	}
 
 	sc_map_clear_str(&map);
 	sc_map_clear_str(&map);
 
-	assert(sc_map_put_str(&map, "h", NULL) == true);
-	assert(sc_map_put_str(&map, "z", NULL) == true);
-	assert(sc_map_get_str(&map, "13", &val) == false);
-	assert(sc_map_get_str(&map, NULL, &val) == false);
-	assert(sc_map_get_str(&map, "h", &val) == true);
-	assert(sc_map_get_str(&map, "z", &val) == true);
-	assert(sc_map_get_str(&map, "x", &val) == false);
-	assert(sc_map_put_str(&map, NULL, NULL) == true);
-	assert(sc_map_get_str(&map, NULL, &val) == true);
-	assert(sc_map_del_str(&map, NULL, &val) == true);
-	assert(sc_map_del_str(&map, "h", &val) == true);
-	assert(sc_map_del_str(&map, "13", &val) == false);
+	sc_map_put_str(&map, "h", NULL);
+	sc_map_put_str(&map, "z", NULL);
+	sc_map_get_str(&map, "13");
+	assert(!sc_map_found(&map));
+
+	sc_map_get_str(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_str(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_get_str(&map, "z");
+	assert(sc_map_found(&map));
+
+	sc_map_get_str(&map, "x");
+	assert(!sc_map_found(&map));
+
+	sc_map_put_str(&map, NULL, NULL);
+
+	sc_map_get_str(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_str(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_str(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_del_str(&map, "13");
+	assert(!sc_map_found(&map));
+
 	sc_map_clear_str(&map);
 	assert(sc_map_size_str(&map) == 0);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_str(&map, &arr[i], NULL) == true);
+		sc_map_put_str(&map, &arr[i], NULL);
 	}
-	assert(sc_map_put_str(&map, &arr[15], NULL) == true);
-	assert(sc_map_put_str(&map, &arr[7], NULL) == true);
-	assert(sc_map_put_str(&map, &arr[9], NULL) == true);
+	sc_map_put_str(&map, &arr[15], NULL);
+	sc_map_put_str(&map, &arr[7], NULL);
+	sc_map_put_str(&map, &arr[9], NULL);
 
-	assert(sc_map_get_str(&map, &arr[16], &val) == false);
+	sc_map_get_str(&map, &arr[16]);
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_str(&map, &arr[(5 * i) + i], NULL) == true);
+		sc_map_put_str(&map, &arr[(5 * i) + i], NULL);
 	}
 
-	assert(sc_map_del_str(&map, &arr[4], NULL) == true);
-	assert(sc_map_del_str(&map, &arr[6], NULL) == true);
-	assert(sc_map_del_str(&map, &arr[15], NULL) == true);
+	sc_map_del_str(&map, &arr[4]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_str(&map, &arr[6]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_str(&map, &arr[15]);
+	assert(sc_map_found(&map));
 
 	sc_map_clear_str(&map);
-	assert(sc_map_put_str(&map, "h", NULL) == true);
-	assert(sc_map_put_str(&map, "z", NULL) == true);
-	assert(sc_map_del_str(&map, "h", NULL) == true);
+	sc_map_put_str(&map, "h", NULL);
+	sc_map_put_str(&map, "z", NULL);
+	sc_map_del_str(&map, "h");
+	assert(sc_map_found(&map));
+
 	sc_map_clear_str(&map);
 
-	assert(sc_map_put_str(&map, "h", NULL) == true);
-	assert(sc_map_put_str(&map, "z", NULL) == true);
-	assert(sc_map_put_str(&map, "13", NULL) == true);
-	assert(sc_map_del_str(&map, "z", NULL) == true);
+	sc_map_put_str(&map, "h", NULL);
+	sc_map_put_str(&map, "z", NULL);
+	sc_map_put_str(&map, "13", NULL);
+	sc_map_del_str(&map, "z");
+	assert(sc_map_found(&map));
 
 	sc_map_term_str(&map);
 }
@@ -364,7 +480,6 @@ void test_sv()
 {
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
-	void *val;
 	struct sc_map_sv map;
 
 	assert(sc_map_init_sv(&map, 0, 0));
@@ -373,62 +488,93 @@ void test_sv()
 	assert(sc_map_init_sv(&map, 0, 99) == false);
 
 	assert(sc_map_init_sv(&map, 16, 94));
-	assert(sc_map_del_sv(&map, NULL, NULL) == false);
-	assert(sc_map_del_sv(&map, "", NULL) == false);
+	sc_map_del_sv(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_sv(&map, "");
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
-		assert(sc_map_put_sv(&map, &arr[i], NULL) == true);
+		sc_map_put_sv(&map, &arr[i], NULL);
 	}
 
 	for (int i = 15; i < 30; i++) {
-		assert(sc_map_del_sv(&map, &arr[i], NULL) == false);
+		sc_map_del_sv(&map, &arr[i]);
+		assert(!sc_map_found(&map));
 	}
 
 	sc_map_clear_sv(&map);
 	sc_map_clear_sv(&map);
 
-	assert(sc_map_put_sv(&map, "h", NULL) == true);
-	assert(sc_map_put_sv(&map, "z", NULL) == true);
-	assert(sc_map_get_sv(&map, "13", &val) == false);
-	assert(sc_map_get_sv(&map, NULL, &val) == false);
-	assert(sc_map_get_sv(&map, "h", &val) == true);
-	assert(sc_map_get_sv(&map, "z", &val) == true);
-	assert(sc_map_get_sv(&map, "x", &val) == false);
-	assert(sc_map_put_sv(&map, NULL, NULL) == true);
-	assert(sc_map_get_sv(&map, NULL, &val) == true);
-	assert(sc_map_del_sv(&map, NULL, &val) == true);
-	assert(sc_map_del_sv(&map, "h", &val) == true);
-	assert(sc_map_del_sv(&map, "13", &val) == false);
+	sc_map_put_sv(&map, "h", NULL);
+	sc_map_put_sv(&map, "z", NULL);
+
+	sc_map_get_sv(&map, "13");
+	assert(!sc_map_found(&map));
+
+	sc_map_get_sv(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_sv(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_get_sv(&map, "z");
+	assert(sc_map_found(&map));
+
+	sc_map_get_sv(&map, "x");
+	assert(!sc_map_found(&map));
+
+	sc_map_put_sv(&map, NULL, NULL);
+	sc_map_get_sv(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sv(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sv(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_del_sv(&map, "13");
+	assert(!sc_map_found(&map));
+
 	sc_map_clear_sv(&map);
 	assert(sc_map_size_sv(&map) == 0);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_sv(&map, &arr[i], NULL) == true);
+		sc_map_put_sv(&map, &arr[i], NULL);
 	}
-	assert(sc_map_put_sv(&map, &arr[15], NULL) == true);
-	assert(sc_map_put_sv(&map, &arr[7], NULL) == true);
-	assert(sc_map_put_sv(&map, &arr[9], NULL) == true);
+	sc_map_put_sv(&map, &arr[15], NULL);
+	sc_map_put_sv(&map, &arr[7], NULL);
+	sc_map_put_sv(&map, &arr[9], NULL);
 
-	assert(sc_map_get_sv(&map, &arr[16], &val) == false);
+	sc_map_get_sv(&map, &arr[16]);
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_sv(&map, &arr[(5 * i) + i], NULL) == true);
+		sc_map_put_sv(&map, &arr[(5 * i) + i], NULL);
 	}
 
-	assert(sc_map_del_sv(&map, &arr[4], NULL) == true);
-	assert(sc_map_del_sv(&map, &arr[6], NULL) == true);
-	assert(sc_map_del_sv(&map, &arr[15], NULL) == true);
+	sc_map_del_sv(&map, &arr[4]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sv(&map, &arr[6]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sv(&map, &arr[15]);
+	assert(sc_map_found(&map));
 
 	sc_map_clear_sv(&map);
-	assert(sc_map_put_sv(&map, "h", NULL) == true);
-	assert(sc_map_put_sv(&map, "z", NULL) == true);
-	assert(sc_map_del_sv(&map, "h", NULL) == true);
+	sc_map_put_sv(&map, "h", NULL);
+	sc_map_put_sv(&map, "z", NULL);
+	sc_map_del_sv(&map, "h");
+	assert(sc_map_found(&map));
 	sc_map_clear_sv(&map);
 
-	assert(sc_map_put_sv(&map, "h", NULL) == true);
-	assert(sc_map_put_sv(&map, "z", NULL) == true);
-	assert(sc_map_put_sv(&map, "13", NULL) == true);
-	assert(sc_map_del_sv(&map, "z", NULL) == true);
+	sc_map_put_sv(&map, "h", NULL);
+	sc_map_put_sv(&map, "z", NULL);
+	sc_map_put_sv(&map, "13", NULL);
+	sc_map_del_sv(&map, "z");
+	assert(sc_map_found(&map));
 
 	sc_map_term_sv(&map);
 }
@@ -437,7 +583,6 @@ void test_s64()
 {
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
-	uint64_t val;
 	struct sc_map_s64 map;
 
 	assert(sc_map_init_s64(&map, 0, 0));
@@ -446,64 +591,148 @@ void test_s64()
 	assert(sc_map_init_s64(&map, 0, 99) == false);
 
 	assert(sc_map_init_s64(&map, 16, 94));
-	assert(sc_map_del_s64(&map, NULL, NULL) == false);
-	assert(sc_map_del_s64(&map, "", NULL) == false);
+	sc_map_del_s64(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_s64(&map, "");
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
-		assert(sc_map_put_s64(&map, &arr[i], 0) == true);
+		sc_map_put_s64(&map, &arr[i], 0);
 	}
 
 	for (int i = 15; i < 30; i++) {
-		assert(sc_map_del_s64(&map, &arr[i], NULL) == false);
+		sc_map_del_s64(&map, &arr[i]);
+		assert(!sc_map_found(&map));
 	}
 
 	sc_map_clear_s64(&map);
 	sc_map_clear_s64(&map);
 
-	assert(sc_map_put_s64(&map, "h", 0) == true);
-	assert(sc_map_put_s64(&map, "z", 0) == true);
-	assert(sc_map_get_s64(&map, "13", &val) == false);
-	assert(sc_map_get_s64(&map, NULL, &val) == false);
-	assert(sc_map_get_s64(&map, "h", &val) == true);
-	assert(sc_map_get_s64(&map, "z", &val) == true);
-	assert(sc_map_get_s64(&map, "x", &val) == false);
-	assert(sc_map_put_s64(&map, NULL, 0) == true);
-	assert(sc_map_get_s64(&map, NULL, &val) == true);
-	assert(sc_map_del_s64(&map, NULL, &val) == true);
-	assert(sc_map_del_s64(&map, "h", &val) == true);
-	assert(sc_map_del_s64(&map, "13", &val) == false);
+	sc_map_put_s64(&map, "h", 0);
+	sc_map_put_s64(&map, "z", 0);
+
+	sc_map_get_s64(&map, "13");
+	assert(!sc_map_found(&map));
+
+	sc_map_get_s64(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_s64(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_get_s64(&map, "z");
+	assert(sc_map_found(&map));
+
+	sc_map_get_s64(&map, "x");
+	assert(!sc_map_found(&map));
+
+	sc_map_put_s64(&map, NULL, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_s64(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_s64(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_s64(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_del_s64(&map, "13");
+	assert(!sc_map_found(&map));
 	sc_map_clear_s64(&map);
 	assert(sc_map_size_s64(&map) == 0);
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_s64(&map, &arr[i], 0) == true);
+		sc_map_put_s64(&map, &arr[i], 0);
 	}
-	assert(sc_map_put_s64(&map, &arr[15], 0) == true);
-	assert(sc_map_put_s64(&map, &arr[7], 0) == true);
-	assert(sc_map_put_s64(&map, &arr[9], 0) == true);
+	sc_map_put_s64(&map, &arr[15], 0);
+	sc_map_put_s64(&map, &arr[7], 0);
+	sc_map_put_s64(&map, &arr[9], 0);
 
-	assert(sc_map_get_s64(&map, &arr[16], &val) == false);
+	assert(!sc_map_oom(&map));
+
+	sc_map_get_s64(&map, &arr[16]);
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 5; i++) {
-		assert(sc_map_put_s64(&map, &arr[(5 * i) + i], 0) == true);
+		sc_map_put_s64(&map, &arr[(5 * i) + i], 0);
+		assert(!sc_map_oom(&map));
 	}
 
-	assert(sc_map_del_s64(&map, &arr[4], NULL) == true);
-	assert(sc_map_del_s64(&map, &arr[6], NULL) == true);
-	assert(sc_map_del_s64(&map, &arr[15], NULL) == true);
+	sc_map_del_s64(&map, &arr[4]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_s64(&map, &arr[6]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_s64(&map, &arr[15]);
+	assert(sc_map_found(&map));
 
 	sc_map_clear_s64(&map);
-	assert(sc_map_put_s64(&map, "h", 0) == true);
-	assert(sc_map_put_s64(&map, "z", 0) == true);
-	assert(sc_map_del_s64(&map, "h", 0) == true);
+	sc_map_put_s64(&map, "h", 0);
+	sc_map_put_s64(&map, "z", 0);
+	sc_map_del_s64(&map, "h");
+	assert(sc_map_found(&map));
+
 	sc_map_clear_s64(&map);
 
-	assert(sc_map_put_s64(&map, "h", 0) == true);
-	assert(sc_map_put_s64(&map, "z", 0) == true);
-	assert(sc_map_put_s64(&map, "13", 0) == true);
-	assert(sc_map_del_s64(&map, "z", 0) == true);
+	sc_map_put_s64(&map, "h", 0);
+	sc_map_put_s64(&map, "z", 0);
+	sc_map_put_s64(&map, "13", 0);
+	sc_map_del_s64(&map, "z");
+	assert(sc_map_found(&map));
 
 	sc_map_term_s64(&map);
+}
+
+void test0()
+{
+	uint64_t val;
+	struct sc_map_64 map;
+
+	sc_map_init_64(&map, 128, 0);
+
+	sc_map_put_64(&map, 100, 100);
+	assert(!sc_map_oom(&map));
+	assert(!sc_map_found(&map));
+
+	val = sc_map_get_64(&map, 100);
+	assert(val == 100);
+	assert(sc_map_found(&map));
+
+	val = sc_map_put_64(&map, 100, 200);
+	assert(sc_map_found(&map));
+	assert(val == 100);
+
+	val = sc_map_get_64(&map, 100);
+	assert(val == 200);
+	assert(sc_map_found(&map));
+
+	val = sc_map_del_64(&map, 100);
+	assert(sc_map_found(&map));
+	assert(val == 200);
+
+	val = sc_map_put_64(&map, 1, 1);
+	assert(!sc_map_found(&map));
+	val = sc_map_del_64(&map, 2);
+	assert(!sc_map_found(&map));
+	val = sc_map_get_64(&map, 1);
+	assert(sc_map_found(&map));
+	assert(val == 1);
+	val = sc_map_put_64(&map, 2, 2);
+	assert(!sc_map_found(&map));
+
+	val = sc_map_del_64(&map, 1);
+	assert(sc_map_found(&map));
+	assert(val == 1);
+
+	val = sc_map_del_64(&map, 2);
+	assert(sc_map_found(&map));
+	assert(val == 2);
+
+	sc_map_term_64(&map);
 }
 
 void test1()
@@ -520,11 +749,11 @@ void test1()
 
 	sc_map_init_str(&map, 0, 0);
 	sc_map_put_str(&map, "100", "200");
-	sc_map_get_str(&map, "100", &value);
+	value = sc_map_get_str(&map, "100");
 	assert(strcmp(value, "200") == 0);
 	sc_map_term_str(&map);
 	sc_map_put_str(&map, "100", "200");
-	sc_map_get_str(&map, "100", &value);
+	value = sc_map_get_str(&map, "100");
 	assert(strcmp(value, "200") == 0);
 	sc_map_term_str(&map);
 
@@ -550,36 +779,45 @@ void test1()
 		assert(false);
 	}
 
-	assert(sc_map_put_str(&map, "key", "value"));
-	assert(sc_map_put_str(&map, "key", "value2"));
-	assert(sc_map_get_str(&map, "key", &value));
+	sc_map_put_str(&map, "key", "value");
+	sc_map_put_str(&map, "key", "value2");
+
+	value = sc_map_get_str(&map, "key");
+	assert(sc_map_found(&map));
 	assert(strcmp(value, "value2") == 0);
 
-	assert(sc_map_del_str(&map, "key", NULL));
-	assert(!sc_map_get_str(&map, "key", &value));
-	assert(sc_map_put_str(&map, "key", "value3"));
-	assert(sc_map_del_str(&map, "key", &value));
+	value = sc_map_del_str(&map, "key");
+	assert(sc_map_found(&map));
+	value = sc_map_get_str(&map, "key");
+	assert(!sc_map_found(&map));
+	sc_map_put_str(&map, "key", "value3");
+	value = sc_map_del_str(&map, "key");
+	assert(sc_map_found(&map));
 	assert(strcmp(value, "value3") == 0);
-	assert(!sc_map_del_str(&map, "key", &value));
+	key = sc_map_del_str(&map, "key");
+	assert(!sc_map_found(&map));
 
-	assert(sc_map_put_str(&map, "key", "value"));
+	sc_map_put_str(&map, "key", "value");
 	assert(sc_map_size_str(&map) == 1);
-	assert(sc_map_put_str(&map, NULL, "nullvalue"));
+	sc_map_put_str(&map, NULL, "nullvalue");
 	assert(sc_map_size_str(&map) == 2);
-	assert(sc_map_get_str(&map, NULL, &value));
+	value = sc_map_get_str(&map, NULL);
+	assert(sc_map_found(&map));
 	assert(strcmp(value, "nullvalue") == 0);
-	assert(sc_map_del_str(&map, NULL, NULL));
+	sc_map_del_str(&map, NULL);
+	assert(sc_map_found(&map));
 	assert(sc_map_size_str(&map) == 1);
 
 	sc_map_clear_str(&map);
 	assert(sc_map_size_str(&map) == 0);
 
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_put_str(&map, keys[i], values[i]));
+		sc_map_put_str(&map, keys[i], values[i]);
 	}
 
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_get_str(&map, keys[i], &value));
+		value = sc_map_get_str(&map, keys[i]);
+		assert(sc_map_found(&map));
 		assert(strcmp(value, values[i]) == 0);
 	}
 
@@ -591,11 +829,12 @@ void test1()
 	assert(sc_map_size_str(&map) == 0);
 
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_put_str(&map, keys[i], values[i]));
+		sc_map_put_str(&map, keys[i], values[i]);
 	}
 
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_get_str(&map, keys[i], &value));
+		value = sc_map_get_str(&map, keys[i]);
+		assert(sc_map_found(&map));
 		assert(strcmp(value, values[i]) == 0);
 	}
 
@@ -603,7 +842,7 @@ void test1()
 
 	assert(sc_map_init_str(&map, 0, 0));
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_put_str(&map, keys[i], values[i]));
+		sc_map_put_str(&map, keys[i], values[i]);
 	}
 
 	bool found;
@@ -671,21 +910,24 @@ retry:
 
 	assert(sc_map_init_32(&map, 16, 50));
 	assert(sc_map_size_32(&map) == 0);
-	assert(sc_map_put_32(&map, 0, 0));
+	sc_map_put_32(&map, 0, 0);
 	sc_map_clear_32(&map);
 	assert(sc_map_size_32(&map) == 0);
 
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_put_32(&map, keys[i], values[i]));
-		assert(sc_map_get_32(&map, keys[i], &value));
+		sc_map_put_32(&map, keys[i], values[i]);
+		value = sc_map_get_32(&map, keys[i]);
+		assert(sc_map_found(&map));
 		assert(value == values[i]);
-		assert(sc_map_put_32(&map, keys[i], values[i]));
-		assert(sc_map_del_32(&map, keys[i], &value));
+		sc_map_put_32(&map, keys[i], values[i]);
+
+		value = sc_map_del_32(&map, keys[i]);
+		assert(sc_map_found(&map));
 		assert(value == values[i]);
 	}
 
 	for (int i = 0; i < 128; i++) {
-		assert(sc_map_put_32(&map, keys[i], values[i]));
+		sc_map_put_32(&map, keys[i], values[i]);
 	}
 
 	assert(sc_map_size_32(&map) == 128);
@@ -750,21 +992,24 @@ retry:
 
 	assert(sc_map_init_64(&map, 16, 50));
 	assert(sc_map_size_64(&map) == 0);
-	assert(sc_map_put_64(&map, 0, 0));
+	sc_map_put_64(&map, 0, 0);
 	sc_map_clear_64(&map);
 	assert(sc_map_size_64(&map) == 0);
 
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_put_64(&map, keys[i], values[i]));
-		assert(sc_map_get_64(&map, keys[i], &value));
+		sc_map_put_64(&map, keys[i], values[i]);
+		value = sc_map_get_64(&map, keys[i]);
+		assert(sc_map_found(&map));
 		assert(value == values[i]);
-		assert(sc_map_put_64(&map, keys[i], values[i]));
-		assert(sc_map_del_64(&map, keys[i], &value));
+
+		sc_map_put_64(&map, keys[i], values[i]);
+		value = sc_map_del_64(&map, keys[i]);
+		assert(sc_map_found(&map));
 		assert(value == values[i]);
 	}
 
 	for (int i = 0; i < 128; i++) {
-		assert(sc_map_put_64(&map, keys[i], values[i]));
+		sc_map_put_64(&map, keys[i], values[i]);
 	}
 
 	assert(sc_map_size_64(&map) == 128);
@@ -813,39 +1058,43 @@ void test4()
 
 	assert(sc_map_init_64s(&map64s, 1, 87));
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_put_64s(&map64s, i, NULL));
-		assert(sc_map_get_64s(&map64s, i, &c));
+		sc_map_put_64s(&map64s, i, NULL);
+		c = sc_map_get_64s(&map64s, i);
+		assert(sc_map_found(&map64s));
 		assert(c == NULL);
 	}
 	assert(sc_map_size_64s(&map64s) == 100);
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_del_64s(&map64s, i, &c));
+		c = sc_map_del_64s(&map64s, i);
+		assert(sc_map_found(&map64s));
 		assert(c == NULL);
 	}
 	assert(sc_map_size_64s(&map64s) == 0);
-	assert(sc_map_put_64s(&map64s, 3, NULL));
+	sc_map_put_64s(&map64s, 3, NULL);
 	assert(sc_map_size_64s(&map64s) == 1);
 	sc_map_clear_64s(&map64s);
 	assert(sc_map_size_64s(&map64s) == 0);
 
 	sc_map_term_64s(&map64s);
 
-	void *v;
+	const char *v;
 	struct sc_map_64v map64v;
 
 	assert(sc_map_init_64v(&map64v, 1, 87));
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_put_64v(&map64v, i, NULL));
-		assert(sc_map_get_64v(&map64v, i, &v));
-		assert(c == NULL);
+		sc_map_put_64v(&map64v, i, NULL);
+		v = sc_map_get_64v(&map64v, i);
+		assert(sc_map_found(&map64v));
+		assert(v == NULL);
 	}
 	assert(sc_map_size_64v(&map64v) == 100);
 	for (int i = 0; i < 100; i++) {
-		assert(sc_map_del_64v(&map64v, i, &v));
+		v = sc_map_del_64v(&map64v, i);
+		assert(sc_map_found(&map64v));
 		assert(v == NULL);
 	}
 	assert(sc_map_size_64v(&map64v) == 0);
-	assert(sc_map_put_64v(&map64v, 3, NULL));
+	sc_map_put_64v(&map64v, 3, NULL);
 	assert(sc_map_size_64v(&map64v) == 1);
 	sc_map_clear_64v(&map64v);
 	assert(sc_map_size_64v(&map64v) == 0);
@@ -863,13 +1112,16 @@ void test4()
 	struct sc_map_str mapstr;
 	assert(sc_map_init_str(&mapstr, 0, 26));
 	for (int i = 0; i < 64; i++) {
-		assert(sc_map_put_str(&mapstr, keys[i],
-				      (void *) (uintptr_t) i));
+		sc_map_put_str(&mapstr, keys[i], (void *) (uintptr_t) i);
 	}
-	assert(sc_map_get_str(&mapstr, keys[0], (const char **) &v));
+
+	v = sc_map_get_str(&mapstr, keys[0]);
+	assert(sc_map_found(&mapstr));
 	assert(v == 0);
 	assert(sc_map_size_str(&mapstr) == 64);
-	assert(sc_map_del_str(&mapstr, keys[12], (const char **) &v));
+
+	v = sc_map_del_str(&mapstr, keys[12]);
+	assert(sc_map_found(&mapstr));
 	assert(v == (void *) 12);
 	assert(sc_map_size_str(&mapstr) == 63);
 	sc_map_clear_str(&mapstr);
@@ -878,12 +1130,15 @@ void test4()
 	struct sc_map_sv mapsv;
 	assert(sc_map_init_sv(&mapsv, 0, 26));
 	for (int i = 0; i < 64; i++) {
-		assert(sc_map_put_sv(&mapsv, keys[i], (void *) (uintptr_t) i));
+		sc_map_put_sv(&mapsv, keys[i], (void *) (uintptr_t) i);
 	}
-	assert(sc_map_get_sv(&mapsv, keys[0], &v));
+	v = sc_map_get_sv(&mapsv, keys[0]);
+	assert(sc_map_found(&mapsv));
 	assert(v == 0);
 	assert(sc_map_size_sv(&mapsv) == 64);
-	assert(sc_map_del_sv(&mapsv, keys[12], &v));
+
+	v = sc_map_del_sv(&mapsv, keys[12]);
+	assert(sc_map_found(&mapsv));
 	assert(v == (void *) 12);
 	assert(sc_map_size_sv(&mapsv) == 63);
 	sc_map_clear_sv(&mapsv);
@@ -894,12 +1149,16 @@ void test4()
 
 	assert(sc_map_init_s64(&maps64, 0, 26));
 	for (int i = 0; i < 64; i++) {
-		assert(sc_map_put_s64(&maps64, keys[i], i));
+		sc_map_put_s64(&maps64, keys[i], i);
 	}
-	assert(sc_map_get_s64(&maps64, keys[0], &val));
+
+	val = sc_map_get_s64(&maps64, keys[0]);
+	assert(sc_map_found(&maps64));
 	assert(val == 0);
 	assert(sc_map_size_s64(&maps64) == 64);
-	assert(sc_map_del_s64(&maps64, keys[12], &val));
+
+	val = sc_map_del_s64(&maps64, keys[12]);
+	assert(sc_map_found(&maps64));
 	assert(val == 12);
 	assert(sc_map_size_s64(&maps64) == 63);
 	sc_map_clear_s64(&maps64);
@@ -950,7 +1209,6 @@ static void test6()
 {
 	const int count = 120000;
 	uint32_t val;
-	bool b, exists;
 	struct sc_map_32 map;
 
 	srand(time(NULL));
@@ -965,28 +1223,23 @@ static void test6()
 
 	sc_map_init_32(&map, 0, 0);
 	for (int i = 0; i < count; i++) {
-		b = sc_map_put_32(&map, keys[i], values[i]);
-		assert(b);
+		sc_map_put_32(&map, keys[i], values[i]);
 
 		if (i % 7 == 0 || i % 17 == 0 || i % 79 == 0) {
-			b = sc_map_del_32(&map, keys[i], &val);
-			assert(b);
+			val = sc_map_del_32(&map, keys[i]);
+			assert(sc_map_found(&map));
 			assert(val == values[i]);
 		}
 	}
 
 	for (int i = 0; i < count; i++) {
-		exists = true;
 		if (i % 7 == 0 || i % 17 == 0 || i % 79 == 0) {
-			exists = false;
+			continue;
 		}
 
-		b = sc_map_get_32(&map, keys[i], &val);
-		assert(b == exists);
-
-		if (b) {
-			assert(val == values[i]);
-		}
+		val = sc_map_get_32(&map, keys[i]);
+		assert(sc_map_found(&map));
+		assert(val == values[i]);
 	}
 
 	sc_map_term_32(&map);
@@ -1018,18 +1271,18 @@ void fail_test_32()
 	assert(sc_map_init_32(&map, 10, 0));
 
 	fail_calloc = true;
-	bool success = true;
+
 	for (int i = 0; i < 20; i++) {
-		success = sc_map_put_32(&map, i, i);
+		sc_map_put_32(&map, i, i);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
-	assert(sc_map_put_32(&map, 44444, 44444));
+	sc_map_put_32(&map, 44444, 44444);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
-		success = sc_map_put_32(&map, i, i);
+		sc_map_put_32(&map, i, i);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
 
 	sc_map_term_32(&map);
@@ -1045,18 +1298,18 @@ void fail_test_64()
 	assert(sc_map_init_64(&map, 10, 0));
 
 	fail_calloc = true;
-	bool success = true;
+
 	for (int i = 0; i < 20; i++) {
-		success = sc_map_put_64(&map, i, i);
+		sc_map_put_64(&map, i, i);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
-	assert(sc_map_put_64(&map, 44444, 44444));
+	sc_map_put_64(&map, 44444, 44444);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
-		success = sc_map_put_64(&map, i, i);
+		sc_map_put_64(&map, i, i);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
 
 	sc_map_term_64(&map);
@@ -1072,18 +1325,18 @@ void fail_test_64v()
 	assert(sc_map_init_64v(&map, 10, 0));
 
 	fail_calloc = true;
-	bool success = true;
+
 	for (int i = 0; i < 20; i++) {
-		success = sc_map_put_64v(&map, i, NULL);
+		sc_map_put_64v(&map, i, NULL);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
-	assert(sc_map_put_64v(&map, 44444, NULL));
+	sc_map_put_64v(&map, 44444, NULL);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
-		success = sc_map_put_64v(&map, i, NULL);
+		sc_map_put_64v(&map, i, NULL);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
 
 	sc_map_term_64v(&map);
@@ -1099,18 +1352,18 @@ void fail_test_64s()
 	assert(sc_map_init_64s(&map, 10, 0));
 
 	fail_calloc = true;
-	bool success = true;
+
 	for (int i = 0; i < 20; i++) {
-		success = sc_map_put_64s(&map, i, NULL);
+		sc_map_put_64s(&map, i, NULL);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
-	assert(sc_map_put_64s(&map, 44444, NULL));
+	sc_map_put_64s(&map, 44444, NULL);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
-		success = sc_map_put_64s(&map, i, NULL);
+		sc_map_put_64s(&map, i, NULL);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
 
 	sc_map_term_64s(&map);
@@ -1128,24 +1381,25 @@ void fail_test_str()
 	assert(sc_map_init_str(&map, 10, 0));
 
 	fail_calloc = true;
-	bool success = true;
+
 	for (int i = 0; i < 20; i++) {
-		success = sc_map_put_str(&map, &s[i], NULL);
+		sc_map_put_str(&map, &s[i], NULL);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
-	assert(sc_map_put_str(&map, &s[21], NULL));
+	sc_map_put_str(&map, &s[21], NULL);
 	sc_map_clear_str(&map);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		char *c = str_random(32);
-		success = sc_map_put_str(&map, c, NULL);
-		if (!success) {
+
+		sc_map_put_str(&map, c, NULL);
+		if (sc_map_oom(&map)) {
 			free(c);
 			break;
 		}
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
 
 	sc_map_foreach_key (&map, v) {
@@ -1167,24 +1421,24 @@ void fail_test_sv()
 	assert(sc_map_init_sv(&map, 10, 0));
 
 	fail_calloc = true;
-	bool success = true;
+
 	for (int i = 0; i < 20; i++) {
-		success = sc_map_put_sv(&map, &s[i], NULL);
+		sc_map_put_sv(&map, &s[i], NULL);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
-	assert(sc_map_put_sv(&map, &s[21], NULL));
+	sc_map_put_sv(&map, &s[21], NULL);
 	sc_map_clear_sv(&map);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		char *c = str_random(32);
-		success = sc_map_put_sv(&map, c, NULL);
-		if (!success) {
+		sc_map_put_sv(&map, c, NULL);
+		if (sc_map_oom(&map)) {
 			free(c);
 			break;
 		}
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
 
 	sc_map_foreach_key (&map, v) {
@@ -1206,24 +1460,24 @@ void fail_test_s64()
 	assert(sc_map_init_s64(&map, 10, 0));
 
 	fail_calloc = true;
-	bool success = true;
+
 	for (int i = 0; i < 20; i++) {
-		success = sc_map_put_s64(&map, &s[i], 0);
+		sc_map_put_s64(&map, &s[i], 0);
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
-	assert(sc_map_put_s64(&map, &s[21], 0));
+	sc_map_put_s64(&map, &s[21], 0);
 	sc_map_clear_s64(&map);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
 		char *c = str_random(32);
-		success = sc_map_put_s64(&map, c, 0);
-		if (!success) {
+		sc_map_put_s64(&map, c, 0);
+		if (sc_map_oom(&map)) {
 			free(c);
 			break;
 		}
 	}
-	assert(!success);
+	assert(sc_map_oom(&map));
 	fail_calloc = false;
 
 	sc_map_foreach_key (&map, v) {
@@ -1260,6 +1514,7 @@ void fail_test_s64(void)
 int main()
 {
 	example();
+	example_int_to_str();
 	fail_test_32();
 	fail_test_64();
 	fail_test_64v();
@@ -1267,6 +1522,7 @@ int main()
 	fail_test_str();
 	fail_test_sv();
 	fail_test_s64();
+	test0();
 	test1();
 	test2();
 	test3();

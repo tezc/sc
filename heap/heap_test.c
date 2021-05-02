@@ -18,8 +18,8 @@ int example(void)
 			   {5, "fifth"},
 			   {3, "third"},
 			   {2, "second"}};
-	int64_t key;
-	void *data;
+
+	struct sc_heap_data *elem;
 	struct sc_heap heap;
 
 	sc_heap_init(&heap, 0);
@@ -29,8 +29,8 @@ int example(void)
 		sc_heap_add(&heap, n[i].priority, n[i].data);
 	}
 
-	while (sc_heap_pop(&heap, &key, &data)) {
-		printf("key = %d, data = %s \n", (int) key, (char *) data);
+	while ((elem = sc_heap_pop(&heap)) != NULL) {
+		printf("key = %d, data = %s \n", (int) elem->key, elem->data);
 	}
 	printf("---------------- \n");
 
@@ -40,8 +40,8 @@ int example(void)
 		sc_heap_add(&heap, -(n[i].priority), n[i].data);
 	}
 
-	while (sc_heap_pop(&heap, &key, &data)) {
-		printf("key = %d, data = %s \n", (int) -key, (char *) data);
+	while ((elem = sc_heap_pop(&heap)) != NULL) {
+		printf("key = %d, data = %s \n", (int) elem->key, elem->data);
 	}
 
 	sc_heap_term(&heap);
@@ -51,21 +51,20 @@ int example(void)
 
 void test1(void)
 {
-	int64_t key;
-	void *data;
 	struct sc_heap heap;
+	struct sc_heap_data *elem;
 
 	sc_heap_init(&heap, 0);
 	sc_heap_add(&heap, 100, "test");
-	sc_heap_pop(&heap, &key, &data);
-	assert(key == 100);
-	assert(strcmp("test", data) == 0);
+	elem = sc_heap_pop(&heap);
+	assert(elem->key == 100);
+	assert(strcmp("test", elem->data) == 0);
 	sc_heap_term(&heap);
 
 	sc_heap_add(&heap, 100, "test");
-	sc_heap_pop(&heap, &key, &data);
-	assert(key == 100);
-	assert(strcmp("test", data) == 0);
+	elem = sc_heap_pop(&heap);
+	assert(elem->key == 100);
+	assert(strcmp("test", elem->data) == 0);
 	sc_heap_term(&heap);
 
 	assert(sc_heap_init(&heap, SIZE_MAX / 2) == false);
@@ -73,8 +72,9 @@ void test1(void)
 
 	for (int i = 0; i < 1000; i++) {
 		assert(sc_heap_add(&heap, i, (void *) (uintptr_t) i) == true);
-		assert(sc_heap_pop(&heap, &key, &data) == true);
-		assert(key == (intptr_t) data);
+		elem = sc_heap_pop(&heap);
+		assert(elem != NULL);
+		assert(elem->key == (intptr_t) elem->data);
 	}
 
 	int64_t arr[] = {1, 0, 4, 5, 7, 9, 8, 6, 3, 2};
@@ -85,9 +85,10 @@ void test1(void)
 	}
 
 	for (int i = 0; i < 10; i++) {
-		assert(sc_heap_pop(&heap, &key, &data) == true);
-		assert(key == i);
-		assert((intptr_t) data == i * 2);
+		elem = sc_heap_pop(&heap);
+		assert(elem != NULL);
+		assert(elem->key == i);
+		assert((intptr_t) elem->data == i * 2);
 	}
 
 	sc_heap_term(&heap);
@@ -96,17 +97,17 @@ void test1(void)
 void test2(void)
 {
 	static const int64_t arr[] = {1, 0, 4, 5, 7, 9, 8, 6, 3, 2};
-	int64_t key;
-	void *data;
+	struct sc_heap_data *elem;
 	struct sc_heap heap;
 
 	assert(sc_heap_init(&heap, 0) == true);
 
 	for (int i = 0; i < 1000; i++) {
 		assert(sc_heap_add(&heap, i, (void *) (uintptr_t) i) == true);
-		assert(sc_heap_pop(&heap, &key, &data) == true);
-		assert(key == (intptr_t) data);
-		assert(key == (intptr_t) i);
+		elem = sc_heap_pop(&heap);
+		assert(elem != NULL);
+		assert(elem->key == (intptr_t) elem->data);
+		assert(elem->key == (intptr_t) i);
 	}
 
 	for (int i = 0; i < 10; i++) {
@@ -115,9 +116,10 @@ void test2(void)
 	}
 
 	for (int i = 0; i < 10; i++) {
-		assert(sc_heap_pop(&heap, &key, &data) == true);
-		assert(-key == 9 - i);
-		assert((intptr_t) data == (9 - i) * 2);
+		elem = sc_heap_pop(&heap);
+		assert(elem != NULL);
+		assert(-elem->key == 9 - i);
+		assert((intptr_t) elem->data == (9 - i) * 2);
 	}
 
 	sc_heap_term(&heap);
@@ -125,19 +127,22 @@ void test2(void)
 
 void test3(void)
 {
-	int64_t key;
 	int arr[100];
-	void *data;
+	struct sc_heap_data *elem;
 	struct sc_heap heap;
 
 	assert(sc_heap_init(&heap, 2) == true);
 	assert(sc_heap_add(&heap, 9, (void *) (uintptr_t) 9) == true);
-	assert(sc_heap_peek(&heap, &key, &data) == true);
-	assert(key == 9);
-	assert(data == (void *) (uintptr_t) 9);
-	assert(sc_heap_pop(&heap, &key, &data) == true);
-	assert(key == 9);
-	assert(data == (void *) (uintptr_t) 9);
+
+	elem = sc_heap_peek(&heap);
+	assert(elem != NULL);
+	assert(elem->key == 9);
+	assert(elem->data == (void *) (uintptr_t) 9);
+
+	elem = sc_heap_pop(&heap);
+	assert(elem != NULL);
+	assert(elem->key == 9);
+	assert(elem->data == (void *) (uintptr_t) 9);
 
 	for (int i = 0; i < 100; i++) {
 		arr[i] = i;
@@ -154,13 +159,14 @@ void test3(void)
 	}
 
 	for (int i = 0; i < 100; i++) {
-		assert(sc_heap_pop(&heap, &key, &data) == true);
-		assert(key == i);
-		assert(data == (void *) (uintptr_t) i);
+		elem = sc_heap_pop(&heap);
+		assert(elem != NULL);
+		assert(elem->key == i);
+		assert(elem->data == (void *) (uintptr_t) i);
 	}
 
-	assert(sc_heap_peek(&heap, &key, &data) == false);
-	assert(sc_heap_pop(&heap, &key, &data) == false);
+	assert(sc_heap_peek(&heap) == NULL);
+	assert(sc_heap_pop(&heap) == NULL);
 
 	assert(sc_heap_size(&heap) == 0);
 	assert(sc_heap_add(&heap, 1, NULL) == true);

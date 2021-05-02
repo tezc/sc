@@ -15,8 +15,7 @@ int main()
 			   {3, "third"},
 			   {2, "second"}};
 
-	int64_t key;
-	void *data;
+	struct sc_heap_data *elem;
 	struct sc_heap heap;
 
 	sc_heap_init(&heap, 0);
@@ -26,25 +25,22 @@ int main()
 		sc_heap_add(&heap, n[i].priority, n[i].data);
 	}
 
-	while (sc_heap_pop(&heap, &key, &data)) {
-		printf("key = %ld, data = %s \n", (long int) key,
-		       (char *) data);
+	while ((elem = sc_heap_pop(&heap)) != NULL) {
+		printf("key = %d, data = %s \n", (int) elem->key, elem->data);
 	}
 	printf("---------------- \n");
 
-	/**
-	 * Max-heap usage, negate when adding into heap
-	 * and negate back after pop :
-	 */
-
+	// Max-heap usage, negate when adding into heap and negate back after
+	// pop :
 	for (int i = 0; i < 5; i++) {
 		sc_heap_add(&heap, -(n[i].priority), n[i].data);
 	}
 
-	while (sc_heap_pop(&heap, &key, &data)) {
-		printf("key = %ld, data = %s \n", (long int) -key,
-		       (char *) data);
+	while ((elem = sc_heap_pop(&heap)) != NULL) {
+		printf("key = %d, data = %s \n", (int) elem->key, elem->data);
 	}
+
+	sc_heap_term(&heap);
 
 	return 0;
 }

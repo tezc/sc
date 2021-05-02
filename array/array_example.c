@@ -4,39 +4,40 @@
 
 void example_str()
 {
-	char **p, *it;
+	const char *it;
+	struct sc_array_str arr;
 
-	sc_array_create(p, 0);
+	sc_array_init(&arr);
 
-	sc_array_add(p, "item0");
-	sc_array_add(p, "item1");
-	sc_array_add(p, "item2");
+	sc_array_add(&arr, "item0");
+	sc_array_add(&arr, "item1");
+	sc_array_add(&arr, "item2");
 
 	printf("\nDelete first element \n\n");
-	sc_array_del(p, 0);
+	sc_array_del(&arr, 0);
 
-	sc_array_foreach (p, it) {
+	sc_array_foreach (&arr, it) {
 		printf("Elem = %s \n", it);
 	}
 
-	sc_array_destroy(p);
+	sc_array_term(&arr);
 }
 
 void example_int()
 {
-	int *p;
+	struct sc_array_int arr;
 
-	sc_array_create(p, 0);
+	sc_array_init(&arr);
 
-	sc_array_add(p, 0);
-	sc_array_add(p, 1);
-	sc_array_add(p, 2);
+	sc_array_add(&arr, 0);
+	sc_array_add(&arr, 1);
+	sc_array_add(&arr, 2);
 
-	for (size_t i = 0; i < sc_array_size(p); i++) {
-		printf("Elem = %d \n", p[i]);
+	for (size_t i = 0; i < sc_array_size(&arr); i++) {
+		printf("Elem = %d \n", arr.elems[i]);
 	}
 
-	sc_array_destroy(p);
+	sc_array_term(&arr);
 }
 
 int main()
