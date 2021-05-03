@@ -4,13 +4,11 @@
 [![codecov](https://codecov.io/gh/tezc/sc/branch/master/graph/badge.svg?token=O8ZHQ0XZ30)](https://codecov.io/gh/tezc/sc)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/tezc/sc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tezc/sc/alerts/)
 
-Portable, stand-alone C libraries and data structures. (C99)    
- 
-Most of them are optimized for performance. e.g array, hashmap, queue, timer.
+Portable, stand-alone C libraries and data structures. (C99)
 
 Each folder is stand-alone with a single header/source pair in it.  
 There is no build for libraries, just copy files you want.  
-e.g If you want array, copy sc_array.h and sc_array.c to your project.
+e.g If you want logger, copy sc_log.h and sc_log.c to your project.
 
 I use on Linux mostly but libraries are portable, CI runs on
 
