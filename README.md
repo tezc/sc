@@ -1,15 +1,17 @@
 ## Overview
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![License: BSD](https://img.shields.io/badge/License-BSD-blue.svg)](https://opensource.org/licenses/MIT)
 [![codecov](https://codecov.io/gh/tezc/sc/branch/master/graph/badge.svg?token=O8ZHQ0XZ30)](https://codecov.io/gh/tezc/sc)
 [![Total alerts](https://img.shields.io/lgtm/alerts/g/tezc/sc.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/tezc/sc/alerts/)
 
 Portable, stand-alone C libraries and data structures. (C99)
 
-Each folder is stand-alone with a single header/source pair in it.  
-There is no build for libraries, just copy files you want.  
+Each folder is stand-alone with a single header/source pair in it. There is no  
+build for libraries, just copy files you want. 
+
 e.g If you want logger, copy sc_log.h and sc_log.c to your project.
 
+### Test
 I use on Linux mostly but libraries are portable, CI runs on
 
 <pre>
@@ -19,7 +21,7 @@ Arch       : x64, aarch64, armv6(32 bit), armv7(32 bit), ppc64le, s390x(big endi
 Sanitizers : valgrind and clang/gcc sanitizers(address, undefined, thread)
 </pre>
 
-## List
+### List
 
 | Library                        | Description                                                                                |
 |--------------------------------|--------------------------------------------------------------------------------------------|
