@@ -51,11 +51,11 @@ void example_int()
 	sc_array_term(&arr);
 }
 
-int main(int argc, char *argv[])
+int main()
 {
-    example_int();
-    example_str();
+	example_int();
+	example_str();
 
-    return 0;
+	return 0;
 }
 ```

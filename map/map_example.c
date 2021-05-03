@@ -20,7 +20,7 @@ void example_str(void)
 	sc_map_term_str(&map);
 }
 
-void example_int_to_str(void)
+void example_int_to_str()
 {
 	uint32_t key;
 	const char *value;
@@ -39,6 +39,16 @@ void example_int_to_str(void)
 
 	sc_map_foreach (&map, key, value) {
 		printf("Key:[%d], Value:[%s] \n", key, value);
+	}
+
+	value = sc_map_del_64s(&map, 200);
+	if (sc_map_found(&map)) {
+		printf("Found : %s \n", value);
+	}
+
+	value = sc_map_put_64s(&map, 300, "los angeles");
+	if (sc_map_found(&map)) {
+		printf("overridden : %s \n", value);
 	}
 
 	sc_map_term_64s(&map);

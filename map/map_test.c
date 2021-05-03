@@ -45,6 +45,16 @@ void example_int_to_str()
 		printf("Key:[%d], Value:[%s] \n", key, value);
 	}
 
+	value = sc_map_del_64s(&map, 200);
+	if (sc_map_found(&map)) {
+		printf("Found : %s \n", value);
+	}
+
+	value = sc_map_put_64s(&map, 300, "los angeles");
+	if (sc_map_found(&map)) {
+		printf("overridden : %s \n", value);
+	}
+
 	sc_map_term_64s(&map);
 }
 

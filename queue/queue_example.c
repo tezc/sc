@@ -15,7 +15,7 @@ int main(int argc, char *argv[])
 	sc_queue_add_first(&queue, 1);
 
 	sc_queue_foreach (&queue, elem) {
-			printf("elem = [%d] \n", elem);
+		printf("elem = [%d] \n", elem);
 	}
 
 	elem = sc_queue_del_last(&queue);
