@@ -58,7 +58,6 @@ struct sc_timer {
 	uint64_t timestamp;
 	uint32_t head;
 	uint32_t wheel;
-	uint32_t count;
 	struct sc_timer_data *list;
 };
 

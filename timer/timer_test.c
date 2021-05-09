@@ -60,6 +60,7 @@ void sleep_ms(uint64_t milliseconds)
 #endif
 }
 
+int count;
 uint64_t ids[1000];
 
 void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
@@ -68,7 +69,7 @@ void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
 	(void) type;
 
 	static int idx = 0;
-
+	count--;
 	uint64_t id = (uintptr_t) data;
 	assert(ids[id] != SC_TIMER_INVALID);
 	ids[id] = SC_TIMER_INVALID;
@@ -86,6 +87,7 @@ void test1(void)
 	for (int i = 0; i < 1000; i++) {
 		ids[i] = sc_timer_add(&timer, rand() % 100, i,
 				      (void *) (uintptr_t) i);
+		count++;
 		assert(ids[i] != SC_TIMER_INVALID);
 	}
 
@@ -94,7 +96,7 @@ void test1(void)
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
-		if (timer.count == 0) {
+		if (count == 0) {
 			break;
 		}
 		t -= n;
@@ -110,6 +112,7 @@ void test1(void)
 	for (int i = 0; i < 1000; i++) {
 		ids[i] = sc_timer_add(&timer, rand() % 100, i,
 				      (void *) (uintptr_t) i);
+		count++;
 		assert(ids[i] != SC_TIMER_INVALID);
 	}
 
@@ -117,7 +120,7 @@ void test1(void)
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
-		if (timer.count == 0) {
+		if (count == 0) {
 			break;
 		}
 		t -= n;
@@ -149,7 +152,7 @@ void test2(void)
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
-		if (timer.count == 0) {
+		if (count == 0) {
 			break;
 		}
 
@@ -165,13 +168,14 @@ void test2(void)
 		ids[i] = sc_timer_add(&timer, rand() % 100, i,
 				      (void *) (uintptr_t) i);
 		assert(ids[i] != SC_TIMER_INVALID);
+		count++;
 	}
 
 	t = 10000;
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
-		if (timer.count == 0) {
+		if (count == 0) {
 			break;
 		}
 		t -= n;
@@ -195,22 +199,24 @@ void test3(void)
 		ids[i] = sc_timer_add(&timer, rand() % 20, i,
 				      (void *) (uintptr_t) i);
 		assert(ids[i] != SC_TIMER_INVALID);
+		count++;
 	}
 
 	for (int i = 0; i < 1000; i += 2) {
 		sc_timer_cancel(&timer, &ids[i]);
+		count--;
 	}
 
-	assert(timer.count == 500);
+	assert(count == 500);
 	sc_timer_cancel(&timer, &ids[0]);
-	assert(timer.count == 500);
+	assert(count == 500);
 
 	int t = 10000;
 	uint32_t n;
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
-		if (timer.count == 0) {
+		if (count == 0) {
 			break;
 		}
 		t -= n;
@@ -234,15 +240,17 @@ void test4(void)
 		ids[i] = sc_timer_add(&timer, rand() % 20, i,
 				      (void *) (uintptr_t) i);
 		assert(ids[i] != SC_TIMER_INVALID);
+		count++;
 	}
 
 	for (int i = 0; i < 1000; i += 2) {
 		sc_timer_cancel(&timer, &ids[i]);
+		count--;
 	}
 
-	assert(timer.count == 500);
+	assert(count == 500);
 	sc_timer_cancel(&timer, &ids[0]);
-	assert(timer.count == 500);
+	assert(count == 500);
 
 	int t = 10000;
 	uint32_t n;
@@ -251,7 +259,7 @@ void test4(void)
 		x += 500;
 		n = sc_timer_timeout(&timer, x, (void *) (uintptr_t) 333,
 				     callback);
-		if (timer.count == 0) {
+		if (count == 0) {
 			break;
 		}
 		t -= n;
