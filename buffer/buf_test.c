@@ -25,6 +25,8 @@ void test1()
 
 	sc_buf_put_64(&buf, 100);
 	assert(sc_buf_get_64(&buf) == 100);
+	sc_buf_put_raw(&buf, NULL, 0);
+	assert(sc_buf_size(&buf) == 0);
 	sc_buf_term(&buf);
 
 	sc_buf_init(&buf, 100);

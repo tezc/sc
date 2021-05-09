@@ -508,6 +508,10 @@ uint32_t sc_buf_set_data(struct sc_buf *b, uint32_t offset, const void *src,
 		return 0;
 	}
 
+	if (len == 0) {
+		return 0;
+	}
+
 	memcpy(&b->mem[offset], src, len);
 	return len;
 }
