@@ -76,12 +76,12 @@ void sc_rand_read(struct sc_rand *r, void *buf, int size)
 	} while (--size);
 }
 
-bool sc_is_pow2(size_t num)
+bool sc_is_pow2(uint64_t num)
 {
 	return (num != 0) && (num & (num - 1)) == 0;
 }
 
-size_t sc_to_pow2(size_t size)
+uint64_t sc_to_pow2(uint64_t size)
 {
 	if (size == 0) {
 		return 1;

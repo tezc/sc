@@ -79,13 +79,13 @@ void sc_rand_read(struct sc_rand *r, void *buf, int size);
  * @param num num
  * @return    'true' if num is power of 2
  */
-bool sc_is_pow2(size_t num);
+bool sc_is_pow2(uint64_t num);
 
 /**
- * @param size size
- * @return     next nearest power of two of size
+ * @param num num
+ * @return    next nearest power of two of size
  */
-size_t sc_to_pow2(size_t size);
+uint64_t sc_to_pow2(uint64_t size);
 
 /**
  * Bytes to human readable form, e.g 1024 bytes  to "1 KB".
