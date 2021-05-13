@@ -321,9 +321,6 @@ static int sc_sock_bind_unix(struct sc_sock *s, const char *host)
 
 static int sc_sock_bind(struct sc_sock *s, const char *host, const char *port)
 {
-	const int bf = SC_SOCK_BUF_SIZE;
-	const socklen_t sz = sizeof(bf);
-
 	int rc, rv = 0;
 	struct addrinfo *servinfo = NULL;
 	struct addrinfo hints = {
@@ -340,16 +337,6 @@ static int sc_sock_bind(struct sc_sock *s, const char *host, const char *port)
 		}
 
 		s->fdt.fd = fd;
-
-		rc = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *) &bf, sz);
-		if (rc != 0) {
-			goto error_unix;
-		}
-
-		rc = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *) &bf, sz);
-		if (rc != 0) {
-			goto error_unix;
-		}
 
 		rc = sc_sock_bind_unix(s, host);
 		if (rc != 0) {
@@ -407,16 +394,6 @@ error_unix:
 			goto error;
 		}
 
-		rc = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *) &bf, sz);
-		if (rc != 0) {
-			goto error;
-		}
-
-		rc = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *) &bf, sz);
-		if (rc != 0) {
-			goto error;
-		}
-
 		rc = bind(s->fdt.fd, p->ai_addr, (socklen_t) p->ai_addrlen);
 		if (rc == -1) {
 			goto error;
@@ -451,8 +428,6 @@ int sc_sock_finish_connect(struct sc_sock *s)
 
 static int sc_sock_connect_unix(struct sc_sock *s, const char *addr)
 {
-	const int bf = SC_SOCK_BUF_SIZE;
-	const socklen_t sz = sizeof(bf);
 	const size_t len = strlen(addr);
 
 	int rc;
@@ -467,16 +442,6 @@ static int sc_sock_connect_unix(struct sc_sock *s, const char *addr)
 	}
 
 	s->fdt.fd = fd;
-
-	rc = setsockopt(s->fdt.fd, SOL_SOCKET, SO_RCVBUF, (void *) &bf, sz);
-	if (rc != 0) {
-		goto err;
-	}
-
-	rc = setsockopt(s->fdt.fd, SOL_SOCKET, SO_SNDBUF, (void *) &bf, sz);
-	if (rc != 0) {
-		goto err;
-	}
 
 	if (len >= sizeof(un.sun_path)) {
 		errno = EINVAL;
@@ -541,8 +506,6 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		    const char *dst_port, const char *src_addr,
 		    const char *src_port)
 {
-	const int bf = SC_SOCK_BUF_SIZE;
-
 	int rc, rv = 0;
 	sc_sock_int fd;
 	void *tmp;
@@ -584,18 +547,6 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		}
 
 		rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, tmp, sizeof(int));
-		if (rc != 0) {
-			goto error;
-		}
-
-		rc = setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *) &bf,
-				sizeof(int));
-		if (rc != 0) {
-			goto error;
-		}
-
-		rc = setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *) &bf,
-				sizeof(int));
 		if (rc != 0) {
 			goto error;
 		}
@@ -695,8 +646,6 @@ retry:
 
 int sc_sock_accept(struct sc_sock *s, struct sc_sock *in)
 {
-	const int bf = SC_SOCK_BUF_SIZE;
-	const socklen_t sz = sizeof(bf);
 	const void *tmp = (void *) &(int){1};
 
 	int rc;
@@ -720,16 +669,6 @@ int sc_sock_accept(struct sc_sock *s, struct sc_sock *in)
 	}
 
 	rc = sc_sock_set_blocking(in, s->blocking);
-	if (rc != 0) {
-		goto error;
-	}
-
-	rc = setsockopt(in->fdt.fd, SOL_SOCKET, SO_RCVBUF, (void *) &bf, sz);
-	if (rc != 0) {
-		goto error;
-	}
-
-	rc = setsockopt(in->fdt.fd, SOL_SOCKET, SO_SNDBUF, (void *) &bf, sz);
 	if (rc != 0) {
 		goto error;
 	}

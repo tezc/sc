@@ -1082,19 +1082,11 @@ void sock_fail_test()
 	fail_setsockopt = 2;
 	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == -1);
 	fail_setsockopt = 3;
-	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == -1);
-	fail_setsockopt = 4;
-	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == -1);
-	fail_setsockopt = 5;
 	assert(sc_sock_listen(&sock, "127.0.0.1", "8080") == 0);
 	assert(sc_sock_term(&sock) == 0);
 
 	sc_sock_init(&sock, 0, true, SC_SOCK_UNIX);
 	fail_setsockopt = 1;
-	assert(sc_sock_listen(&sock, "/tmp/x", NULL) == -1);
-	fail_setsockopt = 2;
-	assert(sc_sock_listen(&sock, "/tmp/x", NULL) == -1);
-	fail_setsockopt = 3;
 	assert(sc_sock_listen(&sock, "/tmp/x", NULL) == 0);
 	assert(sc_sock_term(&sock) == 0);
 	fail_setsockopt = INT32_MAX;
@@ -1207,8 +1199,6 @@ void sock_fail_test2()
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
 	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	sleep(2);
-	fail_setsockopt = 2;
-	assert(sc_sock_accept(&sock, &in) == -1);
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&sock) == 0);
 	assert(sc_sock_term(&client) == 0);
@@ -1220,8 +1210,6 @@ void sock_fail_test2()
 	rc = sc_sock_connect(&client, "127.0.0.1", "8080", NULL, NULL);
 	assert(rc != -1 || (rc == -1 && errno == EAGAIN));
 	sleep(2);
-	fail_setsockopt = 3;
-	assert(sc_sock_accept(&sock, &in) == -1);
 	fail_setsockopt = INT32_MAX;
 	assert(sc_sock_term(&sock) == 0);
 	assert(sc_sock_term(&client) == 0);
