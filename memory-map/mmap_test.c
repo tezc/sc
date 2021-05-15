@@ -151,6 +151,17 @@ int __wrap_munlock(const void *addr, size_t len)
 	return __real_munlock(addr, len);
 }
 
+bool fail_sysconf;
+extern long __real_sysconf(int name);
+long __wrap_sysconf(int name)
+{
+	if (fail_sysconf) {
+		return -1;
+	}
+
+	return __real_sysconf(name);
+}
+
 bool fail_msync;
 extern int __real_msync(void *addr, size_t len, int flags);
 int __wrap_msync(void *addr, size_t len, int flags)
@@ -210,6 +221,13 @@ void fail_test()
 	assert(rc == -1);
 	assert(sc_mmap_err(&mmap) != NULL);
 	fail_open = false;
+
+	fail_sysconf = true;
+	rc = sc_mmap_init(&mmap, "x.txt", O_RDWR | O_CREAT | O_TRUNC,
+			  PROT_READ | PROT_WRITE, MAP_SHARED, 0, 4095);
+	assert(rc == -1);
+	assert(sc_mmap_err(&mmap) != NULL);
+	fail_sysconf = false;
 
 	mmap = (struct sc_mmap){0};
 	fail_stat = true;
