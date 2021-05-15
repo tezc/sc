@@ -49,7 +49,8 @@ if (SC_BUILD_TEST)
                     -Wl,--wrap=open,--wrap=stat,--wrap=mmap,--wrap=mlock
                     -Wl,--wrap=open64,--wrap=stat64,--wrap=mmap64
                     -Wl,--wrap=msync,--wrap=munlock,--wrap=munmap
-                    -Wl,--wrap=posix_fallocate,--wrap=posix_fallocate64)
+                    -Wl,--wrap=posix_fallocate,--wrap=posix_fallocate64
+                    -Wl,--wrap=sysconf)
         endif ()
     endif ()
 

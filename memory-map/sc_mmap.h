@@ -62,6 +62,7 @@
 
 struct sc_mmap {
 	int fd;
+	long page_size;     // os page size
 	unsigned char *ptr; // memory map start address
 	size_t len;	    // memory map length
 	char err[128];

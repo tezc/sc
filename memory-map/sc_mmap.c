@@ -207,6 +207,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 	const int mode = S_IRUSR | S_IWUSR | S_IRGRP | S_IROTH;
 
 	int fd, rc, saved_errno;
+	long page_size;
 	void *p = NULL;
 	struct stat st;
 
@@ -215,6 +216,13 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 		.fd = -1,
 		.len = 0,
 	};
+
+	page_size = sysconf(_SC_PAGESIZE);
+	if (page_size < 0) {
+		goto error;
+	}
+
+	m->page_size = page_size;
 
 	fd = open(name, file_flags, mode);
 	if (fd == -1) {
@@ -306,7 +314,7 @@ int sc_mmap_term(struct sc_mmap *m)
 int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len)
 {
 	int rc;
-	char *p = (char *) m->ptr + offset;
+	char *p = (char *) m->ptr + (offset & (m->page_size - 1));
 
 	rc = msync(p, len, MS_SYNC);
 	if (rc != 0) {
