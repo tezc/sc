@@ -314,7 +314,7 @@ int sc_mmap_term(struct sc_mmap *m)
 int sc_mmap_msync(struct sc_mmap *m, size_t offset, size_t len)
 {
 	int rc;
-	char *p = (char *) m->ptr + (offset & (m->page_size - 1));
+	char *p = (char *) m->ptr + (offset & ~(m->page_size - 1));
 
 	rc = msync(p, len, MS_SYNC);
 	if (rc != 0) {
