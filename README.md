@@ -18,42 +18,6 @@ e.g If you want the logger, copy sc_log.h and sc_log.c to your project.
 - Tests with 100% branch coverage and multiple sanitizers
 - Drag & drop source code distribution
 
-#### Q&A
-* **Is it any better than library X ?**  
-I often use these libraries for high performance server-side applications. Also,  
-I care about readable and easy to debug code. In summary, these libraries show  
-my taste(trade-offs) about performance/api-design/readability. You may or may  
-not like it.  
-  
-
-* **Why don't you change API here at X, so it will be easier to use?**  
-Send a pull request please but be sure you don't introduce an undefined  
-behavior. It's possible to provide better APIs, especially to generic libraries,  
-if you don't care about undefined behaviors. I try to avoid it.   
-  
-
-* **What is the most efficient way to use these libraries?**  
-Just like any other code. Add to your project as source files and ideally use   
--O3 -flto + PGO. It may not make any difference for your use case though.  
-  
-
-* **Is library X being used in any product?**  
-Some libraries are used in the production but please always test yourself.  
-  
-
-* **Is there any release?**   
-Please use the master branch. It's considered stable.  
-  
-
-* **Will you keep API stable?**   
-Please don't expect a stable API. These libraries are quite  
-small (most of them are less than a few hundreds lines of code) and ideally you  
-are supposed to read the code and understand what it does and adapt it your   
-needs. So, you should not update libraries blindly and I expect you to handle  
-any possible API differences easily. That being said, I'll do my best to keep  
-API stable.
-
-
 ### Test
 There is 100% branch-coverage on Linux and CI runs on
 
@@ -90,3 +54,42 @@ Sanitizers : valgrind and clang/gcc sanitizers(address, undefined, thread)
 | **[time](time)**               | Time and sleep functions for Posix and Windows                                             |
 | **[timer](timer)**             | Hashed timing wheel implementation with fast poll / cancel ops                             |
 | **[uri](uri)**                 | A basic uri parser                                                                         |
+  
+-
+
+#### Q&A
+
+-----
+* **Is it any better than library X ?**  
+  I often use these libraries for high performance server-side applications. Also,  
+  I care about readable and easy to debug code. In summary, these libraries show  
+  my taste(trade-offs) about performance/api-design/readability. You may or may  
+  not like it.
+
+
+* **Why don't you change API here at X, so it will be easier to use?**  
+  Send a pull request please but be sure you don't introduce an undefined  
+  behavior. It's possible to provide better APIs, especially to generic libraries,  
+  if you don't care about undefined behaviors. I try to avoid it.
+
+
+* **What is the most efficient way to use these libraries?**  
+  Just like any other code. Add to your project as source files and ideally use   
+  -O3 -flto + PGO. It may not make any difference for your use case though.
+
+
+* **Is library X being used in any product?**  
+  Some libraries are used in the production but please always test yourself.
+
+
+* **Is there any release?**   
+  Please use the master branch. It's considered stable.
+
+
+* **Will you keep API stable?**   
+  Please don't expect a stable API. These libraries are quite  
+  small (most of them are less than a few hundreds lines of code) and ideally you  
+  are supposed to read the code and understand what it does and adapt it to your   
+  needs. So, you should not update libraries blindly. I expect you to handle  
+  any possible API differences easily. That being said, I'll do my best to keep  
+  API stable.
