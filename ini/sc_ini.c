@@ -3,7 +3,7 @@
  *
  * Based on : https://github.com/benhoyt/inih
  * Copyright (C) 2009-2020,   Ben Hoyt
- *               2001-present Ozan Tezcan
+ *               2020-present Ozan Tezcan
  *
  * All rights reserved.
  *
