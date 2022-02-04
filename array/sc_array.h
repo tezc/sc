@@ -211,6 +211,7 @@ sc_array_def(int, int);
 sc_array_def(unsigned int, uint);
 sc_array_def(long, long);
 sc_array_def(unsigned long, ulong);
+sc_array_def(unsigned long long, ull);
 sc_array_def(uint32_t, 32);
 sc_array_def(uint64_t, 64);
 sc_array_def(double, double);

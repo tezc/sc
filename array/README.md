@@ -3,8 +3,8 @@
 ### Overview
 
 - Growable array/vector.
-- It comes with predefined types, check out at the end of sc_array.h, you can
-  add there (sc_array_def) if you need more.
+- It comes with predefined types, check out predefined types at the bottom of  
+  sc_array.h You can add more types there if you need.
 
 ### Usage
 
