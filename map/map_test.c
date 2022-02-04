@@ -36,6 +36,11 @@ void example_int_to_str()
 	sc_map_put_64s(&map, 200, "new york");
 	sc_map_put_64s(&map, 300, "atlanta");
 
+	value = sc_map_get_64s(&map, 200);
+	if (sc_map_found(&map)) {
+		printf("Found Value:[%s] \n", value);
+	}
+
 	value = sc_map_del_64s(&map, 100);
 	if (sc_map_found(&map)) {
 		printf("Deleted : %s \n", value);

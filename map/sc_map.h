@@ -84,7 +84,7 @@
 	 * @param load_factor must be >25 and <95. Pass 0 for default value.   \
 	 * @return 'true' on success,                                          \
 	 *         'false' on out of memory or if 'load_factor' value is       \
-	 * invalid.                                                            \
+	 *          invalid.                                                   \
 	 */                                                                    \
 	bool sc_map_init_##name(struct sc_map_##name *map, uint32_t cap,       \
 				uint32_t load_factor);                         \
@@ -121,6 +121,7 @@
 	 * @param K key                                                        \
 	 * @param V value                                                      \
 	 * @return previous value if exists                                    \
+	 *         call sc_map_found() to see if returned value if valid.      \
 	 */                                                                    \
 	V sc_map_put_##name(struct sc_map_##name *map, K key, V val);          \
                                                                                \
@@ -149,6 +150,7 @@
 /**
  * @param map map
  * @return    - if put operation overrides a value, returns true
+ *            - if get operation finds the key, returns true
  *            - if del operation deletes a key, returns true
  */
 #define sc_map_found(map) ((map)->found)
