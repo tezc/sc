@@ -31,4 +31,4 @@ jobs:
             apk update
             apk add git build-base gcc make valgrind cmake
             mkdir build && cd build
-            cmake .. && make -j && make check
+            cmake ..  -DSC_USE_WRAP=OFF && make -j && make check

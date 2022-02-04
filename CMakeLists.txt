@@ -22,6 +22,11 @@ if (NOT ${CMAKE_BUILD_TYPE} MATCHES "Debug" AND NOT ${CMAKE_BUILD_TYPE} MATCHES 
     message(STATUS "Not building tests, SC tests are supported in Debug build only.")
 endif ()
 
+option(SC_USE_WRAP "Use --wrap to test libc function failures" ON)
+if (NOT SC_USE_WRAP)
+    message(STATUS "Turned off --wrap.")
+endif()
+
 add_subdirectory(array)
 add_subdirectory(buffer)
 add_subdirectory(condition)

@@ -42,7 +42,7 @@ if (SC_BUILD_TEST)
 
     message(STATUS "Compiler is ${CMAKE_C_COMPILER_ID}")
 
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND SC_USE_WRAP)
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
                 "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
             message(STATUS "Defined SC_HAVE_WRAP")
