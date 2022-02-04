@@ -2,11 +2,10 @@
 
 ### Overview
 
-- Condition wrapper.
-- Provides passing data between signal and wait threads.
+- Condition wrapper for Posix and Windows.
 - Normally, if no thread waits on a condition, signal is missed. This  
   implementation differs as it will keep a result variable when 'signal' is  
-  called. Signal will mark the condition 'done', so when another thread calls  
+  called. Signal will mark the condition 'done'. When another thread calls  
   wait(), it won't be blocked, it will return immediately with the user  
   provided data.
 
