@@ -69,9 +69,9 @@ void test1()
 	assert(sc_buf_32_len(true) == 4);
 	assert(sc_buf_64_len(true) == 8);
 	assert(sc_buf_double_len(true) == 8);
-	assert(sc_buf_str_len("test") == 9);
-	assert(sc_buf_str_len(NULL) == 4);
-	assert(sc_buf_blob_len("test", 4) == 8);
+	assert(sc_buf_str_len("test") == 13);
+	assert(sc_buf_str_len(NULL) == 8);
+	assert(sc_buf_blob_len("test", 4) == 12);
 
 	sc_buf_put_8(&buf, 8);
 	assert(sc_buf_get_8(&buf) == 8);
@@ -99,7 +99,7 @@ void test1()
 	sc_buf_put_bool(&buf, false);
 	assert(sc_buf_get_bool(&buf) == false);
 	sc_buf_put_blob(&buf, "test", 5);
-	assert(strcmp("test", sc_buf_get_blob(&buf, sc_buf_get_32(&buf))) == 0);
+	assert(strcmp("test", sc_buf_get_blob(&buf, sc_buf_get_64(&buf))) == 0);
 	sc_buf_clear(&buf);
 
 	sc_buf_put_64(&buf, 122);
@@ -167,6 +167,40 @@ void test1()
 	sc_buf_put_str(&buf, tmp);
 	assert(sc_buf_valid(&buf) == false);
 	assert(sc_buf_get_64(&buf) == 0);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf, 100);
+	sc_buf_limit(&buf, 128);
+	sc_buf_put_str(&buf, tmp);
+	assert(sc_buf_valid(&buf) == false);
+	assert(sc_buf_get_32(&buf) == 0);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf, 100);
+	sc_buf_limit(&buf, 128);
+	sc_buf_put_str(&buf, tmp);
+	assert(sc_buf_valid(&buf) == false);
+	assert(sc_buf_get_16(&buf) == 0);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf, 100);
+	sc_buf_put_64(&buf, 1000);
+	assert(sc_buf_valid(&buf) == true);
+	assert(sc_buf_get_str(&buf) == 0);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf, 100);
+	sc_buf_limit(&buf, 128);
+	sc_buf_put_str(&buf, tmp);
+	assert(sc_buf_valid(&buf) == false);
+	assert(sc_buf_get_8(&buf) == 0);
+	sc_buf_term(&buf);
+
+	sc_buf_init(&buf, 100);
+	sc_buf_limit(&buf, 128);
+	sc_buf_put_str(&buf, tmp);
+	assert(sc_buf_valid(&buf) == false);
+	assert(sc_buf_get_double(&buf) == 0);
 	sc_buf_term(&buf);
 
 	sc_buf_init(&buf, 100);

@@ -58,10 +58,10 @@
 
 struct sc_buf {
 	unsigned char *mem;
-	uint32_t cap;
-	uint32_t limit;
-	uint32_t rpos;
-	uint32_t wpos;
+	uint64_t cap;
+	uint64_t limit;
+	uint64_t rpos;
+	uint64_t wpos;
 
 	unsigned int err;
 	bool ref;
@@ -74,7 +74,7 @@ struct sc_buf {
  * @param cap initial capacity
  * @return    'false' on out of memory.
  */
-bool sc_buf_init(struct sc_buf *b, uint32_t cap);
+bool sc_buf_init(struct sc_buf *b, uint64_t cap);
 
 /**
  * Destroy buffer
@@ -95,29 +95,29 @@ void sc_buf_term(struct sc_buf *b);
  *             flags can be combined : SC_BUF_REF | SC_BUF_DATA
  * @return     buf
  */
-struct sc_buf sc_buf_wrap(void *data, uint32_t len, int flags);
+struct sc_buf sc_buf_wrap(void *data, uint64_t len, int flags);
 
 /**
  * Set limit of the buffer, when buffer reaches limit, it will set buffer's
- * 'out of memory' flag. Default is UINT32_MAX.
+ * 'out of memory' flag. Default is UINT64_MAX.
  *
  * @param buf   buf
  * @param limit limit
  */
-void sc_buf_limit(struct sc_buf *b, uint32_t limit);
+void sc_buf_limit(struct sc_buf *b, uint64_t limit);
 
 /**
  * @param buf buf
  * @param pos pos
  * @return    buf address at 'pos'
  */
-void *sc_buf_at(struct sc_buf *b, uint32_t pos);
+void *sc_buf_at(struct sc_buf *b, uint64_t pos);
 
 /**
  * @param buf buf
  * @return    current capacity.
  */
-uint32_t sc_buf_cap(struct sc_buf *b);
+uint64_t sc_buf_cap(struct sc_buf *b);
 
 /**
  * Reserve space
@@ -127,7 +127,7 @@ uint32_t sc_buf_cap(struct sc_buf *b);
  * @return    'false' on out of memory or hits the 'limit'.
  *            'out memory flag' will be set to check it later.
  */
-bool sc_buf_reserve(struct sc_buf *b, uint32_t len);
+bool sc_buf_reserve(struct sc_buf *b, uint64_t len);
 
 /**
  * Shrink buffer. Shrinks only if empty space > 4096 bytes
@@ -136,7 +136,7 @@ bool sc_buf_reserve(struct sc_buf *b, uint32_t len);
  * @param len desired size
  * @return    'false' on out of memory, true otherwise.
  */
-bool sc_buf_shrink(struct sc_buf *b, uint32_t len);
+bool sc_buf_shrink(struct sc_buf *b, uint64_t len);
 
 /**
  * @param buf buf
@@ -149,13 +149,13 @@ bool sc_buf_valid(struct sc_buf *b);
  * @param buf buf
  * @return    current remaining space to write
  */
-uint32_t sc_buf_quota(struct sc_buf *b);
+uint64_t sc_buf_quota(struct sc_buf *b);
 
 /**
  * @param buf buf
  * @return    current byte count in the buffer
  */
-uint32_t sc_buf_size(struct sc_buf *b);
+uint64_t sc_buf_size(struct sc_buf *b);
 
 /**
  * Set read and write position to '0', clear error flag.
@@ -176,7 +176,7 @@ void sc_buf_compact(struct sc_buf *b);
  * @param buf buf
  * @param len len
  */
-void sc_buf_mark_read(struct sc_buf *b, uint32_t len);
+void sc_buf_mark_read(struct sc_buf *b, uint64_t len);
 
 /**
  * Advance read position, useful when you pass underlying array to another
@@ -185,31 +185,31 @@ void sc_buf_mark_read(struct sc_buf *b, uint32_t len);
  * @param buf buf
  * @param len len
  */
-void sc_buf_mark_write(struct sc_buf *b, uint32_t len);
+void sc_buf_mark_write(struct sc_buf *b, uint64_t len);
 
 /**
  * @param buf buf
  * @return    current read position
  */
-uint32_t sc_buf_rpos(struct sc_buf *b);
+uint64_t sc_buf_rpos(struct sc_buf *b);
 
 /**
  * @param buf buf
  * @return    new read position
  */
-void sc_buf_set_rpos(struct sc_buf *b, uint32_t pos);
+void sc_buf_set_rpos(struct sc_buf *b, uint64_t pos);
 
 /**
  * @param buf buf
  * @return    current write position
  */
-uint32_t sc_buf_wpos(struct sc_buf *b);
+uint64_t sc_buf_wpos(struct sc_buf *b);
 
 /**
  * @param buf buf
  * @return    new write position
  */
-void sc_buf_set_wpos(struct sc_buf *b, uint32_t pos);
+void sc_buf_set_wpos(struct sc_buf *b, uint64_t pos);
 
 /**
  * Get address of read position. Useful for e.g : write(fd, sc_buf_rbuf(buf) ..)
@@ -240,33 +240,33 @@ void sc_buf_move(struct sc_buf *dest, struct sc_buf *src);
  * Read from buffer without advancing read position. 'peek' functions will set
  * error flags if buffer does not have required amount of data.
  */
-uint8_t sc_buf_peek_8_at(struct sc_buf *b, uint32_t pos);
-uint16_t sc_buf_peek_16_at(struct sc_buf *b, uint32_t pos);
-uint32_t sc_buf_peek_32_at(struct sc_buf *b, uint32_t pos);
-uint64_t sc_buf_peek_64_at(struct sc_buf *b, uint32_t pos);
+uint8_t sc_buf_peek_8_at(struct sc_buf *b, uint64_t pos);
+uint16_t sc_buf_peek_16_at(struct sc_buf *b, uint64_t pos);
+uint32_t sc_buf_peek_32_at(struct sc_buf *b, uint64_t pos);
+uint64_t sc_buf_peek_64_at(struct sc_buf *b, uint64_t pos);
 
 uint8_t sc_buf_peek_8(struct sc_buf *b);
 uint16_t sc_buf_peek_16(struct sc_buf *b);
 uint32_t sc_buf_peek_32(struct sc_buf *b);
 uint64_t sc_buf_peek_64(struct sc_buf *b);
-uint32_t sc_buf_peek_data(struct sc_buf *b, uint32_t pos, unsigned char *dest,
-			  uint32_t len);
+uint64_t sc_buf_peek_data(struct sc_buf *b, uint64_t pos, unsigned char *dest,
+			  uint64_t len);
 
 /**
  * Set value at current write position. 'set' functions will not try to expand
  * buffer if there is no space and error flags will be set.
  */
-void sc_buf_set_8_at(struct sc_buf *b, uint32_t pos, uint8_t val);
-void sc_buf_set_16_at(struct sc_buf *b, uint32_t pos, uint16_t val);
-void sc_buf_set_32_at(struct sc_buf *b, uint32_t pos, uint32_t val);
-void sc_buf_set_64_at(struct sc_buf *b, uint32_t pos, uint64_t val);
+void sc_buf_set_8_at(struct sc_buf *b, uint64_t pos, uint8_t val);
+void sc_buf_set_16_at(struct sc_buf *b, uint64_t pos, uint16_t val);
+void sc_buf_set_32_at(struct sc_buf *b, uint64_t pos, uint32_t val);
+void sc_buf_set_64_at(struct sc_buf *b, uint64_t pos, uint64_t val);
 
 void sc_buf_set_8(struct sc_buf *b, uint8_t val);
 void sc_buf_set_16(struct sc_buf *b, uint16_t val);
 void sc_buf_set_32(struct sc_buf *b, uint32_t val);
 void sc_buf_set_64(struct sc_buf *b, uint64_t val);
-uint32_t sc_buf_set_data(struct sc_buf *b, uint32_t pos, const void *src,
-			 uint32_t len);
+uint64_t sc_buf_set_data(struct sc_buf *b, uint64_t pos, const void *src,
+			 uint64_t len);
 /**
  * Get values from buffer, read position will be advanced.
  */
@@ -278,7 +278,7 @@ uint64_t sc_buf_get_64(struct sc_buf *b);
 double sc_buf_get_double(struct sc_buf *b);
 
 /**
- * Read string. Strings are stored as [4 bytes length][string bytes]['\0'].
+ * Read string. Strings are stored as [8 bytes length][string bytes]['\0'].
  * So you can use return value without copying/freeing until you overwrite it
  * in the buffer.
  *
@@ -294,7 +294,7 @@ const char *sc_buf_get_str(struct sc_buf *b);
  * @param len data len
  * @return    pointer to data.
  */
-void *sc_buf_get_blob(struct sc_buf *b, uint32_t len);
+void *sc_buf_get_blob(struct sc_buf *b, uint64_t len);
 
 /**
  *  Get binary data to destination buffer. If buffer does not have 'len' bytes,
@@ -304,7 +304,7 @@ void *sc_buf_get_blob(struct sc_buf *b, uint32_t len);
  * @param dest destination
  * @param len  len
  */
-void sc_buf_get_data(struct sc_buf *b, void *dest, uint32_t len);
+void sc_buf_get_data(struct sc_buf *b, void *dest, uint64_t len);
 
 /**
  * Put functions, 'val' will be copied to the buffer and write position will
@@ -318,8 +318,8 @@ void sc_buf_put_64(struct sc_buf *b, uint64_t val);
 void sc_buf_put_double(struct sc_buf *b, double val);
 
 /**
- * Write string. Strings are stored as [4 bytes length][string bytes]['\0'].
- * NULL values are accepted, stored as [4 bytes length] = -1.
+ * Write string. Strings are stored as [8 bytes length][string bytes]['\0'].
+ * NULL values are accepted, stored as [8 bytes length].
  *
  * @param b   buffer
  * @param str string
@@ -327,14 +327,14 @@ void sc_buf_put_double(struct sc_buf *b, double val);
 void sc_buf_put_str(struct sc_buf *b, const char *str);
 
 /**
- * Write string. Strings are stored as [4 bytes length][string bytes]['\0'].
- * NULL values are accepted, stored as [4 bytes length] = -1.
+ * Write string. Strings are stored as [8 bytes length][string bytes]['\0'].
+ * NULL values are accepted, stored as [8 bytes length].
  *
  * @param b   buffer
  * @param str string
  * @param len string len excluding '\0' byte at the end
  */
-void sc_buf_put_str_len(struct sc_buf *b, const char *str, int len);
+void sc_buf_put_str_len(struct sc_buf *b, const char *str, uint64_t len);
 
 /**
  * Put formatted string, passes arguments to vsnprintf
@@ -373,7 +373,7 @@ void sc_buf_put_text(struct sc_buf *b, const char *fmt, ...);
  * @param ptr data
  * @param len data len
  */
-void sc_buf_put_blob(struct sc_buf *b, const void *ptr, uint32_t len);
+void sc_buf_put_blob(struct sc_buf *b, const void *ptr, uint64_t len);
 
 /**
  * Write 'len' bytes to buffer, on out of memory, error flag will be set.
@@ -382,40 +382,37 @@ void sc_buf_put_blob(struct sc_buf *b, const void *ptr, uint32_t len);
  * @param dest dest
  * @param len  len
  */
-void sc_buf_put_raw(struct sc_buf *b, const void *ptr, uint32_t len);
+void sc_buf_put_raw(struct sc_buf *b, const void *ptr, uint64_t len);
 
 /**
  *  Get encoded length of the variables.
  */
 
 // clang-format off
-static inline uint32_t sc_buf_bool_len(bool val) {(void) val; return 1;}
-static inline uint32_t sc_buf_8_len(uint8_t val) {(void) val; return 1;}
-static inline uint32_t sc_buf_16_len(uint16_t val){(void) val; return 2;}
-static inline uint32_t sc_buf_32_len(uint32_t val){(void) val; return 4;}
-static inline uint32_t sc_buf_64_len(uint64_t val){(void) val; return 8;}
-static inline uint32_t sc_buf_double_len(double val){(void) val; return 8;}
+static inline uint64_t sc_buf_bool_len(bool val) {(void) val; return 1;}
+static inline uint64_t sc_buf_8_len(uint8_t val) {(void) val; return 1;}
+static inline uint64_t sc_buf_16_len(uint16_t val){(void) val; return 2;}
+static inline uint64_t sc_buf_32_len(uint32_t val){(void) val; return 4;}
+static inline uint64_t sc_buf_64_len(uint64_t val){(void) val; return 8;}
+static inline uint64_t sc_buf_double_len(double val){(void) val; return 8;}
 // clang-format on
 
-static inline uint32_t sc_buf_blob_len(void *ptr, uint32_t len)
+static inline uint64_t sc_buf_blob_len(void *ptr, uint64_t len)
 {
 	(void) ptr;
-	assert(len <= INT32_MAX - 4);
 
-	return len + sc_buf_32_len(len);
+	return len + sc_buf_64_len(len);
 }
 
-static inline uint32_t sc_buf_str_len(const char *str)
+static inline uint64_t sc_buf_str_len(const char *str)
 {
-	const uint32_t bytes = sc_buf_32_len(UINT32_MAX) + sc_buf_8_len('\0');
+	const uint64_t bytes = sc_buf_64_len(UINT64_MAX) + sc_buf_8_len('\0');
 
 	if (str == NULL) {
-		return sc_buf_32_len(UINT32_MAX);
+		return sc_buf_64_len(UINT64_MAX);
 	}
 
-	assert(strlen(str) <= INT32_MAX - 5);
-
-	return bytes + (uint32_t) strlen(str);
+	return bytes + (uint64_t) strlen(str);
 }
 
 #endif

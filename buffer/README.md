@@ -10,7 +10,6 @@
 - Integer operations are compiled into bounds check + a single MOV instruction  
   with a good compiler. Buffer keeps data in Little Endian format, so on big  
   endian systems, integer put/get is bswap(byte swap) + MOV.
-- Max capacity is 4GB. Max string size is a little less than 2 GB
 
 ### Usage
 
@@ -65,7 +64,7 @@ int main()
 ##### Lazy error check
 
 - Rather than checking error code for each put(Out of memory/limit exceeded) or   
-  get(buffer underflow) operation, error check can be postponed until end of an  
+  get operation(buffer underflow) , error check can be postponed until end of an  
   operation batch.
 
 ```c
