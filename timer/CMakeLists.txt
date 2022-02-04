@@ -41,7 +41,7 @@ if (SC_BUILD_TEST)
 
     target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_TIMER_MAX=4000ul)
 
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND SC_USE_WRAP)
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
                 "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
 

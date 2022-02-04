@@ -39,7 +39,7 @@ if (SC_BUILD_TEST)
 
     add_executable(${PROJECT_NAME}_test ini_test.c sc_ini.c)
 
-    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+    if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND SC_USE_WRAP)
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR
                 "${CMAKE_C_COMPILER_ID}" STREQUAL "GNU")
             target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_HAVE_WRAP)

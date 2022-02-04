@@ -34,7 +34,7 @@
 #include <stdio.h>
 
 #ifndef SC_BUF_MAX
-#define SC_BUF_MAX UINT64_MAX
+#define SC_BUF_MAX UINT64_MAX-4096
 #endif
 
 #define NULL_LEN SC_BUF_MAX
@@ -686,21 +686,21 @@ void sc_buf_put_double(struct sc_buf *b, double val)
 
 void sc_buf_put_str(struct sc_buf *b, const char *str)
 {
-	size_t sz;
+	uint64_t sz;
 
 	if (str == NULL) {
 		sc_buf_put_64(b, NULL_LEN);
 		return;
 	}
 
-	sz = strlen(str);
+	sz = (uint64_t) strlen(str);
 	if (sz >= SC_BUF_MAX) {
 		b->err |= SC_BUF_CORRUPT;
 		return;
 	}
 
-	sc_buf_put_64(b, (uint64_t) sz);
-	sc_buf_put_raw(b, str, (uint64_t) sz + sc_buf_8_len('\0'));
+	sc_buf_put_64(b, sz);
+	sc_buf_put_raw(b, str, sz + sc_buf_8_len('\0'));
 }
 
 void sc_buf_put_str_len(struct sc_buf *b, const char *str, uint64_t len)

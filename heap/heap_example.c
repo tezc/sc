@@ -26,7 +26,8 @@ int main()
 	}
 
 	while ((elem = sc_heap_pop(&heap)) != NULL) {
-		printf("key = %d, data = %s \n", (int) elem->key, elem->data);
+		printf("key = %d, data = %s \n",
+		       (int) elem->key, (char*) elem->data);
 	}
 	printf("---------------- \n");
 
@@ -37,7 +38,8 @@ int main()
 	}
 
 	while ((elem = sc_heap_pop(&heap)) != NULL) {
-		printf("key = %d, data = %s \n", (int) elem->key, elem->data);
+		printf("key = %d, data = %s \n",
+		       (int) elem->key, (char*) elem->data);
 	}
 
 	sc_heap_term(&heap);
