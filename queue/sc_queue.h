@@ -277,6 +277,7 @@ sc_queue_def(int, int);
 sc_queue_def(unsigned int, uint);
 sc_queue_def(long, long);
 sc_queue_def(unsigned long, ulong);
+sc_queue_def(unsigned long long, ull);
 sc_queue_def(uint32_t, 32);
 sc_queue_def(uint64_t, 64);
 sc_queue_def(double, double);
