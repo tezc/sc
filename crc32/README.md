@@ -11,7 +11,7 @@
 include(CheckCCompilerFlag)
 include (TestBigEndian)
 
-# detect x86
+# Detect x86 and sse4.2 support
 check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
 if (${HAVE_CRC32_HARDWARE})
   message(STATUS "CPU have -msse4.2, defined HAVE_CRC32C")
@@ -19,14 +19,15 @@ if (${HAVE_CRC32_HARDWARE})
   target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
 endif ()
 
-# detect aarch64
+# Detect aarch64 and set march=armv8.1-a. armv7 doesn't have CRC32c instruction
+# so, armv7 will be unsupported with this flag. 
 if (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
   message(STATUS "CPU = aarch64, defined HAVE_CRC32C, -march=armv8.1-a")
   target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
   target_compile_options(${PROJECT_NAME}_test PRIVATE -march=armv8.1-a)
 endif()
 
-# detect software version endianness
+# Detect software version endianness
 test_big_endian(HAVE_BIG_ENDIAN)
 if (${HAVE_BIG_ENDIAN})
   message(STATUS "System is BIG ENDIAN")
