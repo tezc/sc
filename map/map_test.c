@@ -658,6 +658,7 @@ void test_sv()
 	}
 	sc_map_shrink_sv(&map);
 	assert(map.cap == 8);
+	sc_map_term_sv(&map);
 }
 
 void test_s64()
