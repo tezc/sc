@@ -69,11 +69,11 @@
 		struct sc_map_item_##name *mem;                                \
 		uint32_t cap;                                                  \
 		uint32_t size;                                                 \
-		uint32_t load_fac;                                             \
 		uint32_t remap;                                                \
 		bool used;                                                     \
 		bool oom;                                                      \
 		bool found;                                                    \
+		double load_fac;                                               \
 	};                                                                     \
                                                                                \
 	/**                                                                    \
@@ -112,6 +112,13 @@
 	void sc_map_clear_##name(struct sc_map_##name *map);                   \
                                                                                \
 	/**                                                                    \
+	 * Shrink underlying array in the hashmap if possible.                 \
+	 *                                                                     \
+	 * @param map map                                                      \
+	 */                                                                    \
+	void sc_map_shrink_##name(struct sc_map_##name *map);                  \
+                                                                               \
+	/**                                                                    \
 	 * Put element to the map                                              \
 	 *                                                                     \
 	 * struct sc_map_str map;                                              \
@@ -129,7 +136,7 @@
 	 * Get element                                                         \
 	 *                                                                     \
 	 * @param map map                                                      \
-	 * @param K key                                                        \                                                  \
+	 * @param K key                                                        \
 	 * @return current value if exists.                                    \
 	 *         call sc_map_found() to see if returned value if valid.      \
 	 */                                                                    \
@@ -158,6 +165,7 @@
 /**
  * @param map map
  * @return    true if put operation failed with out of memory
+ *                 if shrink operation failed with out of memory
  */
 #define sc_map_oom(map) ((map)->oom)
 
