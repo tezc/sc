@@ -117,7 +117,6 @@
  */
 #define sc_array_clear(a)                                                      \
 	do {                                                                   \
-		(a)->cap = 0;                                                  \
 		(a)->size = 0;                                                 \
 		(a)->oom = false;                                              \
 	} while (0)
