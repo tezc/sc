@@ -323,11 +323,31 @@ void fail_test()
 	sc_array_del_unordered(&arr, 0);
 	assert(arr.elems[0] == 4);
 	assert(sc_array_size(&arr) == 4);
+
+	size_t cap = arr.cap;
 	sc_array_clear(&arr);
+	assert(cap == arr.cap);
 	assert(sc_array_size(&arr) == 0);
 	sc_array_add(&arr, 10);
 	assert(sc_array_size(&arr) == 1);
 	assert(arr.elems[0] == 10);
+
+	sc_array_clear(&arr);
+	assert(arr.size == 0);
+	assert(arr.cap == cap);
+
+	for (int i = 0; i < 100; i++) {
+		sc_array_add(&arr, i * 514);
+	}
+
+	for (int i = 0; i < 100; i++) {
+		assert(sc_array_at(&arr, i) == i * 514);
+	}
+
+	cap = arr.cap;
+	sc_array_clear(&arr);
+	assert(arr.size == 0);
+	assert(arr.cap == cap);
 
 	sc_array_term(&arr);
 }

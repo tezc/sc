@@ -117,7 +117,6 @@
  */
 #define sc_array_clear(a)                                                      \
 	do {                                                                   \
-		(a)->cap = 0;                                                  \
 		(a)->size = 0;                                                 \
 		(a)->oom = false;                                              \
 	} while (0)
@@ -149,10 +148,12 @@
  */
 #define sc_array_del(a, i)                                                     \
 	do {                                                                   \
-		assert((i) < (a)->size);                                       \
-		const size_t _cnt = (a)->size - (i) -1;                        \
+                size_t idx = (i);                                              \
+		assert(idx < (a)->size);                                       \
+                                                                               \
+		const size_t _cnt = (a)->size - (idx) - 1;                     \
 		if (_cnt > 0) {                                                \
-			memmove(&((a)->elems[i]), &((a)->elems[(i) + 1]),      \
+			memmove(&((a)->elems[idx]), &((a)->elems[idx + 1]),    \
 				_cnt * sizeof(*((a)->elems)));                 \
 		}                                                              \
 		(a)->size--;                                                   \
@@ -170,8 +171,9 @@
  */
 #define sc_array_del_unordered(a, i)                                           \
 	do {                                                                   \
-		assert((i) < (a)->size);                                       \
-		(a)->elems[i] = (a)->elems[(--(a)->size)];                     \
+                size_t idx = (i);                                              \
+		assert(idx < (a)->size);                                       \
+		(a)->elems[idx] = (a)->elems[(--(a)->size)];                   \
 	} while (0)
 
 /**
