@@ -84,7 +84,7 @@ static void sc_sock_errstr(struct sc_sock *s, int gai_err)
 
 int sc_sock_set_blocking(struct sc_sock *s, bool blocking)
 {
-	int mode = blocking ? 0 : 1;
+	u_long mode = blocking ? 0 : 1;
 	int rc = ioctlsocket(s->fdt.fd, FIONBIO, &mode);
 
 	return rc == 0 ? 0 : -1;
