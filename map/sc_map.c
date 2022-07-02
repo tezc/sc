@@ -37,6 +37,21 @@
 #define SC_MAP_MAX UINT32_MAX
 #endif
 
+static uint32_t sc_map_pow2(uint32_t v)
+{
+	if (v < 8) {
+		return 8;
+	}
+
+	v--;
+	for (uint32_t i = 1; i < sizeof(v) * 8; i *= 2) {
+		v |= v >> i;
+	}
+	v++;
+
+	return v;
+}
+
 #define sc_map_def_strkey(name, K, V, cmp, hash_fn)                            \
 	bool sc_map_cmp_##name(struct sc_map_item_##name *t, K key,            \
 			       uint32_t hash)                                  \
@@ -90,25 +105,10 @@
 		.cap = 1,                                                      \
 		.mem = (struct sc_map_item_##name *) &empty_items_##name[1]};  \
                                                                                \
-	static void *sc_map_alloc_##name(uint32_t *cap, uint32_t factor)       \
+	static void *sc_map_alloc_##name(uint32_t cap)                         \
 	{                                                                      \
-		uint32_t v = *cap;                                             \
 		struct sc_map_item_##name *t;                                  \
-                                                                               \
-		if (*cap > SC_MAP_MAX / factor) {                              \
-			return NULL;                                           \
-		}                                                              \
-                                                                               \
-		/* Find next power of two */                                   \
-		v = v < 8 ? 8 : (v * factor);                                  \
-		v--;                                                           \
-		for (uint32_t i = 1; i < sizeof(v) * 8; i *= 2) {              \
-			v |= v >> i;                                           \
-		}                                                              \
-		v++;                                                           \
-                                                                               \
-		*cap = v;                                                      \
-		t = sc_map_calloc(sizeof(*t), v + 1);                          \
+		t = sc_map_calloc(sizeof(*t), cap + 1);                        \
 		return t ? &t[1] : NULL;                                       \
 	}                                                                      \
                                                                                \
@@ -124,11 +124,12 @@
                                                                                \
 		if (cap == 0) {                                                \
 			*m = sc_map_empty_##name;                              \
-			m->load_fac = f;                                       \
+			m->load_fac = ((double) f / 100);                      \
 			return true;                                           \
 		}                                                              \
                                                                                \
-		t = sc_map_alloc_##name(&cap, 1);                              \
+		cap = sc_map_pow2(cap);                                        \
+		t = sc_map_alloc_##name(cap);                                  \
 		if (t == NULL) {                                               \
 			return false;                                          \
 		}                                                              \
@@ -137,8 +138,8 @@
 		m->size = 0;                                                   \
 		m->used = false;                                               \
 		m->cap = cap;                                                  \
-		m->load_fac = f;                                               \
-		m->remap = (uint32_t) (m->cap * ((double) m->load_fac / 100)); \
+		m->load_fac = ((double) f / 100);                              \
+		m->remap = (uint32_t) (m->cap * m->load_fac);                  \
                                                                                \
 		return true;                                                   \
 	}                                                                      \
@@ -168,17 +169,12 @@
 		}                                                              \
 	}                                                                      \
                                                                                \
-	static bool sc_map_remap_##name(struct sc_map_##name *m)               \
+	static bool sc_map_remap_##name(struct sc_map_##name *m, uint32_t cap) \
 	{                                                                      \
-		uint32_t pos, cap, mod;                                        \
+		uint32_t pos, mod;                                             \
 		struct sc_map_item_##name *new;                                \
                                                                                \
-		if (m->size < m->remap) {                                      \
-			return true;                                           \
-		}                                                              \
-                                                                               \
-		cap = m->cap;                                                  \
-		new = sc_map_alloc_##name(&cap, 2);                            \
+		new = sc_map_alloc_##name(cap);                                \
 		if (new == NULL) {                                             \
 			return false;                                          \
 		}                                                              \
@@ -207,7 +203,7 @@
                                                                                \
 		m->mem = new;                                                  \
 		m->cap = cap;                                                  \
-		m->remap = (uint32_t) (m->cap * ((double) m->load_fac / 100)); \
+		m->remap = (uint32_t) (m->cap * m->load_fac);                  \
                                                                                \
 		return true;                                                   \
 	}                                                                      \
@@ -219,9 +215,13 @@
                                                                                \
 		m->oom = false;                                                \
                                                                                \
-		if (!sc_map_remap_##name(m)) {                                 \
-			m->oom = true;                                         \
-			return 0;                                              \
+		if (m->size == m->remap) {                                     \
+			if (m->cap == SC_MAP_MAX ||                            \
+			    !sc_map_remap_##name(m,                            \
+						 sc_map_pow2(m->cap * 2))) {   \
+				m->oom = true;                                 \
+				return 0;                                      \
+			}                                                      \
 		}                                                              \
                                                                                \
 		if (key == 0) {                                                \
@@ -336,6 +336,28 @@
                                                                                \
 			return ret;                                            \
 		}                                                              \
+	}                                                                      \
+                                                                               \
+	void sc_map_shrink_##name(struct sc_map_##name *m)                     \
+	{                                                                      \
+		uint32_t v;                                                    \
+                                                                               \
+		if (m->size == 0) {                                            \
+			uint32_t fac = m->load_fac;                            \
+			sc_map_term_##name(m);                                 \
+			sc_map_init_##name(m, 0, fac);                         \
+			return;                                                \
+		}                                                              \
+                                                                               \
+		m->oom = false;                                                \
+                                                                               \
+		v = m->size + (uint32_t) (m->size * (1 - m->load_fac));        \
+		v = sc_map_pow2(v);                                            \
+		if (v == m->cap) {                                             \
+			return;                                                \
+		}                                                              \
+                                                                               \
+		m->oom = !sc_map_remap_##name(m, v);                           \
 	}
 
 static uint32_t sc_map_hash_32(uint32_t a)

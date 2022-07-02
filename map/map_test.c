@@ -157,6 +157,18 @@ void test_32()
 	assert(sc_map_found(&map));
 
 	sc_map_term_32(&map);
+
+	assert(sc_map_init_32(&map, 0, 0));
+	for (int i = 0; i < 128; i++) {
+		sc_map_put_32(&map, i, i);
+	}
+	for (int i = 0; i < 123; i++) {
+		sc_map_del_32(&map, i);
+	}
+	sc_map_shrink_32(&map);
+	assert(map.cap == 8);
+	sc_map_term_32(&map);
+
 }
 
 void test_64()
@@ -232,6 +244,17 @@ void test_64()
 	sc_map_del_64(&map, 48);
 	assert(sc_map_found(&map));
 
+	sc_map_term_64(&map);
+
+	assert(sc_map_init_64(&map, 0, 0));
+	for (int i = 0; i < 128; i++) {
+		sc_map_put_64(&map, i, i);
+	}
+	for (int i = 0; i < 123; i++) {
+		sc_map_del_64(&map, i);
+	}
+	sc_map_shrink_64(&map);
+	assert(map.cap == 8);
 	sc_map_term_64(&map);
 }
 
@@ -309,6 +332,17 @@ void test_64v()
 	assert(sc_map_found(&map));
 
 	sc_map_term_64v(&map);
+
+	assert(sc_map_init_64v(&map, 0, 0));
+	for (int i = 0; i < 128; i++) {
+		sc_map_put_64v(&map, i, "");
+	}
+	for (int i = 0; i < 123; i++) {
+		sc_map_del_64v(&map, i);
+	}
+	sc_map_shrink_64v(&map);
+	assert(map.cap == 8);
+	sc_map_term_64v(&map);
 }
 
 void test_64s()
@@ -383,6 +417,17 @@ void test_64s()
 	sc_map_del_64s(&map, 48);
 	assert(sc_map_found(&map));
 
+	sc_map_term_64s(&map);
+
+	assert(sc_map_init_64s(&map, 0, 0));
+	for (int i = 0; i < 128; i++) {
+		sc_map_put_64s(&map, i, "");
+	}
+	for (int i = 0; i < 123; i++) {
+		sc_map_del_64s(&map, i);
+	}
+	sc_map_shrink_64s(&map);
+	assert(map.cap == 8);
 	sc_map_term_64s(&map);
 }
 
@@ -489,6 +534,17 @@ void test_str()
 	assert(sc_map_found(&map));
 
 	sc_map_term_str(&map);
+
+	assert(sc_map_init_str(&map, 0, 0));
+	for (int i = 0; i < 15; i++) {
+		sc_map_put_str(&map, &arr[i], "");
+	}
+	for (int i = 0; i < 9; i++) {
+		sc_map_del_str(&map, &arr[i]);
+	}
+	sc_map_shrink_str(&map);
+	assert(map.cap == 8);
+	sc_map_term_str(&map);
 }
 
 void test_sv()
@@ -591,6 +647,17 @@ void test_sv()
 	sc_map_del_sv(&map, "z");
 	assert(sc_map_found(&map));
 
+	sc_map_term_sv(&map);
+
+	assert(sc_map_init_sv(&map, 0, 0));
+	for (int i = 0; i < 15; i++) {
+		sc_map_put_sv(&map, &arr[i], "");
+	}
+	for (int i = 0; i < 9; i++) {
+		sc_map_del_sv(&map, &arr[i]);
+	}
+	sc_map_shrink_sv(&map);
+	assert(map.cap == 8);
 	sc_map_term_sv(&map);
 }
 
@@ -698,6 +765,18 @@ void test_s64()
 	sc_map_put_s64(&map, "13", 0);
 	sc_map_del_s64(&map, "z");
 	assert(sc_map_found(&map));
+
+	sc_map_term_s64(&map);
+
+	assert(sc_map_init_s64(&map, 0, 0));
+	for (int i = 0; i < 15; i++) {
+		sc_map_put_s64(&map, &arr[i], i);
+	}
+	for (int i = 0; i < 9; i++) {
+		sc_map_del_s64(&map, &arr[i]);
+	}
+	sc_map_shrink_s64(&map);
+	assert(map.cap == 8);
 
 	sc_map_term_s64(&map);
 }
@@ -1526,6 +1605,41 @@ void fail_test_s64(void)
 }
 #endif
 
+void shrink_test()
+{
+	struct sc_map_32 map;
+
+	sc_map_init_32(&map, 0, 75);
+
+	for (int i = 0; i < 32; i++) {
+		sc_map_put_32(&map, i, i);
+	}
+
+	sc_map_shrink_32(&map);
+	assert(map.cap == 64);
+
+	for (int i = 0; i < 32; i++) {
+		sc_map_del_32(&map, i);
+	}
+
+	sc_map_shrink_32(&map);
+	assert(map.cap == 1);
+
+	for (int i = 0; i < 32; i++) {
+		sc_map_put_32(&map, i, i);
+		sc_map_shrink_32(&map);
+	}
+	assert(map.cap == 64);
+
+	for (int i = 0; i < 24; i++) {
+		sc_map_del_32(&map, i);
+		sc_map_shrink_32(&map);
+	}
+	assert(map.cap == 16);
+
+	sc_map_term_32(&map);
+}
+
 int main()
 {
 	example();
@@ -1551,6 +1665,7 @@ int main()
 	test_str();
 	test_sv();
 	test_s64();
+	shrink_test();
 
 	return 0;
 }
