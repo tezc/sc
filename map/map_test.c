@@ -1263,6 +1263,227 @@ static void test6()
 	free(values);
 }
 
+static void test_loop_foreach()
+{
+	struct sc_map_32 map;
+
+	sc_map_init_32(&map, 100, 0);
+
+	uint32_t values[1000] = {0};
+
+	for (int i = 0; i < 1000; i++) {
+		sc_map_put_32(&map, 99 * i, 107 * 99 * i);
+	}
+
+	int key, val;
+	sc_map_foreach (&map, key, val) {
+		assert(key % 99 == 0);
+		assert(key * 107 == val);
+		assert(values[key / 99] == 0);
+		values[key / 99] = 1;
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		assert(values[i] == 1);
+		values[i] = 0;
+	}
+
+	int count = 0;
+	sc_map_foreach (&map, key, val) {
+		values[key / 99] = 1;
+		count++;
+		if (count == 476) {
+			break;
+		}
+	}
+
+	count = 0;
+	for (int i = 0; i < 1000; i++) {
+		if (values[i] == 1) {
+			count++;
+		}
+		values[i] = 0;
+	}
+
+	assert(count == 476);
+	sc_map_term_32(&map);
+}
+
+static void test_loop_foreach_key()
+{
+	struct sc_map_32 map;
+
+	sc_map_init_32(&map, 100, 0);
+
+	uint32_t values[1000] = {0};
+
+	for (int i = 0; i < 1000; i++) {
+		sc_map_put_32(&map, 99 * i, 99 * i);
+	}
+
+	int key;
+	sc_map_foreach_key (&map, key) {
+		assert(values[key / 99] == 0);
+		values[key / 99] = 1;
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		assert(values[i] == 1);
+		values[i] = 0;
+	}
+
+	int count = 0;
+	sc_map_foreach_key (&map, key) {
+		values[key / 99] = 1;
+		count++;
+		if (count == 476) {
+			break;
+		}
+	}
+
+	count = 0;
+	for (int i = 0; i < 1000; i++) {
+		if (values[i] == 1) {
+			count++;
+		}
+		values[i] = 0;
+	}
+
+	assert(count == 476);
+	sc_map_term_32(&map);
+}
+
+static void test_loop_foreach_value()
+{
+	struct sc_map_32 map;
+
+	sc_map_init_32(&map, 100, 0);
+
+	uint32_t values[1000] = {0};
+
+	for (int i = 0; i < 1000; i++) {
+		sc_map_put_32(&map, 99 * i, 99 * i);
+	}
+
+	int value;
+	sc_map_foreach_value (&map, value) {
+		assert(values[value / 99] == 0);
+		values[value / 99] = 1;
+	}
+
+	for (int i = 0; i < 1000; i++) {
+		assert(values[i] == 1);
+		values[i] = 0;
+	}
+
+	int count = 0;
+	sc_map_foreach_key (&map, value) {
+		values[value / 99] = 1;
+		count++;
+		if (count == 476) {
+			break;
+		}
+	}
+
+	count = 0;
+	for (int i = 0; i < 1000; i++) {
+		if (values[i] == 1) {
+			count++;
+		}
+		values[i] = 0;
+	}
+
+	assert(count == 476);
+	sc_map_term_32(&map);
+}
+
+void test_loop_generic()
+{
+	struct sc_map_64 map;
+
+	sc_map_init_64(&map, 0, 0);
+
+	int keys[100] = {0};
+
+	for (int i = 0; i < 100; i++) {
+		sc_map_put_64(&map, i, i * 918);
+	}
+
+	uint64_t key, value;
+	sc_map_foreach (&map, key, value) {
+		assert(keys[key] == 0);
+		assert(value == key * 918);
+		keys[key] = 1;
+	}
+
+	for (int i = 0; i < 100; i++) {
+		assert(keys[i] == 1);
+	}
+
+	memset(keys, 0, sizeof(keys));
+	int count = 0;
+
+	sc_map_foreach (&map, key, value) {
+		assert(keys[key] == 0);
+		assert(value == key * 918);
+		keys[key] = 1;
+		count++;
+		if (count == 76) {
+			break;
+		}
+	}
+
+	for (int i = 0; i < 100; i++) {
+		if (keys[i] == 1) {
+			count--;
+		}
+	}
+	assert(count == 0);
+
+
+
+	count = 0;
+	memset(keys, 0, sizeof(keys));
+
+	sc_map_foreach_key (&map, key) {
+		assert(keys[key] == 0);
+		keys[key] = 1;
+		count++;
+		if (count == 47) {
+			break;
+		}
+	}
+
+	for (int i = 0; i < 100; i++) {
+		if (keys[i] == 1) {
+			count--;
+		}
+	}
+	assert(count == 0);
+
+
+
+	count = 0;
+	memset(keys, 0, sizeof(keys));
+
+	sc_map_foreach_value(&map, value) {
+		assert(keys[value / 918] == 0);
+		keys[value / 918] = 1;
+		count++;
+		if (count == 39) {
+			break;
+		}
+	}
+
+	for (int i = 0; i < 100; i++) {
+		if (keys[i] == 1) {
+			count--;
+		}
+	}
+	assert(count == 0);
+	sc_map_term_64(&map);
+}
+
 #ifdef SC_HAVE_WRAP
 
 bool fail_calloc = false;
@@ -1551,6 +1772,10 @@ int main()
 	test_str();
 	test_sv();
 	test_s64();
+	test_loop_foreach();
+	test_loop_foreach_key();
+	test_loop_foreach_value();
+	test_loop_generic();
 
 	return 0;
 }
