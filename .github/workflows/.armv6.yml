@@ -29,6 +29,6 @@ jobs:
           # Produce a binary artifact and place it in the mounted volume
           run: |
             apk update
-            apk add git build-base gcc make valgrind cmake
+            apk add git build-base gcc make cmake
             mkdir build && cd build
             cmake ..  -DSC_USE_WRAP=OFF && make -j && make check
