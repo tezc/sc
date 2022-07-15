@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <time.h>
 
 void example(void)
 {
@@ -1225,8 +1224,6 @@ static void test6()
 	const int count = 120000;
 	uint32_t val;
 	struct sc_map_32 map;
-
-	srand(time(NULL));
 
 	uint32_t *keys = malloc(sizeof(uint32_t) * count);
 	uint32_t *values = malloc(sizeof(uint32_t) * count);
