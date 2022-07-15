@@ -121,7 +121,7 @@
 	 * @param K key                                                        \
 	 * @param V value                                                      \
 	 * @return previous value if exists                                    \
-	 *         call sc_map_found() to see if returned value if valid.      \
+	 *         call sc_map_found() to see if the returned value is valid.  \
 	 */                                                                    \
 	V sc_map_put_##name(struct sc_map_##name *map, K key, V val);          \
                                                                                \
@@ -131,7 +131,7 @@
 	 * @param map map                                                      \
 	 * @param K key                                                        \
 	 * @return current value if exists.                                    \
-	 *         call sc_map_found() to see if returned value if valid.      \
+	 *         call sc_map_found() to see if the returned value is valid.  \
 	 */                                                                    \
 	/** NOLINTNEXTLINE */                                                  \
 	V sc_map_get_##name(struct sc_map_##name *map, K key);                 \
@@ -142,7 +142,7 @@
 	 * @param map map                                                      \
 	 * @param K key                                                        \
 	 * @return current value if exists.                                    \
-	 *         call sc_map_found() to see if returned value if valid.      \
+	 *         call sc_map_found() to see if the returned value is valid.  \
 	 */                                                                    \
 	/** NOLINTNEXTLINE */                                                  \
 	V sc_map_del_##name(struct sc_map_##name *map, K key);
