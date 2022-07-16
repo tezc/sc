@@ -165,7 +165,8 @@ uint64_t sc_timer_timeout(struct sc_timer *t, uint64_t timestamp, void *arg,
 			  void (*callback)(void *, uint64_t, uint64_t, void *))
 {
 	const uint64_t time = timestamp - t->timestamp;
-	uint32_t wheel, base, timeout;
+	uint64_t timeout;
+	uint32_t wheel, base;
 	uint32_t head = t->head;
 	uint32_t wheels = (uint32_t) (sc_timer_min(time / TICK, WHEEL_COUNT));
 	struct sc_timer_data *item;
