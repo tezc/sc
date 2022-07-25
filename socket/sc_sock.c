@@ -418,7 +418,11 @@ int sc_sock_finish_connect(struct sc_sock *s)
 	socklen_t len = sizeof(ret);
 
 	rc = getsockopt(s->fdt.fd, SOL_SOCKET, SO_ERROR, (void *) &ret, &len);
-	if (rc != 0 || ret != 0) {
+	if (rc == 0 && ret != 0) {
+		errno = ret;
+		rc = -1;
+	}
+	if (rc != 0) {
 		sc_sock_errstr(s, 0);
 		return -1;
 	}
