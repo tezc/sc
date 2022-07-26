@@ -46,7 +46,7 @@
 #endif
 
 #if defined(_WIN32) || defined(_WIN64)
-#include <Ws2tcpip.h>
+#include <ws2tcpip.h>
 #include <windows.h>
 #include <winsock2.h>
 
