@@ -49,7 +49,7 @@
 #if defined(_WIN32) || defined(_WIN64)
 #include <afunix.h>
 #include <assert.h>
-#include <Ws2tcpip.h>
+#include <ws2tcpip.h>
 
 #pragma warning(disable : 4996)
 #define sc_close(n) closesocket(n)
