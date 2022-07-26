@@ -510,6 +510,7 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		    const char *dst_port, const char *src_addr,
 		    const char *src_port)
 {
+	int family = s->family;
 	int rc, rv = 0;
 	sc_sock_int fd;
 	void *tmp;
@@ -520,7 +521,7 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		.ai_socktype = SOCK_STREAM,
 	};
 
-	if (s->family == AF_UNIX) {
+	if (family == AF_UNIX) {
 		return sc_sock_connect_unix(s, dst_addr);
 	}
 
@@ -530,52 +531,59 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 		return -1;
 	}
 
-	for (p = sinfo; p != NULL; p = p->ai_next) {
-		fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-		if (fd == SC_INVALID) {
-			continue;
-		}
+	for (int i = 0; i < 2; i++) {
+		for (p = sinfo; p != NULL; p = p->ai_next) {
+			// Try same family addresses in the first iteration.                        
+			if ((i == 0) ^ (p->ai_family == family)) {
+				continue;
+			}
 
-		s->family = p->ai_family;
-		s->fdt.fd = fd;
+			fd = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+			if (fd == SC_INVALID) {
+				continue;
+			}
 
-		rc = sc_sock_set_blocking(s, s->blocking);
-		if (rc != 0) {
-			goto error;
-		}
+			s->family = p->ai_family;
+			s->fdt.fd = fd;
 
-		tmp = (void *) &(int){1};
-		rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, tmp, sizeof(int));
-		if (rc != 0) {
-			goto error;
-		}
-
-		rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, tmp, sizeof(int));
-		if (rc != 0) {
-			goto error;
-		}
-
-		if (src_addr || src_port) {
-			rc = sc_sock_bind_src(s, src_addr, src_port);
+			rc = sc_sock_set_blocking(s, s->blocking);
 			if (rc != 0) {
-				goto bind_error;
-			}
-		}
-
-		rc = connect(s->fdt.fd, p->ai_addr, (socklen_t) p->ai_addrlen);
-		if (rc != 0) {
-			if (!s->blocking && (sc_sock_err() == SC_EINPROGRESS ||
-					     sc_sock_err() == SC_EAGAIN)) {
-				errno = EAGAIN;
-				rv = -1;
-				goto end;
+				goto error;
 			}
 
-			sc_sock_close(s);
-			continue;
-		}
+			tmp = (void *) &(int){1};
+			rc = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, tmp, sizeof(int));
+			if (rc != 0) {
+				goto error;
+			}
 
-		goto end;
+			rc = setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, tmp, sizeof(int));
+			if (rc != 0) {
+				goto error;
+			}
+
+			if (src_addr || src_port) {
+				rc = sc_sock_bind_src(s, src_addr, src_port);
+				if (rc != 0) {
+					goto bind_error;
+				}
+			}
+
+			rc = connect(fd, p->ai_addr, (socklen_t) p->ai_addrlen);
+			if (rc != 0) {
+				if (!s->blocking && (sc_sock_err() == SC_EINPROGRESS ||
+							 sc_sock_err() == SC_EAGAIN)) {
+					errno = EAGAIN;
+					rv = -1;
+					goto end;
+				}
+
+				sc_sock_close(s);
+				continue;
+			}
+
+			goto end;
+		}
 	}
 
 error:
