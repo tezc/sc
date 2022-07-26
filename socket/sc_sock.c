@@ -533,7 +533,7 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 
 	for (int i = 0; i < 2; i++) {
 		for (p = sinfo; p != NULL; p = p->ai_next) {
-			if (i == 0 ^ p->ai_family == family) {
+			if ((i == 0) ^ (p->ai_family == family)) {
 				continue;
 			}
 
