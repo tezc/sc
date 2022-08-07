@@ -1583,8 +1583,9 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc;
 	int index = fdt->index;
+	int mask = fdt->op | events;
 
-	if ((fdt->op & events) == events) {
+	if ((fdt->op & events) == events || mask == SC_SOCK_EDGE) {
 		return 0;
 	}
 
@@ -1612,7 +1613,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	assert(index != -1);
 
-	fdt->op |= events;
+	fdt->op = mask;
 
 	p->events[fdt->index].events = 0;
 	p->events[fdt->index].revents = 0;
@@ -1638,6 +1639,11 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	fdt->op &= ~events;
+
+	if (fdt->op == SC_SOCK_EDGE) {
+		fdt->op = SC_SOCK_NONE;
+	}
+
 	if (fdt->op == SC_SOCK_NONE) {
 		p->events[fdt->index].fd = SC_INVALID;
 		p->count--;

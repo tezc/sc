@@ -75,11 +75,52 @@ enum sc_sock_family
 	SC_SOCK_UNIX = AF_UNIX
 };
 
+#if defined(__linux__)
+
+#include <sys/epoll.h>
+
+struct sc_sock_poll {
+    int fds;
+    int count;
+    int cap;
+    struct epoll_event *events;
+    char err[128];
+};
+
+#elif defined(__FreeBSD__) || defined(__APPLE__)
+#include <sys/event.h>
+
+struct sc_sock_poll {
+    int fds;
+    int count;
+    int cap;
+    struct kevent *events;
+    char err[128];
+};
+#else
+
+#if !defined(_WIN32)
+#include <poll.h>
+#endif
+
+struct sc_sock_poll {
+    int count;
+    int cap;
+    void **data;
+    struct pollfd *events;
+    char err[128];
+};
+
+#endif
+
 struct sc_sock_fd {
 	sc_sock_int fd;
 	enum sc_sock_ev op;
 	int type; // user data
 	int index;
+#if defined(_WIN32)
+    struct sc_sock_poll *edge_poll;
+#endif
 };
 
 struct sc_sock {
@@ -307,44 +348,6 @@ int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, unsigned int len);
  * @return  last error string
  */
 const char *sc_sock_pipe_err(struct sc_sock_pipe *p);
-
-#if defined(__linux__)
-
-#include <sys/epoll.h>
-
-struct sc_sock_poll {
-	int fds;
-	int count;
-	int cap;
-	struct epoll_event *events;
-	char err[128];
-};
-
-#elif defined(__FreeBSD__) || defined(__APPLE__)
-#include <sys/event.h>
-
-struct sc_sock_poll {
-	int fds;
-	int count;
-	int cap;
-	struct kevent *events;
-	char err[128];
-};
-#else
-
-#if !defined(_WIN32)
-#include <poll.h>
-#endif
-
-struct sc_sock_poll {
-	int count;
-	int cap;
-	void **data;
-	struct pollfd *events;
-	char err[128];
-};
-
-#endif
 
 /**
  * Create poll
