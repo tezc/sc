@@ -1157,7 +1157,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		.events = EPOLLERR | EPOLLHUP | EPOLLRDHUP,
 	};
 
-	if ((fdt->op & events) == events) {
+	if ((fdt->op & events) == events || mask == SC_SOCK_EDGE) {
 		return 0;
 	}
 
@@ -1176,6 +1176,10 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (mask & SC_SOCK_WRITE) {
 		ep_ev.events |= EPOLLOUT;
+	}
+
+	if (mask & SC_SOCK_EDGE) {
+		ep_ev.events |= EPOLLET;
 	}
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
@@ -1204,6 +1208,11 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	fdt->op &= ~events;
+
+	if (fdt->op == SC_SOCK_EDGE) {
+		fdt->op = SC_SOCK_NONE;
+	}
+
 	op = fdt->op == SC_SOCK_NONE ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
 
 	if (fdt->op & SC_SOCK_READ) {
@@ -1212,6 +1221,10 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (fdt->op & SC_SOCK_WRITE) {
 		ep_ev.events |= EPOLLOUT;
+	}
+
+	if (fdt->op & SC_SOCK_EDGE) {
+		ep_ev.events |= EPOLLET;
 	}
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
@@ -1357,7 +1370,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	struct kevent ev[2];
 	int mask = fdt->op | events;
 
-	if ((fdt->op & events) == events) {
+	if ((fdt->op & events) == events || mask == SC_SOCK_EDGE) {
 		return 0;
 	}
 
@@ -1368,12 +1381,18 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 	}
 
+	unsigned short act = EV_ADD;
+
+	if (mask & SC_SOCK_EDGE) {
+		act |= EV_CLEAR;
+	}
+
 	if (mask & SC_SOCK_WRITE) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
+		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, act, 0, 0, data);
 	}
 
 	if (mask & SC_SOCK_READ) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
+		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, act, 0, 0, data);
 	}
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1391,8 +1410,6 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
-	(void) data;
-
 	int rc, count = 0;
 	struct kevent ev[2];
 	int mask = fdt->op & events;
@@ -1404,9 +1421,15 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	if (mask & SC_SOCK_READ) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
 	}
+	else if ((mask & SC_SOCK_EDGE) && (fdt->op & SC_SOCK_READ)) {
+		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
+	}
 
 	if (mask & SC_SOCK_WRITE) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+	}
+	else if ((mask & SC_SOCK_EDGE) && (fdt->op & SC_SOCK_WRITE)) {
+		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1416,6 +1439,11 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	fdt->op &= ~events;
+
+	if (fdt->op == SC_SOCK_EDGE) {
+		fdt->op = SC_SOCK_NONE;
+	}
+
 	p->count -= fdt->op == SC_SOCK_NONE;
 
 	return 0;

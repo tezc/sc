@@ -65,6 +65,7 @@ enum sc_sock_ev
 	SC_SOCK_NONE = 0u,
 	SC_SOCK_READ = 1u,
 	SC_SOCK_WRITE = 2u,
+    SC_SOCK_EDGE = 4u,
 };
 
 enum sc_sock_family
