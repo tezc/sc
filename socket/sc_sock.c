@@ -1607,11 +1607,11 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 		// Move the last element in place of the removed one.
 		if (fdt->index < p->count) {
-			p->events[fdt->index] = p->events[fdt->count];
-			p->data[fdt->index] = p->data[fdt->count];
+			p->events[fdt->index] = p->events[p->count];
+			p->data[fdt->index] = p->data[p->count];
 		}
 
-		p->events[fdt->count].fd = SC_INVALID;
+		p->events[p->count].fd = SC_INVALID;
 		fdt->index = -1;
 	} else {
 		p->events[fdt->index].events = 0;
