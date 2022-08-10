@@ -1567,16 +1567,8 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 			return -1;
 		}
 
+		index = p->count;
 		p->count++;
-
-		for (int i = 0; i < p->cap; i++) {
-			if (p->events[i].fd == SC_INVALID) {
-				index = i;
-				break;
-			}
-		}
-
-		assert(index != -1);
 
 		p->events[index].fd = fdt->fd;
 		fdt->index = index;
@@ -1611,8 +1603,15 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	fdt->op &= ~events;
 	if (fdt->op == SC_SOCK_NONE) {
-		p->events[fdt->index].fd = SC_INVALID;
 		p->count--;
+
+		// Move the last element in place of the removed one.
+		if (fdt->index < p->count) {
+			p->events[fdt->index] = p->events[fdt->count];
+			p->data[fdt->index] = p->data[fdt->count];
+		}
+
+		p->events[fdt->count].fd = SC_INVALID;
 		fdt->index = -1;
 	} else {
 		p->events[fdt->index].events = 0;
@@ -1659,15 +1658,17 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
-	int n, rc = p->cap;
+	int n, rc = p->count;
 
 	timeout = (timeout == -1) ? 16 : timeout;
 
 	do {
-		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
+		n = WSAPoll(p->events, (ULONG) p->count, timeout);
 	} while (n < 0 && errno == EINTR);
 
-	if (n == SC_INVALID) {
+	if (n == 0) {
+		rc = 0;
+	} else if (n == SC_INVALID) {
 		rc = -1;
 		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
 	}
