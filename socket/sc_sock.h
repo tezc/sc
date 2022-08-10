@@ -75,6 +75,9 @@ enum sc_sock_family
 	SC_SOCK_UNIX = AF_UNIX
 };
 
+typedef struct sc_sock_fd sc_sock_fd;
+typedef struct sc_sock_poll sc_sock_poll;
+
 #if defined(__linux__)
 
 #include <sys/epoll.h>
@@ -107,6 +110,7 @@ struct sc_sock_poll {
     int count;
     int cap;
     void **data;
+    struct sc_sock_fd **socks;
     struct pollfd *events;
     char err[128];
 };
@@ -118,7 +122,7 @@ struct sc_sock_fd {
 	enum sc_sock_ev op;
 	int type; // user data
 	int index;
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
     struct sc_sock_poll *edge_poll;
 #endif
 };
