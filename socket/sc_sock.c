@@ -1612,6 +1612,8 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 
 		p->events[p->count].fd = SC_INVALID;
+		p->data[p->count] = NULL;
+
 		fdt->index = -1;
 	} else {
 		p->events[fdt->index].events = 0;
