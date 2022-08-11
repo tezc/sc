@@ -1436,12 +1436,39 @@ void *server(void *arg)
 	assert(sc_sock_poll_term(&p) == 0);
 	assert(sc_sock_poll_init(&p) == 0);
 
+#if defined(_WIN32) || defined(_WIN64)
+	struct sc_sock srv2;
+	sc_sock_init(&srv2, 0, true, SC_SOCK_INET);
+	rc = sc_sock_listen(&srv2, "127.0.0.1", "11011");
+	assert(rc == 0);
+
+	rc = sc_sock_poll_add(&p, &srv2.fdt, SC_SOCK_READ, &srv2);
+	assert(rc == 0);
+
+	assert(srv2.fdt.index == 0);
+	assert(&srv2 == sc_sock_poll_data(&p, 0));
+#endif
+
 	sc_sock_init(&srv, 0, true, SC_SOCK_INET);
 	rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
 	assert(rc == 0);
 
 	rc = sc_sock_poll_add(&p, &srv.fdt, SC_SOCK_READ, &srv);
 	assert(rc == 0);
+
+#if defined(_WIN32) || defined(_WIN64)
+	assert(srv.fdt.index == 1);
+	assert(&srv == sc_sock_poll_data(&p, 1));
+
+	rc = sc_sock_poll_del(&p, &srv2.fdt, SC_SOCK_READ, &srv2);
+
+	assert(srv.fdt.index == 0);
+	assert(&srv == sc_sock_poll_data(&p, 0));
+	assert(NULL == sc_sock_poll_data(&p, 1));
+
+	assert(sc_sock_term(&srv2) == 0);
+#endif
+
 	bool done = false;
 
 	while (!done) {
