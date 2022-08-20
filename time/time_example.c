@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-int main()
+int main(void)
 {
 	uint64_t t = sc_time_ms();
 	sc_time_sleep(1000);

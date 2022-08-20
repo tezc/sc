@@ -39,25 +39,25 @@
  * Wall clock time. Gets CLOCK_REALTIME on Posix.
  * @return current timestamp in milliseconds.
  */
-uint64_t sc_time_ms();
+uint64_t sc_time_ms(void);
 
 /**
  * Wall clock time. Gets CLOCK_REALTIME on Posix.
  * @return current timestamp in nanoseconds.
  */
-uint64_t sc_time_ns();
+uint64_t sc_time_ns(void);
 
 /**
  * Monotonic timer. Gets CLOCK_MONOTONIC on Posix
  * @return current timestamp in milliseconds.
  */
-uint64_t sc_time_mono_ms();
+uint64_t sc_time_mono_ms(void);
 
 /**
  * Monotonic timer. Gets CLOCK_MONOTONIC on Posix
  * @return Current timestamp in nanoseconds.
  */
-uint64_t sc_time_mono_ns();
+uint64_t sc_time_mono_ns(void);
 
 /**
  * @param millis milliseconds to sleep.

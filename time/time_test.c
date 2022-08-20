@@ -109,7 +109,7 @@ void test4(void)
 }
 #endif
 
-int main()
+int main(void)
 {
 	test1();
 	test2();
