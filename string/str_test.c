@@ -60,7 +60,7 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 	return fail_vnsprintf_value;
 }
 
-void test1()
+void test1(void)
 {
 	char *m = sc_str_create(NULL);
 	sc_str_destroy(&m);
@@ -170,7 +170,7 @@ void test1()
 	fail_vsnprintf = false;
 }
 
-void test2()
+void test2(void)
 {
 	char buf[4000];
 	memset(buf, 'x', 4000);
@@ -267,7 +267,7 @@ void test2()
 
 #endif
 
-void test3()
+void test3(void)
 {
 	const char *tokens = "token;token;token;token";
 	char *save = NULL;
@@ -350,7 +350,7 @@ void test3()
 	sc_str_destroy(&str);
 }
 
-void test4()
+void test4(void)
 {
 	char *save = NULL;
 	const char *token;
@@ -415,7 +415,7 @@ void test4()
 	sc_str_destroy(&str);
 }
 
-void test5()
+void test5(void)
 {
 	char *s1, *s2;
 
@@ -519,7 +519,7 @@ void test5()
 	sc_str_destroy(&s1);
 }
 
-void test6()
+void test6(void)
 {
 	char *s1, *s2;
 	char *save = NULL;
@@ -588,7 +588,7 @@ void test6()
 	sc_str_destroy(&s2);
 }
 
-int main()
+int main(void)
 {
 
 #ifdef SC_HAVE_WRAP
