@@ -317,7 +317,7 @@ int __wrap_sprintf(char *str, const char *format, ...)
 	return fail_sprintf;
 }
 
-void fail_test()
+void fail_test(void)
 {
 	struct sc_uri *uri;
 	fail_malloc = true;
@@ -362,7 +362,7 @@ void fail_test()
 }
 #endif
 
-int main()
+int main(void)
 {
 	test1();
 	test2();

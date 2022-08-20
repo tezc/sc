@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-int main()
+int main(void)
 {
 	struct sc_uri *uri;
 	uri = sc_uri_create("http://user:pass@any.com:8042/over/"
