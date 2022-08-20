@@ -1,6 +1,6 @@
 #include "sc_mutex.h"
 
-int main()
+int main(void)
 {
 	struct sc_mutex mutex;
 

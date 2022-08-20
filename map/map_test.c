@@ -23,7 +23,7 @@ void example(void)
 	sc_map_term_str(&map);
 }
 
-void example_int_to_str()
+void example_int_to_str(void)
 {
 	uint32_t key;
 	const char *value;
@@ -81,7 +81,7 @@ static char *str_random(size_t size)
 	return dest;
 }
 
-void test_32()
+void test_32(void)
 {
 	struct sc_map_32 map;
 
@@ -158,7 +158,7 @@ void test_32()
 	sc_map_term_32(&map);
 }
 
-void test_64()
+void test_64(void)
 {
 	struct sc_map_64 map;
 
@@ -234,7 +234,7 @@ void test_64()
 	sc_map_term_64(&map);
 }
 
-void test_64v()
+void test_64v(void)
 {
 	struct sc_map_64v map;
 
@@ -310,7 +310,7 @@ void test_64v()
 	sc_map_term_64v(&map);
 }
 
-void test_64s()
+void test_64s(void)
 {
 	struct sc_map_64s map;
 
@@ -385,7 +385,7 @@ void test_64s()
 	sc_map_term_64s(&map);
 }
 
-void test_str()
+void test_str(void)
 {
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
@@ -490,7 +490,7 @@ void test_str()
 	sc_map_term_str(&map);
 }
 
-void test_sv()
+void test_sv(void)
 {
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
@@ -593,7 +593,7 @@ void test_sv()
 	sc_map_term_sv(&map);
 }
 
-void test_s64()
+void test_s64(void)
 {
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
@@ -701,7 +701,7 @@ void test_s64()
 	sc_map_term_s64(&map);
 }
 
-void test0()
+void test0(void)
 {
 	uint64_t val;
 	struct sc_map_64 map;
@@ -749,7 +749,7 @@ void test0()
 	sc_map_term_64(&map);
 }
 
-void test1()
+void test1(void)
 {
 	struct sc_map_str map;
 	char *keys[128];
@@ -901,7 +901,7 @@ void test1()
 	}
 }
 
-void test2()
+void test2(void)
 {
 	struct sc_map_32 map;
 	uint32_t keys[128];
@@ -983,7 +983,7 @@ retry:
 	sc_map_term_32(&map);
 }
 
-void test3()
+void test3(void)
 {
 	struct sc_map_64 map;
 	uint64_t keys[128];
@@ -1065,7 +1065,7 @@ retry:
 	sc_map_term_64(&map);
 }
 
-void test4()
+void test4(void)
 {
 	const char *c;
 	struct sc_map_64s map64s;
@@ -1184,7 +1184,7 @@ void test4()
 	}
 }
 
-static void test5()
+static void test5(void)
 {
 	int t = 0;
 	uint64_t key, value;
@@ -1219,7 +1219,7 @@ static void test5()
 	sc_map_term_64(&map);
 }
 
-static void test6()
+static void test6(void)
 {
 	const int count = 120000;
 	uint32_t val;
@@ -1260,7 +1260,7 @@ static void test6()
 	free(values);
 }
 
-static void test_loop_foreach()
+static void test_loop_foreach(void)
 {
 	struct sc_map_32 map;
 
@@ -1306,7 +1306,7 @@ static void test_loop_foreach()
 	sc_map_term_32(&map);
 }
 
-static void test_loop_foreach_key()
+static void test_loop_foreach_key(void)
 {
 	struct sc_map_32 map;
 
@@ -1350,7 +1350,7 @@ static void test_loop_foreach_key()
 	sc_map_term_32(&map);
 }
 
-static void test_loop_foreach_value()
+static void test_loop_foreach_value(void)
 {
 	struct sc_map_32 map;
 
@@ -1394,7 +1394,7 @@ static void test_loop_foreach_value()
 	sc_map_term_32(&map);
 }
 
-void test_loop_generic()
+void test_loop_generic(void)
 {
 	struct sc_map_64 map;
 
@@ -1494,7 +1494,7 @@ void *__wrap_calloc(size_t n, size_t size)
 	return __real_calloc(n, size);
 }
 
-void fail_test_32()
+void fail_test_32(void)
 {
 	struct sc_map_32 map;
 
@@ -1521,7 +1521,7 @@ void fail_test_32()
 	sc_map_term_32(&map);
 }
 
-void fail_test_64()
+void fail_test_64(void)
 {
 	struct sc_map_64 map;
 
@@ -1548,7 +1548,7 @@ void fail_test_64()
 	sc_map_term_64(&map);
 }
 
-void fail_test_64v()
+void fail_test_64v(void)
 {
 	struct sc_map_64v map;
 
@@ -1575,7 +1575,7 @@ void fail_test_64v()
 	sc_map_term_64v(&map);
 }
 
-void fail_test_64s()
+void fail_test_64s(void)
 {
 	struct sc_map_64s map;
 
@@ -1602,7 +1602,7 @@ void fail_test_64s()
 	sc_map_term_64s(&map);
 }
 
-void fail_test_str()
+void fail_test_str(void)
 {
 	struct sc_map_str map;
 	const char *v;
@@ -1642,7 +1642,7 @@ void fail_test_str()
 	sc_map_term_str(&map);
 }
 
-void fail_test_sv()
+void fail_test_sv(void)
 {
 	struct sc_map_sv map;
 	const char *v;
@@ -1681,7 +1681,7 @@ void fail_test_sv()
 	sc_map_term_sv(&map);
 }
 
-void fail_test_s64()
+void fail_test_s64(void)
 {
 	struct sc_map_s64 map;
 	const char *v;
@@ -1744,7 +1744,7 @@ void fail_test_s64(void)
 }
 #endif
 
-int main()
+int main(void)
 {
 	example();
 	example_int_to_str();

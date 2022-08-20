@@ -66,7 +66,7 @@ extern volatile sig_atomic_t sc_signal_will_shutdown;
  * Init signal handler, hooks for shutdown signals and some fatal signals.
  * @return '0' on success, '-1' on failure
  */
-int sc_signal_init();
+int sc_signal_init(void);
 
 /**
  * Signal safe logging

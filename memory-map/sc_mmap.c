@@ -258,7 +258,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 		}
 #else
 		do {
-			rc = posix_fallocate(fd, offset, len);
+			rc = posix_fallocate(fd, (off_t) offset, (off_t) len);
 		} while (rc == EINTR);
 
 		if (rc != 0) {
@@ -268,7 +268,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 #endif
 	}
 
-	p = mmap(NULL, len, prot, map_flags, fd, offset);
+	p = mmap(NULL, len, prot, map_flags, fd, (off_t) offset);
 	if (p == MAP_FAILED) {
 		goto cleanup_fd;
 	}

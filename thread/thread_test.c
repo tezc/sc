@@ -11,7 +11,7 @@ void *fn(void *arg)
 	return arg;
 }
 
-void test1()
+void test1(void)
 {
 	int rc;
 	void *ret;
@@ -76,7 +76,7 @@ int __wrap_pthread_join(pthread_t th, void **thread_return)
 	return rc;
 }
 
-void fail_test()
+void fail_test(void)
 {
 	struct sc_thread thread;
 
@@ -99,12 +99,12 @@ void fail_test()
 }
 
 #else
-void fail_test()
+void fail_test(void)
 {
 }
 #endif
 
-int main()
+int main(void)
 {
 	test1();
 	fail_test();

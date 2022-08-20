@@ -472,7 +472,7 @@ static void sc_signal_on_fatal(int sig, siginfo_t *info, void *context)
 #endif
 }
 
-int sc_signal_init()
+int sc_signal_init(void)
 {
 	bool rc = true;
 	struct sigaction action;

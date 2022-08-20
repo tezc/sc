@@ -122,7 +122,7 @@ void example(void)
 	sc_queue_term(&queue);
 }
 
-void test0()
+void test0(void)
 {
 	uint32_t val;
 	struct sc_queue_32 q;
@@ -257,7 +257,7 @@ void test1(void)
 	sc_queue_term(&p);
 }
 
-int main()
+int main(void)
 {
 	fail_test();
 	example();

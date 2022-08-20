@@ -17,7 +17,7 @@
 #include "sc_buf.h"
 #include <stdio.h>
 
-void basic()
+void basic(void)
 {
     struct sc_buf buf;
     sc_buf_init(&buf, 1024);
@@ -33,7 +33,7 @@ void basic()
     sc_buf_term(&buf);
 }
 
-void error_check()
+void error_check(void)
 {
     uint32_t val, val2;
     struct sc_buf buf;
@@ -52,7 +52,7 @@ void error_check()
     sc_buf_term(&buf);
 }
 
-int main()
+int main(void)
 {
     basic();
     error_check();
@@ -72,7 +72,7 @@ int main()
 #include "sc_buf.h"
 #include <stdio.h>
 
-int main()
+int main(void)
 {
     uint32_t val, val2;
     struct sc_buf buf;
@@ -100,7 +100,7 @@ int main()
 #include "sc_buf.h"
 #include <stdio.h>
 
-int main()
+int main(void)
 {
     uint32_t val;
     struct sc_buf buf;

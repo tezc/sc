@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void test1()
+void test1(void)
 {
 	const char *xstr;
 	struct sc_buf buf, buf2;
@@ -257,7 +257,7 @@ void test1()
 	sc_buf_term(&buf);
 }
 
-void test2()
+void test2(void)
 {
 	unsigned char tmp[32];
 	struct sc_buf buf;
@@ -410,7 +410,7 @@ int __wrap_vsnprintf(char *str, size_t size, const char *format, va_list ap)
 	return fail_vsnprintf_value;
 }
 
-void fail_test()
+void fail_test(void)
 {
 	int tmp;
 	unsigned char *p;
@@ -622,7 +622,7 @@ void fail_test()
 }
 #endif
 
-int main()
+int main(void)
 {
 	test1();
 	test2();
