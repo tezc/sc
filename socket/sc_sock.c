@@ -183,24 +183,24 @@ int sc_sock_notify_systemd(const char *msg)
 		msghdr.msg_namelen = sizeof(struct sockaddr_un);
 	}
 
-	rc = sendmsg(fd, &msghdr, MSG_NOSIGNAL);
+	rc = (int) sendmsg(fd, &msghdr, MSG_NOSIGNAL);
 
 	close(fd);
 
 	return rc < 0 ? -1 : 0;
 }
 
-int sc_sock_startup()
+int sc_sock_startup(void)
 {
 	return 0;
 }
 
-int sc_sock_cleanup()
+int sc_sock_cleanup(void)
 {
 	return 0;
 }
 
-static int sc_sock_err()
+static int sc_sock_err(void)
 {
 	return errno;
 }
@@ -1028,7 +1028,7 @@ retry:
 		goto retry;
 	}
 
-	return n;
+	return (int) n;
 }
 
 int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, unsigned int len)
@@ -1042,7 +1042,7 @@ retry:
 		goto retry;
 	}
 
-	return n;
+	return (int) n;
 }
 
 #endif

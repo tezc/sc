@@ -207,7 +207,7 @@ void *client_ip4(void *arg)
 	return NULL;
 }
 
-void test_ip4()
+void test_ip4(void)
 {
 	struct sc_thread thread1;
 	struct sc_thread thread2;
@@ -267,7 +267,7 @@ void *client_ip6(void *arg)
 	return NULL;
 }
 
-void test_ip6()
+void test_ip6(void)
 {
 	struct sc_thread thread1;
 	struct sc_thread thread2;
@@ -335,7 +335,7 @@ void *client_unix(void *arg)
 	return NULL;
 }
 
-void test_unix()
+void test_unix(void)
 {
 	struct sc_thread thread1;
 	struct sc_thread thread2;
@@ -350,7 +350,7 @@ void test_unix()
 	assert(sc_thread_term(&thread2) == 0);
 }
 
-void test1()
+void test1(void)
 {
 	int rc;
 	char tmp[5];
@@ -835,7 +835,7 @@ int __wrap_getsockname(int fd, struct sockaddr *addr, socklen_t *len)
 	return __real_getsockname(fd, addr, len);
 }
 
-void poll_fail_test()
+void poll_fail_test(void)
 {
 	bool fail;
 	int i;
@@ -1027,7 +1027,7 @@ void poll_fail_test()
 	assert(sc_sock_poll_term(&poll) == 0);
 }
 
-void pipe_fail_test()
+void pipe_fail_test(void)
 {
 	struct sc_sock_pipe pipe;
 	fail_pipe = true;
@@ -1062,7 +1062,7 @@ void pipe_fail_test()
 	fail_read_errno = 0;
 }
 
-void sock_fail_test()
+void sock_fail_test(void)
 {
 	struct sc_sock sock;
 	struct sc_sock sock2;
@@ -1162,7 +1162,7 @@ void sock_fail_test()
 	fail_socket = 0;
 }
 
-void sock_fail_test2()
+void sock_fail_test2(void)
 {
 	int rc;
 	struct sc_sock sock, client, in;
@@ -1281,7 +1281,7 @@ void sock_fail_test2()
 	assert(sc_sock_term(&client) == 0);
 }
 
-void sock_fail_test3()
+void sock_fail_test3(void)
 {
 	struct sc_sock client;
 	struct sc_sock_poll poll;
@@ -1404,20 +1404,20 @@ void sock_fail_test3()
 }
 
 #else
-void sock_fail_test()
+void sock_fail_test(void)
 {
 }
-void sock_fail_test2()
+void sock_fail_test2(void)
 {
 }
-void sock_fail_test3()
+void sock_fail_test3(void)
 {
 }
-void poll_fail_test()
+void poll_fail_test(void)
 {
 }
 
-void pipe_fail_test()
+void pipe_fail_test(void)
 {
 }
 
@@ -1426,7 +1426,8 @@ void pipe_fail_test()
 void *server(void *arg)
 {
 	(void) arg;
-	int wr = 2, ev;
+	uint32_t ev;
+	int wr = 2;
 	int rc, received = 0;
 	struct sc_sock srv, in, *sock;
 	struct sc_sock_poll p;
@@ -1552,7 +1553,7 @@ void *client(void *arg)
 	return NULL;
 }
 
-void test_poll()
+void test_poll(void)
 {
 	struct sc_thread thread1;
 	struct sc_thread thread2;
@@ -1567,7 +1568,7 @@ void test_poll()
 	assert(sc_thread_term(&thread2) == 0);
 }
 
-void test_err()
+void test_err(void)
 {
 	struct sc_sock sock;
 	char buf[128];
@@ -1606,7 +1607,7 @@ void test_err()
 	assert(*sc_sock_poll_err(&p) != '\0');
 }
 
-int main()
+int main(void)
 {
 #ifdef SC_HAVE_WRAP
 	assert(sc_mutex_init(&mutex) == 0);
