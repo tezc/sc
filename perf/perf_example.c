@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-int main()
+int main(void)
 {
 	size_t total = 0;
 

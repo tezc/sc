@@ -94,8 +94,8 @@ static void sc_perf_set(struct sc_perf_item *items, size_t size)
 			.exclude_kernel = false,
 			.exclude_hv = false};
 
-		fd = syscall(__NR_perf_event_open, &p, 0, -1, -1,
-			     PERF_FLAG_FD_CLOEXEC);
+		fd = (int) syscall(__NR_perf_event_open, &p, 0, -1, -1,
+				   PERF_FLAG_FD_CLOEXEC);
 		if (fd == -1) {
 			fprintf(stderr,
 				"Failed to set counter : %s , probably your "
@@ -129,7 +129,7 @@ static void sc_read(struct sc_perf_item *items, size_t size)
 			items[i].active = n;
 		}
 
-		items[i].value += fmt.value * n;
+		items[i].value += (double) fmt.value * n;
 	}
 }
 
