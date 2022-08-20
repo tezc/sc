@@ -433,7 +433,7 @@ uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len)
 #endif
 }
 
-void sc_crc32_init()
+void sc_crc32_init(void)
 {
 #ifdef HAVE_CRC32C
 	crc32_init_hw();

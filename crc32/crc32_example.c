@@ -2,7 +2,7 @@
 
 #include <stdio.h>
 
-int main()
+int main(void)
 {
 	uint32_t crc;
 	const uint8_t buf[100] = {0};
