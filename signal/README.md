@@ -22,7 +22,7 @@
 #include <stdio.h>
 #include <unistd.h>
 
-int main()
+int main(void)
 {
     char tmp[1];
     int fds[2];

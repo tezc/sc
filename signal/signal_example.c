@@ -1,6 +1,6 @@
 #include "sc_signal.h"
 
-int main()
+int main(void)
 {
 	return 0;
 }
