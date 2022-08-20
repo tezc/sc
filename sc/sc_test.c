@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 
-void test1()
+void test1(void)
 {
 	int64_t x;
 	char *t;
@@ -127,7 +127,7 @@ void test1()
 	assert(strcmp(t, "16.00 EB") == 0);
 }
 
-void test_rand()
+void test_rand(void)
 {
 	unsigned char tmp[256] = {0, 1, 2, 3, 4, 5, 6, 6,
 				  6, 6, 1, 5, 3, 5, 5, 6};
@@ -200,7 +200,7 @@ extern long long int __wrap_strtoll(const char *__restrict nptr,
 	return __real_strtoll(nptr, endptr, base);
 }
 
-void fail_test()
+void fail_test(void)
 {
 	char *t;
 	int64_t val;
@@ -239,11 +239,11 @@ void fail_test()
 }
 
 #else
-void fail_test()
+void fail_test(void)
 {
 }
 #endif
-int main()
+int main(void)
 {
 	test1();
 	test_rand();
