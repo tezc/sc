@@ -1102,7 +1102,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		.events = EPOLLERR | EPOLLHUP | EPOLLRDHUP,
 	};
 
-	if ((fdt->op & events) == events || mask == SC_SOCK_EDGE) {
+	if (fdt->op == mask) {
 		return 0;
 	}
 
@@ -1315,7 +1315,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	struct kevent ev[2];
 	int mask = fdt->op | events;
 
-	if ((fdt->op & events) == events || mask == SC_SOCK_EDGE) {
+	if (fdt->op == mask) {
 		return 0;
 	}
 
@@ -1326,7 +1326,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 	}
 
-	unsigned short act = EV_ADD;
+	u_short act = EV_ADD;
 
 	if (mask & SC_SOCK_EDGE) {
 		act |= EV_CLEAR;
@@ -1364,14 +1364,14 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	if (mask & SC_SOCK_READ) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
-	} else if ((mask & SC_SOCK_EDGE) && (fdt->op & SC_SOCK_READ)) {
+		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	} else if ((mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_READ) != 0) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
 	}
 
 	if (mask & SC_SOCK_WRITE) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
-	} else if ((mask & SC_SOCK_EDGE) && (fdt->op & SC_SOCK_WRITE)) {
+		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+	} else if ((mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_WRITE) != 0) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
