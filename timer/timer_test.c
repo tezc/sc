@@ -17,7 +17,7 @@
 #include <unistd.h>
 #endif
 
-uint64_t time_ms()
+uint64_t time_ms(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	//  System frequency does not change at run-time, cache it
@@ -68,14 +68,11 @@ void callback(void *arg, uint64_t timeout, uint64_t type, void *data)
 	(void) timeout;
 	(void) type;
 
-	static int idx = 0;
 	count--;
 	uint64_t id = (uintptr_t) data;
 	assert(ids[id] != SC_TIMER_INVALID);
 	ids[id] = SC_TIMER_INVALID;
 	assert((int) (uintptr_t) arg == 333);
-
-	idx++;
 }
 
 void test1(void)
@@ -326,7 +323,7 @@ void fail_test(void)
 }
 #endif
 
-int main()
+int main(void)
 {
 	fail_test();
 	test1();
