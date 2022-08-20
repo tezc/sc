@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void example_str()
+void example_str(void)
 {
 	const char *it;
 	struct sc_array_str arr;
@@ -25,7 +25,7 @@ void example_str()
 	sc_array_term(&arr);
 }
 
-void example_int()
+void example_int(void)
 {
 	struct sc_array_int arr;
 
@@ -101,7 +101,7 @@ static void test1(void)
 	sc_array_term(&arr);
 }
 
-void test2()
+void test2(void)
 {
 	int val;
 	struct sc_array_int arr;
@@ -156,7 +156,7 @@ void test2()
 	sc_array_term(&arr);
 }
 
-void bounds_test()
+void bounds_test(void)
 {
 	int total = 0;
 	int val;
@@ -225,7 +225,7 @@ void *__wrap_realloc(void *p, size_t n)
 	return __real_realloc(p, n);
 }
 
-void fail_test()
+void fail_test(void)
 {
 	int tmp;
 	int total = 0;
