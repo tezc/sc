@@ -363,7 +363,7 @@ void example(void)
 	sc_log_term(); // Call once on shutdown.
 }
 
-int main()
+int main(void)
 {
 	sc_log_set_thread_name("My thread");
 
