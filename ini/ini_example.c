@@ -46,7 +46,7 @@ void string_example(void)
 	assert(rc == 0);
 }
 
-int main()
+int main(void)
 {
 	string_example();
 	file_example();

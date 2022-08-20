@@ -8,7 +8,7 @@
 #include <fcntl.h>
 #include <stdio.h>
 
-void test1()
+void test1(void)
 {
 	int rc;
 	unsigned char *p;
@@ -210,7 +210,7 @@ int __wrap_posix_fallocate64(int fd, off_t offset, off_t len)
 	return __real_posix_fallocate64(fd, offset, len);
 }
 
-void fail_test()
+void fail_test(void)
 {
 	int rc;
 	struct sc_mmap mmap;
@@ -302,7 +302,7 @@ void fail_test()
 }
 #endif
 
-int main()
+int main(void)
 {
 	test1();
 	fail_test();

@@ -192,7 +192,7 @@ uint64_t sc_timer_timeout(struct sc_timer *t, uint64_t timestamp, void *arg,
 				callback(arg, timeout, item->type, item->data);
 
 				// Recalculates position each time because there
-				// might be newly added timers in the callback
+				// might be newly added timers in the callback,
 				// and it might require expansion of the list.
 				base = t->wheel * head;
 			}

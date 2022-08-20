@@ -92,13 +92,13 @@ struct sc_sock {
  * Call once when your application starts.
  * @return 0 on success, negative on failure.
  */
-int sc_sock_startup();
+int sc_sock_startup(void);
 
 /**
  * Call once before your application terminates
  * @return 0 on success, negative on failure.
  */
-int sc_sock_cleanup();
+int sc_sock_cleanup(void);
 
 /**
  * Initialize sock

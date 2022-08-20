@@ -44,7 +44,7 @@
 #include <time.h>
 #endif
 
-uint64_t sc_time_ms()
+uint64_t sc_time_ms(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	FILETIME ft;
@@ -63,11 +63,11 @@ uint64_t sc_time_ms()
 	assert(rc == 0);
 	(void) rc;
 
-	return ts.tv_sec * 1000 + (uint64_t) (ts.tv_nsec / 10e6);
+	return ts.tv_sec * 1000 + (uint64_t) (ts.tv_nsec / 1000000);
 #endif
 }
 
-uint64_t sc_time_ns()
+uint64_t sc_time_ns(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	FILETIME ft;
@@ -90,7 +90,7 @@ uint64_t sc_time_ns()
 #endif
 }
 
-uint64_t sc_time_mono_ms()
+uint64_t sc_time_mono_ms(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	//  System frequency does not change at run-time, cache it
@@ -117,7 +117,7 @@ uint64_t sc_time_mono_ms()
 #endif
 }
 
-uint64_t sc_time_mono_ns()
+uint64_t sc_time_mono_ns(void)
 {
 #if defined(_WIN32) || defined(_WIN64)
 	static int64_t frequency = 0;
@@ -151,8 +151,8 @@ int sc_time_sleep(uint64_t millis)
 	int rc;
 	struct timespec t, rem;
 
-	rem.tv_sec = millis / 1000;
-	rem.tv_nsec = (millis % 1000) * 1000000;
+	rem.tv_sec = (time_t) millis / 1000;
+	rem.tv_nsec = (long) (millis % 1000) * 1000000;
 
 	do {
 		t = rem;

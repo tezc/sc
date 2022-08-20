@@ -42,7 +42,7 @@ int cb2(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test2()
+void test2(void)
 {
 	int rc;
 	int count = 0;
@@ -70,7 +70,7 @@ int cb3(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test3()
+void test3(void)
 {
 	int rc;
 	int count = 0;
@@ -103,7 +103,7 @@ int cb4(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test4()
+void test4(void)
 {
 	int rc;
 	int count = 0;
@@ -141,7 +141,7 @@ int cb5(int line, void *arg, const char *section, const char *key,
 	return 0;
 }
 
-void test5()
+void test5(void)
 {
 	int rc;
 	int count = 0;
@@ -179,7 +179,7 @@ int cb6(void *arg, int line, const char *section, const char *key,
 	return -1;
 }
 
-void test6()
+void test6(void)
 {
 	int rc;
 	int count = 0;
@@ -217,7 +217,7 @@ int cb7(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test7()
+void test7(void)
 {
 	int rc;
 	int count = 0;
@@ -251,7 +251,7 @@ int cb8(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test8()
+void test8(void)
 {
 	int rc;
 	int count = 0;
@@ -357,7 +357,7 @@ int cb9(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test9()
+void test9(void)
 {
 	int rc;
 	int count = 0;
@@ -371,7 +371,7 @@ void test9()
 	assert(rc == 0);
 }
 
-void test10()
+void test10(void)
 {
 	int rc;
 	int count = 0;
@@ -397,7 +397,7 @@ int cb11(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test11()
+void test11(void)
 {
 	int rc;
 	int count = 0;
@@ -427,7 +427,7 @@ int cb12(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test12()
+void test12(void)
 {
 	int rc;
 	int count = 0;
@@ -463,7 +463,7 @@ int cb13(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test13()
+void test13(void)
 {
 	int rc;
 	int count = 0;
@@ -491,7 +491,7 @@ int cb14(void *arg, int line, const char *section, const char *key,
 	return -1;
 }
 
-void test14()
+void test14(void)
 {
 	int rc;
 	int count = 0;
@@ -517,7 +517,7 @@ int cb15(void *arg, int line, const char *section, const char *key,
 	return -1;
 }
 
-void test15()
+void test15(void)
 {
 	int rc;
 	int count = 0;
@@ -550,7 +550,7 @@ int cb16(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test16()
+void test16(void)
 {
 	int rc;
 
@@ -636,7 +636,7 @@ int cb_fail(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test_fail()
+void test_fail(void)
 {
 	int rc;
 	FILE *fp;
@@ -656,12 +656,12 @@ void test_fail()
 	fail_ferror = false;
 }
 #else
-void test_fail()
+void test_fail(void)
 {
 }
 #endif
 
-int main()
+int main(void)
 {
 	example();
 	test1();

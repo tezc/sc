@@ -59,7 +59,7 @@ void example_str(void)
 	sc_map_term_str(&map);
 }
 
-void example_int_to_str()
+void example_int_to_str(void)
 {
 	uint32_t key;
 	const char *value;
@@ -98,7 +98,7 @@ void example_int_to_str()
 	sc_map_term_64s(&map);
 }
 
-int main()
+int main(void)
 {
 	example_str();
 	example_int_to_str();

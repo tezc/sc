@@ -241,7 +241,7 @@ int __wrap_pthread_cond_destroy(pthread_cond_t *c)
 	return -1;
 }
 
-void fail_test()
+void fail_test(void)
 {
 	struct sc_cond cond;
 
@@ -285,7 +285,7 @@ void fail_test()
 }
 #endif
 
-void test1()
+void test1(void)
 {
 	struct sc_cond cond;
 	struct sc_thread thread1;
@@ -322,7 +322,7 @@ void test1()
 	assert(sc_cond_term(&cond) == 0);
 }
 
-int main()
+int main(void)
 {
 	test1();
 	fail_test();

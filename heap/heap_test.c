@@ -244,7 +244,7 @@ void fail_test()
 }
 #endif
 
-int main()
+int main(void)
 {
 	example();
 	fail_test();

@@ -3,7 +3,7 @@
 #include <assert.h>
 #include <string.h>
 
-void test1()
+void test1(void)
 {
 	char tmp[128] = "";
 
@@ -41,7 +41,7 @@ void test1()
 	sc_signal_log(1, tmp, sizeof(tmp), "%s", "test");
 }
 
-void test2()
+void test2(void)
 {
 	assert(sc_signal_init() == 0);
 }
@@ -91,7 +91,7 @@ void test3x(int signal)
 	}
 }
 
-void test3()
+void test3(void)
 {
 	test3x(SIGSEGV);
 	test3x(SIGABRT);
@@ -129,14 +129,14 @@ void test4x(int signal)
 	}
 }
 
-void test4()
+void test4(void)
 {
 	test4x(SIGINT);
 	test4x(SIGTERM);
 	test4x(SIGUSR2);
 }
 
-void test5()
+void test5(void)
 {
 	pid_t pid = fork();
 	if (pid == -1) {
@@ -161,7 +161,7 @@ void test5()
 	}
 }
 
-void test6()
+void test6(void)
 {
 	pid_t pid = fork();
 	if (pid == -1) {
@@ -185,7 +185,7 @@ void test6()
 	}
 }
 
-void test7()
+void test7(void)
 {
 	pid_t pid = fork();
 	if (pid == -1) {
@@ -208,7 +208,7 @@ void test7()
 	}
 }
 
-void test8()
+void test8(void)
 {
 	pid_t pid = fork();
 	if (pid == -1) {
@@ -232,7 +232,7 @@ void test8()
 	}
 }
 
-void test9()
+void test9(void)
 {
 	fail_signal = true;
 	assert(sc_signal_init() != 0);
@@ -240,30 +240,30 @@ void test9()
 }
 
 #else
-void test3()
+void test3(void)
 {
 }
-void test4()
+void test4(void)
 {
 }
-void test5()
+void test5(void)
 {
 }
-void test6()
+void test6(void)
 {
 }
-void test7()
+void test7(void)
 {
 }
-void test8()
+void test8(void)
 {
 }
-void test9()
+void test9(void)
 {
 }
 #endif
 
-int main()
+int main(void)
 {
 	test1();
 	test2();

@@ -9,7 +9,7 @@ static struct sc_option_item options[] = {{.letter = 's', .name = NULL},
 					  {.letter = 'k', .name = "key"},
 					  {.letter = 'h', .name = "help"}};
 
-void test1()
+void test1(void)
 {
 	char *value;
 	int argc = 5;
@@ -43,7 +43,7 @@ void test1()
 	}
 }
 
-void test2()
+void test2(void)
 {
 	char *value;
 	int argc = 2;
@@ -66,7 +66,7 @@ void test2()
 	}
 }
 
-void test3()
+void test3(void)
 {
 	char *value;
 	int argc = 2;
@@ -90,7 +90,7 @@ void test3()
 	}
 }
 
-void test4()
+void test4(void)
 {
 	char *value;
 
@@ -118,7 +118,7 @@ static struct sc_option_item options2[] = {{.letter = 's', .name = "sadsa"},
 					   {.letter = 'm', .name = "sad"},
 					   {.letter = 'k', .name = "key3"},
 					   {.letter = 'h', .name = "dsadsa"}};
-void test5()
+void test5(void)
 {
 	char *value;
 
@@ -142,7 +142,7 @@ void test5()
 	}
 }
 
-void test6()
+void test6(void)
 {
 	char *value;
 	int argc = 2;
@@ -165,7 +165,7 @@ void test6()
 	}
 }
 
-void test7()
+void test7(void)
 {
 	char *value;
 	int argc = 2;
@@ -188,7 +188,7 @@ void test7()
 	}
 }
 
-void test8()
+void test8(void)
 {
 	char *value;
 	int argc = 2;
@@ -211,7 +211,7 @@ void test8()
 	}
 }
 
-int main()
+int main(void)
 {
 	test1();
 	test2();

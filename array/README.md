@@ -13,7 +13,7 @@
 
 #include <stdio.h>
 
-void example_str()
+void example_str(void)
 {
 	const char *it;
 	struct sc_array_str arr;
@@ -34,7 +34,7 @@ void example_str()
 	sc_array_term(&arr);
 }
 
-void example_int()
+void example_int(void)
 {
 	struct sc_array_int arr;
 
@@ -51,7 +51,7 @@ void example_int()
 	sc_array_term(&arr);
 }
 
-int main()
+int main(void)
 {
 	example_int();
 	example_str();

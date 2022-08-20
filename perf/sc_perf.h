@@ -116,8 +116,8 @@ static const struct sc_perf_event sc_perf_hw[] = {
 
 // clang-format on
 
-void sc_perf_start();
-void sc_perf_pause();
-void sc_perf_end();
+void sc_perf_start(void);
+void sc_perf_pause(void);
+void sc_perf_end(void);
 
 #endif
