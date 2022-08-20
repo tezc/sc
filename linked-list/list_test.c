@@ -174,7 +174,7 @@ static void test1(void)
 	}
 }
 
-int main()
+int main(void)
 {
 	test1();
 
