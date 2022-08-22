@@ -601,6 +601,65 @@ end:
 	return rv;
 }
 
+int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags)
+{
+	int n, err;
+
+	if (len <= 0) {
+		return len;
+	}
+
+retry:
+	n = (int) send(s->fdt.fd, buf, (size_t) len, flags);
+	if (n == SC_ERR) {
+		err = sc_sock_err();
+		if (err == SC_EINTR) {
+			goto retry;
+		}
+
+		if (err == SC_EAGAIN) {
+			errno = EAGAIN;
+			return -1;
+		}
+
+		sc_sock_errstr(s, 0);
+		n = -1;
+	}
+
+	return n;
+}
+
+int sc_sock_recv(struct sc_sock *s, char *buf, int len, int flags)
+{
+	int n, err;
+
+	if (len <= 0) {
+		return len;
+	}
+
+retry:
+	n = (int) recv(s->fdt.fd, buf, (size_t) len, flags);
+	if (n == 0) {
+		errno = EOF;
+		return -1;
+	} else if (n == SC_ERR) {
+		err = sc_sock_err();
+		if (err == SC_EINTR) {
+			goto retry;
+		}
+
+		if (err == SC_EAGAIN) {
+			errno = EAGAIN;
+			return -1;
+		}
+
+		sc_sock_errstr(s, 0);
+		n = -1;
+	}
+
+	return n;
+}
+
 int sc_sock_accept(struct sc_sock *s, struct sc_sock *in)
 {
 	const void *tmp = (void *) &(int){1};
@@ -1551,6 +1610,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		assert(index != -1);
 
 		p->events[index].fd = fdt->fd;
+		p->data[index].fdt = fdt;
 		fdt->index = index;
 	}
 
@@ -1569,8 +1629,11 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->events[fdt->index].events |= POLLOUT;
 	}
 
-	fdt->edge_poll = (mask & SC_SOCK_EDGE) ? p : NULL;
-	p->data[fdt->index] = data;
+	if (mask & SC_SOCK_EDGE) {
+		fdt->edge_poll = p;
+	}
+
+	p->data[fdt->index].data = data;
 
 	return 0;
 }
@@ -1592,6 +1655,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->events[fdt->index].fd = SC_INVALID;
 		p->count--;
 		fdt->index = -1;
+		fdt->edge_poll = NULL;
 	} else {
 		p->events[fdt->index].events = 0;
 
@@ -1607,7 +1671,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 			fdt->edge_poll = NULL;
 		}
 
-		p->data[fdt->index] = data;
+		p->data[fdt->index].data = data;
 	}
 
 	return 0;
@@ -1615,7 +1679,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 void *sc_sock_poll_data(struct sc_sock_poll *p, int i)
 {
-	return p->data[i];
+	return p->data[i].data;
 }
 
 uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
@@ -1658,76 +1722,3 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 }
 
 #endif
-
-int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags)
-{
-	int n, err;
-
-	if (len <= 0) {
-		return len;
-	}
-
-retry:
-	n = (int) send(s->fdt.fd, buf, (size_t) len, flags);
-	if (n == SC_ERR) {
-		err = sc_sock_err();
-		if (err == SC_EINTR) {
-			goto retry;
-		}
-
-		if (err == SC_EAGAIN) {
-			errno = EAGAIN;
-
-#if defined(_WIN32) || defined(_WIN64)
-			if (s->fdt.op & SC_SOCK_EDGE) {
-				struct sc_sock_poll *p = s->fdt.edge_poll;
-				sc_sock_poll_add(p, &s->fdt, SC_SOCK_WRITE, p->data[s->fdt.index]);
-			}
-#endif
-			return -1;
-		}
-
-		sc_sock_errstr(s, 0);
-		n = -1;
-	}
-
-	return n;
-}
-
-int sc_sock_recv(struct sc_sock *s, char *buf, int len, int flags)
-{
-	int n, err;
-
-	if (len <= 0) {
-		return len;
-	}
-
-retry:
-	n = (int) recv(s->fdt.fd, buf, (size_t) len, flags);
-	if (n == 0) {
-		errno = EOF;
-		return -1;
-	} else if (n == SC_ERR) {
-		err = sc_sock_err();
-		if (err == SC_EINTR) {
-			goto retry;
-		}
-
-		if (err == SC_EAGAIN) {
-			errno = EAGAIN;
-
-#if defined(_WIN32) || defined(_WIN64)
-			if (s->fdt.op & SC_SOCK_EDGE) {
-				struct sc_sock_poll *p = s->fdt.edge_poll;
-				sc_sock_poll_add(p, &s->fdt, SC_SOCK_READ, p->data[s->fdt.index]);
-			}
-#endif
-			return -1;
-		}
-
-		sc_sock_errstr(s, 0);
-		n = -1;
-	}
-
-	return n;
-}
