@@ -618,6 +618,13 @@ retry:
 		}
 
 		if (err == SC_EAGAIN) {
+#if defined(_WIN32) || defined(_WIN64)
+			struct sc_sock_poll *p = s->fdt.edge_poll;
+
+			if (p != NULL) {
+				// sc_sock_poll_add(p, &s->fdt, SC_SOCK_WRITE | SC_SOCK_EDGE, p->data[s->fdt.index].data);
+			}
+#endif
 			errno = EAGAIN;
 			return -1;
 		}
@@ -649,6 +656,13 @@ retry:
 		}
 
 		if (err == SC_EAGAIN) {
+#if defined(_WIN32) || defined(_WIN64)
+			struct sc_sock_poll *p = s->fdt.edge_poll;
+
+			if (p != NULL) {
+//				sc_sock_poll_add(p, &s->fdt, SC_SOCK_READ | SC_SOCK_EDGE, p->data[s->fdt.index].data);
+			}
+#endif
 			errno = EAGAIN;
 			return -1;
 		}
