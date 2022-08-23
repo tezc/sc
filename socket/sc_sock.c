@@ -235,7 +235,7 @@ void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 	s->fdt.op = SC_SOCK_NONE;
 	s->fdt.index = -1;
 #if defined(_WIN32) || defined(_WIN64)
-    s->fdt.edge_poll = NULL;
+    s->fdt.edge_mask = 0;
 #endif
 
 	s->blocking = blocking;
@@ -619,11 +619,7 @@ retry:
 
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
-			struct sc_sock_poll *p = s->fdt.edge_poll;
-
-			if (p != NULL) {
-				// sc_sock_poll_add(p, &s->fdt, SC_SOCK_WRITE | SC_SOCK_EDGE, p->data[s->fdt.index].data);
-			}
+			s->fdt.edge_mask &= ~SC_SOCK_WRITE; // Stop masking WRITE event.
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -657,11 +653,7 @@ retry:
 
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
-			struct sc_sock_poll *p = s->fdt.edge_poll;
-
-			if (p != NULL) {
-//				sc_sock_poll_add(p, &s->fdt, SC_SOCK_READ | SC_SOCK_EDGE, p->data[s->fdt.index].data);
-			}
+			s->fdt.edge_mask &= ~SC_SOCK_READ; // Stop masking READ event.
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -1643,10 +1635,6 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->events[fdt->index].events |= POLLOUT;
 	}
 
-	if (mask & SC_SOCK_EDGE) {
-		fdt->edge_poll = p;
-	}
-
 	p->data[fdt->index].data = data;
 
 	return 0;
@@ -1669,7 +1657,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->events[fdt->index].fd = SC_INVALID;
 		p->count--;
 		fdt->index = -1;
-		fdt->edge_poll = NULL;
+		fdt->edge_mask = 0;
 	} else {
 		p->events[fdt->index].events = 0;
 
@@ -1682,7 +1670,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 
 		if ((fdt->op & SC_SOCK_EDGE) == 0) {
-			fdt->edge_poll = NULL;
+			fdt->edge_mask = 0;
 		}
 
 		p->data[fdt->index].data = data;
@@ -1709,6 +1697,14 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 		evs |= SC_SOCK_WRITE;
 	}
 
+	// Start masking fired events in Edge-Triggered mode.
+	struct sc_sock_fd *fdt = p->data[i].fdt;
+	if (fdt->op & SC_SOCK_EDGE) {
+		uint32_t mask = fdt->edge_mask;
+		fdt->edge_mask |= evs;
+		evs &= ~mask;
+	}
+
 	poll_evs &= POLLHUP | POLLERR;
 	if (poll_evs != 0) {
 		evs = (SC_SOCK_READ | SC_SOCK_WRITE);
@@ -1730,6 +1726,8 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	if (n == SC_INVALID) {
 		rc = -1;
 		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
+	} else if (n == 0) {
+		rc = 0;
 	}
 
 	return rc;

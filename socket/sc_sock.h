@@ -75,15 +75,13 @@ enum sc_sock_family
 	SC_SOCK_UNIX = AF_UNIX
 };
 
-typedef struct sc_sock_poll sc_sock_poll;
-
 struct sc_sock_fd {
 	sc_sock_int fd;
 	enum sc_sock_ev op;
 	int type; // user data
 	int index;
 #if defined(_WIN32) || defined(_WIN64)
-    struct sc_sock_poll *edge_poll;
+	uint32_t edge_mask;
 #endif
 };
 
