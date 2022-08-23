@@ -1723,11 +1723,13 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
 	} while (n < 0 && errno == EINTR);
 
-	if (n == SC_INVALID) {
-		rc = -1;
-		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
-	} else if (n == 0) {
-		rc = 0;
+	if (n <= 0) {
+		if (n == 0) {
+			rc = 0;
+		} else {
+			rc = -1;
+			sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
+		}
 	}
 
 	return rc;
