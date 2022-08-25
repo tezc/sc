@@ -1635,6 +1635,10 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->events[fdt->index].events |= POLLOUT;
 	}
 
+	if (mask & SC_SOCK_EDGE) {
+		fdt->edge_mask |= SC_SOCK_EDGE;
+	}
+
 	p->data[fdt->index].data = data;
 
 	return 0;
@@ -1698,10 +1702,11 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 	}
 
 	// Start masking fired events in Edge-Triggered mode.
-	struct sc_sock_fd *fdt = p->data[i].fdt;
-	if (fdt->op & SC_SOCK_EDGE) {
-		uint32_t mask = fdt->edge_mask;
-		fdt->edge_mask |= evs;
+	uint32_t *mask_ptr = &p->data[i].fdt->edge_mask;
+    uint32_t mask = *mask_ptr;
+
+	if (mask & SC_SOCK_EDGE) {
+		*mask_ptr |= evs;
 		evs &= ~mask;
 	}
 
@@ -1723,13 +1728,9 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
 	} while (n < 0 && errno == EINTR);
 
-	if (n <= 0) {
-		if (n == 0) {
-			rc = 0;
-		} else {
-			rc = -1;
-			sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
-		}
+	if (n == SC_INVALID) {
+		rc = -1;
+		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
 	}
 
 	return rc;
