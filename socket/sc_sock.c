@@ -118,6 +118,10 @@ int sc_sock_notify_systemd(const char *msg)
 }
 
 #else
+#if defined(__FreeBSD__) || defined(__APPLE__)
+#include <sys/types.h>
+#endif
+
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netdb.h>
