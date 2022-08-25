@@ -342,7 +342,7 @@ struct sc_sock_poll {
 struct sc_sock_fd_data {
 	struct sc_sock_fd *fdt;
 	void *data;
-}
+};
 
 struct sc_sock_poll {
 	int count;
