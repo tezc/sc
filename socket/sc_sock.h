@@ -347,7 +347,7 @@ struct sc_sock_fd_data {
 struct sc_sock_poll {
 	int count;
 	int cap;
-	sc_sock_fd_data *data;
+	struct sc_sock_fd_data *data;
 	struct pollfd *events;
 	char err[128];
 };
