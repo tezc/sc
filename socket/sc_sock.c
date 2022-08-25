@@ -1508,7 +1508,7 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 		goto err;
 	}
 
-	p->data = sc_sock_malloc(sizeof(void *) * 16);
+	p->data = sc_sock_malloc(sizeof(*p->data) * 16);
 	if (p->data == NULL) {
 		goto err;
 	}
@@ -1549,7 +1549,7 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 static int sc_sock_poll_expand(struct sc_sock_poll *p)
 {
 	int cap, rc = 0;
-	void **data = NULL;
+	struct sc_sock_fd_data *data = NULL;
 	struct pollfd *ev = NULL;
 
 	if (p->count == p->cap) {
