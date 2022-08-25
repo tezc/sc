@@ -118,10 +118,6 @@ int sc_sock_notify_systemd(const char *msg)
 }
 
 #else
-#if defined(__FreeBSD__) || defined(__APPLE__)
-#include <sys/types.h>
-#endif
-
 #include <arpa/inet.h>
 #include <assert.h>
 #include <netdb.h>
@@ -1382,7 +1378,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc, count = 0;
 	struct kevent ev[2];
-	int mask = fdt->op | events;
+	enum sc_sock_ev mask = fdt->op | events;
 
 	if (fdt->op == mask) {
 		return 0;
@@ -1395,7 +1391,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 	}
 
-	u_short act = EV_ADD;
+	unsigned short act = EV_ADD;
 
 	if (mask & SC_SOCK_EDGE) {
 		act |= EV_CLEAR;
@@ -1595,7 +1591,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc;
 	int index = fdt->index;
-	int mask = fdt->op | events;
+	enum sc_sock_ev mask = fdt->op | events;
 
 	if (fdt->op == mask) {
 		return 0;
