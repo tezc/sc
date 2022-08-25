@@ -1631,13 +1631,10 @@ int main(void)
 	sock_fail_test();
 	sock_fail_test2();
 	sock_fail_test3();
-	printf("before\n");
 	test_poll();
-	printf("poll\n");
 	test_err();
-	printf("err\n");
 	test_poll_mass();
-	printf("poll_mass\n");
+
 	assert(sc_sock_cleanup() == 0);
 
 #ifdef SC_HAVE_WRAP
