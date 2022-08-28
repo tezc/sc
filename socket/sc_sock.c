@@ -1690,6 +1690,10 @@ void *sc_sock_poll_data(struct sc_sock_poll *p, int i)
 
 uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 {
+	if (p->events[i].fd == SC_INVALID) {
+		return 0;
+	}
+
 	uint32_t evs = 0;
 	uint32_t poll_evs = p->events[i].revents;
 
