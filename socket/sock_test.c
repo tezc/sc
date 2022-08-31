@@ -1568,13 +1568,14 @@ void test_poll(void)
 	assert(sc_thread_term(&thread2) == 0);
 }
 
-void check_poll_empty(struct sc_sock_poll *p, int timeout) {
+void check_poll_empty(struct sc_sock_poll *p, int timeout)
+{
 	int count = sc_sock_poll_wait(p, timeout);
 	assert(count >= 0);
 
 	for (int i = 0; i < count; i++) {
-        assert(0 == sc_sock_poll_event(p, i));
-    }
+		assert(0 == sc_sock_poll_event(p, i));
+	}
 }
 
 void test_poll_edge(void)
