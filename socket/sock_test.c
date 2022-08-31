@@ -1568,6 +1568,101 @@ void test_poll(void)
 	assert(sc_thread_term(&thread2) == 0);
 }
 
+void check_poll_empty(struct sc_sock_poll *p, int timeout) {
+	int count = sc_sock_poll_wait(p, timeout);
+	assert(count >= 0);
+
+	for (int i = 0; i < count; i++) {
+        assert(0 == sc_sock_poll_event(p, i));
+    }
+}
+
+void test_poll_edge(void)
+{
+	uint32_t ev;
+	int rc, count, timeout = 1;
+	struct sc_sock srv, clt, acc, *sock;
+	struct sc_sock_poll p;
+
+	rc = sc_sock_poll_init(&p);
+	assert(rc == 0);
+
+	sc_sock_init(&srv, 0, false, SC_SOCK_INET);
+    rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
+	assert(rc == 0);
+
+	rc = sc_sock_poll_add(&p, &srv.fdt, SC_SOCK_READ, &srv);
+	assert(rc == 0);
+
+	check_poll_empty(&p, timeout);
+
+	sc_sock_init(&clt, 0, false, SC_SOCK_INET);
+    rc = sc_sock_connect(&clt, "127.0.0.1", "11000", NULL, NULL);
+    assert(rc == -1);
+    assert(errno == EAGAIN);
+
+	rc = sc_sock_poll_add(&p, &clt.fdt, SC_SOCK_READ | SC_SOCK_WRITE | SC_SOCK_EDGE, &clt);
+    assert(rc == 0);
+
+	count = sc_sock_poll_wait(&p, timeout);
+    assert(count >= 2);
+
+    for (int i = 0; i < count; i++) {
+    	ev = sc_sock_poll_event(&p, i);
+		sock = sc_sock_poll_data(&p, i);
+
+		if (ev == 0) {
+			continue;
+		}
+
+		if (sock == &srv) {
+			if (ev & SC_SOCK_READ) {
+				rc = sc_sock_accept(&srv, &acc);
+				assert(rc == 0);
+			}
+
+			if (ev & SC_SOCK_WRITE) {
+				assert(false);
+			}
+		} else if (sock == &clt) {
+			if (ev & SC_SOCK_WRITE) {
+				rc = sc_sock_finish_connect(&clt);
+				assert(rc == 0);
+			}
+
+			if (ev & SC_SOCK_READ) {
+				assert(false);
+			}
+		} else {
+			assert(false);
+		}
+    }
+
+    rc = sc_sock_poll_add(&p, &acc.fdt, SC_SOCK_READ | SC_SOCK_WRITE | SC_SOCK_EDGE, &acc);
+	assert(rc == 0);
+
+	count = sc_sock_poll_wait(&p, timeout);
+    assert(count >= 1);
+
+    for (int i = 0; i < count; i++) {
+		ev = sc_sock_poll_event(&p, i);
+		sock = sc_sock_poll_data(&p, i);
+
+		if (ev == 0) {
+			continue;
+		}
+
+		assert(sock == &acc || sock == &clt);
+		assert(ev & SC_SOCK_WRITE);
+
+		if (ev & SC_SOCK_READ) {
+			assert(false);
+		}
+	}
+
+	check_poll_empty(&p, timeout);
+}
+
 void test_err(void)
 {
 	struct sc_sock sock;
@@ -1634,6 +1729,7 @@ int main(void)
 	test_poll();
 	test_err();
 	test_poll_mass();
+	test_poll_edge();
 
 	assert(sc_sock_cleanup() == 0);
 
