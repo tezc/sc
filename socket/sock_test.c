@@ -1590,7 +1590,7 @@ void check_poll_empty(struct sc_sock_poll *p, int timeout)
 void test_poll_edge(void)
 {
 	uint32_t ev;
-	int rc, count, timeout = 1;
+	int rc, count, found, timeout = 1;
 	struct sc_sock srv, clt, acc, *sock;
 	struct sc_sock_poll p;
 
@@ -1620,6 +1620,7 @@ void test_poll_edge(void)
 	Sleep(50);
 	count = sc_sock_poll_wait(&p, timeout);
     assert(count >= 2);
+    found = 0;
 
     for (int i = 0; i < count; i++) {
     	ev = sc_sock_poll_event(&p, i);
@@ -1638,6 +1639,7 @@ void test_poll_edge(void)
 			if (ev & SC_SOCK_WRITE) {
 				assert(false);
 			}
+			found++;
 		} else if (sock == &clt) {
 			if (ev & SC_SOCK_WRITE) {
 				rc = sc_sock_finish_connect(&clt);
@@ -1647,10 +1649,12 @@ void test_poll_edge(void)
 			if (ev & SC_SOCK_READ) {
 				assert(false);
 			}
+			found++;
 		} else {
 			assert(false);
 		}
     }
+    assert(found == 2);
 
     rc = sc_sock_poll_add(&p, &acc.fdt, SC_SOCK_READ | SC_SOCK_WRITE | SC_SOCK_EDGE, &acc);
 	assert(rc == 0);
@@ -1658,6 +1662,7 @@ void test_poll_edge(void)
 	Sleep(50);
 	count = sc_sock_poll_wait(&p, timeout);
     assert(count >= 1);
+    found = 0;
 
     for (int i = 0; i < count; i++) {
 		ev = sc_sock_poll_event(&p, i);
@@ -1667,15 +1672,36 @@ void test_poll_edge(void)
 			continue;
 		}
 
-		assert(sock == &acc || sock == &clt);
+		assert(sock == &acc);
 		assert(ev & SC_SOCK_WRITE);
 
 		if (ev & SC_SOCK_READ) {
 			assert(false);
 		}
+		found++;
 	}
+	assert(found == 1);
 
 	check_poll_empty(&p, timeout);
+
+
+//	char rbuf[3];
+
+	int total_w = 0;
+//	int total_r = 0;
+
+	for (;;) {
+		int w = sc_sock_send(&acc, "blaBLA", 7, 0);
+
+		if (w < 0) {
+			assert(errno == EAGAIN);
+			break;
+		}
+
+		total_w += w;
+	}
+
+
 
 	assert(sc_sock_term(&srv) == 0);
 	assert(sc_sock_term(&acc) == 0);
