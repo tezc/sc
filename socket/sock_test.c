@@ -1673,6 +1673,11 @@ void test_poll_edge(void)
 	}
 
 	check_poll_empty(&p, timeout);
+
+	assert(sc_sock_term(&srv) == 0);
+	assert(sc_sock_term(&acc) == 0);
+	assert(sc_sock_term(&clt) == 0);
+    assert(sc_sock_poll_term(&p) == 0);
 }
 
 void test_err(void)
