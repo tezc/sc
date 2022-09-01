@@ -1608,8 +1608,11 @@ void test_poll_edge(void)
 
 	sc_sock_init(&clt, 0, false, SC_SOCK_INET);
     rc = sc_sock_connect(&clt, "127.0.0.1", "11000", NULL, NULL);
-    assert(rc == -1);
-    assert(errno == EAGAIN);
+    if (rc == -1) {
+    	assert(errno == EAGAIN);
+    } else {
+    	assert(rc == 0);
+    }
 
 	rc = sc_sock_poll_add(&p, &clt.fdt, SC_SOCK_READ | SC_SOCK_WRITE | SC_SOCK_EDGE, &clt);
     assert(rc == 0);
