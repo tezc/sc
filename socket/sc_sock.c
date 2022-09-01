@@ -1422,7 +1422,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc, count = 0;
 	struct kevent ev[2];
-	int mask = fdt->op & events;
+	enum sc_sock_ev mask = fdt->op & events;
 
 	if (mask == 0) {
 		return 0;
@@ -1691,7 +1691,7 @@ void *sc_sock_poll_data(struct sc_sock_poll *p, int i)
 uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 {
 	if (p->events[i].fd == SC_INVALID) {
-		return 0;
+		return SC_SOCK_NONE;
 	}
 
 	uint32_t evs = 0;
