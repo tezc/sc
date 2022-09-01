@@ -32,6 +32,14 @@ struct sc_thread {
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <time.h>
+
+void Sleep(int milliseconds) {
+	struct timespec ts;
+	ts.tv_sec = milliseconds / 1000;
+	ts.tv_nsec = (milliseconds % 1000) * 1000000;
+	nanosleep(&ts, NULL);
+}
 
 struct sc_thread {
 	pthread_t id;
@@ -1447,7 +1455,7 @@ void *server(void *arg)
 
 	while (!done) {
 		int count = sc_sock_poll_wait(&p, -1);
-		assert(rc != -1);
+		assert(count != -1);
 
 		for (int i = 0; i < count; i++) {
 			ev = sc_sock_poll_event(&p, i);
@@ -1570,6 +1578,7 @@ void test_poll(void)
 
 void check_poll_empty(struct sc_sock_poll *p, int timeout)
 {
+	Sleep(50);
 	int count = sc_sock_poll_wait(p, timeout);
 	assert(count >= 0);
 
@@ -1605,6 +1614,7 @@ void test_poll_edge(void)
 	rc = sc_sock_poll_add(&p, &clt.fdt, SC_SOCK_READ | SC_SOCK_WRITE | SC_SOCK_EDGE, &clt);
     assert(rc == 0);
 
+	Sleep(50);
 	count = sc_sock_poll_wait(&p, timeout);
     assert(count >= 2);
 
@@ -1642,6 +1652,7 @@ void test_poll_edge(void)
     rc = sc_sock_poll_add(&p, &acc.fdt, SC_SOCK_READ | SC_SOCK_WRITE | SC_SOCK_EDGE, &acc);
 	assert(rc == 0);
 
+	Sleep(50);
 	count = sc_sock_poll_wait(&p, timeout);
     assert(count >= 1);
 
