@@ -1752,7 +1752,7 @@ void test_poll_edge(void)
 		assert(ev == SC_SOCK_WRITE);
 		found++;
 	}
-	assert(found == 2);
+	assert(found == 1 || found == 2);
 
 	check_poll_empty(&p, timeout);
 
