@@ -235,7 +235,7 @@ void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 	s->fdt.op = SC_SOCK_NONE;
 	s->fdt.index = -1;
 #if defined(_WIN32) || defined(_WIN64)
-    s->fdt.edge_mask = 0;
+	s->fdt.edge_mask = 0;
 #endif
 
 	s->blocking = blocking;
@@ -619,7 +619,8 @@ retry:
 
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
-			s->fdt.edge_mask &= ~SC_SOCK_WRITE; // Stop masking WRITE event.
+			// Stop masking WRITE event.
+			s->fdt.edge_mask &= ~SC_SOCK_WRITE;
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -653,7 +654,8 @@ retry:
 
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
-			s->fdt.edge_mask &= ~SC_SOCK_READ; // Stop masking READ event.
+			// Stop masking READ event.
+			s->fdt.edge_mask &= ~SC_SOCK_READ;
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -1707,7 +1709,7 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 
 	// Start masking fired events in Edge-Triggered mode.
 	uint32_t *mask_ptr = &p->data[i].fdt->edge_mask;
-    uint32_t mask = *mask_ptr;
+	uint32_t mask = *mask_ptr;
 
 	if (mask & SC_SOCK_EDGE) {
 		*mask_ptr |= evs;
