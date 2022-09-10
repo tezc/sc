@@ -34,14 +34,6 @@ struct sc_thread {
 #include <time.h>
 #include <unistd.h>
 
-void sleep_millis(int milliseconds)
-{
-	struct timespec ts;
-	ts.tv_sec = milliseconds / 1000;
-	ts.tv_nsec = (milliseconds % 1000) * 1000000;
-	nanosleep(&ts, NULL);
-}
-
 struct sc_thread {
 	pthread_t id;
 };
@@ -158,6 +150,28 @@ int sc_thread_join(struct sc_thread *thread, void **ret)
 int sc_thread_term(struct sc_thread *thread)
 {
 	return sc_thread_join(thread, NULL);
+}
+
+
+int sc_time_sleep(uint64_t millis)
+{
+#if defined(_WIN32) || defined(_WIN64)
+	Sleep((DWORD) millis);
+	return 0;
+#else
+	int rc;
+	struct timespec t, rem;
+
+	rem.tv_sec = (time_t) millis / 1000;
+	rem.tv_nsec = (long) (millis % 1000) * 1000000;
+
+	do {
+		t = rem;
+		rc = nanosleep(&t, &rem);
+	} while (rc != 0 && errno == EINTR);
+
+	return rc;
+#endif
 }
 
 void *server_ip4(void *arg)
@@ -1579,7 +1593,7 @@ void test_poll(void)
 
 void check_poll_empty(struct sc_sock_poll *p, int timeout)
 {
-	sleep_millis(50);
+	sc_time_sleep(50);
 	int count = sc_sock_poll_wait(p, timeout);
 	assert(count >= 0);
 
@@ -1620,7 +1634,7 @@ void test_poll_edge(void)
 			      &clt);
 	assert(rc == 0);
 
-	sleep_millis(50);
+	sc_time_sleep(50);
 	count = sc_sock_poll_wait(&p, timeout);
 	assert(count >= 2);
 	found = 0;
@@ -1664,7 +1678,7 @@ void test_poll_edge(void)
 			      &acc);
 	assert(rc == 0);
 
-	sleep_millis(50);
+	sc_time_sleep(50);
 	count = sc_sock_poll_wait(&p, timeout);
 	assert(count >= 1);
 	found = 0;
@@ -1699,7 +1713,7 @@ void test_poll_edge(void)
 	}
 
 	do {
-		sleep_millis(50);
+		sc_time_sleep(50);
 		count = sc_sock_poll_wait(&p, timeout);
 		assert(count >= 1);
 		found = 0;
@@ -1738,7 +1752,7 @@ void test_poll_edge(void)
 	} while (total_r < total_w);
 	assert(total_r == total_w);
 
-	sleep_millis(50);
+	sc_time_sleep(50);
 	count = sc_sock_poll_wait(&p, timeout);
 	assert(count >= 1);
 	found = 0;
