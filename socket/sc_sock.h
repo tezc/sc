@@ -65,6 +65,7 @@ enum sc_sock_ev
 	SC_SOCK_NONE = 0u,
 	SC_SOCK_READ = 1u,
 	SC_SOCK_WRITE = 2u,
+	SC_SOCK_EDGE = 4u,
 };
 
 enum sc_sock_family
@@ -79,6 +80,9 @@ struct sc_sock_fd {
 	enum sc_sock_ev op;
 	int type; // user data
 	int index;
+#if defined(_WIN32) || defined(_WIN64)
+	uint32_t edge_mask;
+#endif
 };
 
 struct sc_sock {
@@ -335,10 +339,15 @@ struct sc_sock_poll {
 #include <poll.h>
 #endif
 
+struct sc_sock_fd_data {
+	struct sc_sock_fd *fdt;
+	void *data;
+};
+
 struct sc_sock_poll {
 	int count;
 	int cap;
-	void **data;
+	struct sc_sock_fd_data *data;
 	struct pollfd *events;
 	char err[128];
 };
@@ -369,6 +378,7 @@ int sc_sock_poll_term(struct sc_sock_poll *p);
  * @param p       poll
  * @param fdt     fdt
  * @param events  SC_SOCK_READ, SC_SOCK_WRITE or SC_SOCK_READ | SC_SOCK_WRITE
+ * 		  SC_SOCK_EDGE for edge-triggerred mode
  * @param data    user data
  * @return        '0' on success, negative number on failure,
  *                call sc_sock_poll_err() to get error string
@@ -381,6 +391,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
  * @param p      poll
  * @param fdt    fdt
  * @param events SC_SOCK_READ, SC_SOCK_WRITE or SC_SOCK_READ | SC_SOCK_WRITE
+ * 		 SC_SOCK_EDGE to cancel edge-triggerred mode
  * @param data   user data
  * @return       '0' on success, negative number on failure,
  *               call sc_sock_poll_err() to get error string

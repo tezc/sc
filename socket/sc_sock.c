@@ -234,6 +234,10 @@ void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 	s->fdt.type = type;
 	s->fdt.op = SC_SOCK_NONE;
 	s->fdt.index = -1;
+#if defined(_WIN32) || defined(_WIN64)
+	s->fdt.edge_mask = 0;
+#endif
+
 	s->blocking = blocking;
 	s->family = family;
 
@@ -614,6 +618,10 @@ retry:
 		}
 
 		if (err == SC_EAGAIN) {
+#if defined(_WIN32) || defined(_WIN64)
+			// Stop masking WRITE event.
+			s->fdt.edge_mask &= ~SC_SOCK_WRITE;
+#endif
 			errno = EAGAIN;
 			return -1;
 		}
@@ -645,6 +653,10 @@ retry:
 		}
 
 		if (err == SC_EAGAIN) {
+#if defined(_WIN32) || defined(_WIN64)
+			// Stop masking READ event.
+			s->fdt.edge_mask &= ~SC_SOCK_READ;
+#endif
 			errno = EAGAIN;
 			return -1;
 		}
@@ -1157,7 +1169,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		.events = EPOLLERR | EPOLLHUP | EPOLLRDHUP,
 	};
 
-	if ((fdt->op & events) == events) {
+	if (fdt->op == mask) {
 		return 0;
 	}
 
@@ -1176,6 +1188,10 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (mask & SC_SOCK_WRITE) {
 		ep_ev.events |= EPOLLOUT;
+	}
+
+	if (mask & SC_SOCK_EDGE) {
+		ep_ev.events |= EPOLLET;
 	}
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
@@ -1204,6 +1220,11 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	fdt->op &= ~events;
+
+	if (fdt->op == SC_SOCK_EDGE) {
+		fdt->op = SC_SOCK_NONE;
+	}
+
 	op = fdt->op == SC_SOCK_NONE ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
 
 	if (fdt->op & SC_SOCK_READ) {
@@ -1212,6 +1233,10 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (fdt->op & SC_SOCK_WRITE) {
 		ep_ev.events |= EPOLLOUT;
+	}
+
+	if (fdt->op & SC_SOCK_EDGE) {
+		ep_ev.events |= EPOLLET;
 	}
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
@@ -1355,9 +1380,9 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc, count = 0;
 	struct kevent ev[2];
-	int mask = fdt->op | events;
+	enum sc_sock_ev mask = fdt->op | events;
 
-	if ((fdt->op & events) == events) {
+	if (fdt->op == mask) {
 		return 0;
 	}
 
@@ -1368,12 +1393,18 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 	}
 
+	unsigned short act = EV_ADD;
+
+	if (mask & SC_SOCK_EDGE) {
+		act |= EV_CLEAR;
+	}
+
 	if (mask & SC_SOCK_WRITE) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
+		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, act, 0, 0, data);
 	}
 
 	if (mask & SC_SOCK_READ) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
+		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, act, 0, 0, data);
 	}
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1391,22 +1422,24 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
-	(void) data;
-
 	int rc, count = 0;
 	struct kevent ev[2];
-	int mask = fdt->op & events;
+	enum sc_sock_ev mask = fdt->op & events;
 
 	if (mask == 0) {
 		return 0;
 	}
 
 	if (mask & SC_SOCK_READ) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, 0);
+		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+	} else if ((mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_READ) != 0) {
+		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
 	}
 
 	if (mask & SC_SOCK_WRITE) {
-		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, 0);
+		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
+	} else if ((mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_WRITE) != 0) {
+		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1416,6 +1449,11 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	fdt->op &= ~events;
+
+	if (fdt->op == SC_SOCK_EDGE) {
+		fdt->op = SC_SOCK_NONE;
+	}
+
 	p->count -= fdt->op == SC_SOCK_NONE;
 
 	return 0;
@@ -1472,7 +1510,7 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 		goto err;
 	}
 
-	p->data = sc_sock_malloc(sizeof(void *) * 16);
+	p->data = sc_sock_malloc(sizeof(*p->data) * 16);
 	if (p->data == NULL) {
 		goto err;
 	}
@@ -1513,7 +1551,7 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 static int sc_sock_poll_expand(struct sc_sock_poll *p)
 {
 	int cap, rc = 0;
-	void **data = NULL;
+	struct sc_sock_fd_data *data = NULL;
 	struct pollfd *ev = NULL;
 
 	if (p->count == p->cap) {
@@ -1555,8 +1593,9 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc;
 	int index = fdt->index;
+	enum sc_sock_ev mask = fdt->op | events;
 
-	if ((fdt->op & events) == events) {
+	if (fdt->op == mask) {
 		return 0;
 	}
 
@@ -1579,25 +1618,30 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		assert(index != -1);
 
 		p->events[index].fd = fdt->fd;
+		p->data[index].fdt = fdt;
 		fdt->index = index;
 	}
 
 	assert(index != -1);
 
-	fdt->op |= events;
+	fdt->op = mask;
 
 	p->events[fdt->index].events = 0;
 	p->events[fdt->index].revents = 0;
 
-	if (events & SC_SOCK_READ) {
+	if (mask & SC_SOCK_READ) {
 		p->events[fdt->index].events |= POLLIN;
 	}
 
-	if (events & SC_SOCK_WRITE) {
+	if (mask & SC_SOCK_WRITE) {
 		p->events[fdt->index].events |= POLLOUT;
 	}
 
-	p->data[fdt->index] = data;
+	if (mask & SC_SOCK_EDGE) {
+		fdt->edge_mask |= SC_SOCK_EDGE;
+	}
+
+	p->data[fdt->index].data = data;
 
 	return 0;
 }
@@ -1610,10 +1654,16 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	fdt->op &= ~events;
+
+	if (fdt->op == SC_SOCK_EDGE) {
+		fdt->op = SC_SOCK_NONE;
+	}
+
 	if (fdt->op == SC_SOCK_NONE) {
 		p->events[fdt->index].fd = SC_INVALID;
 		p->count--;
 		fdt->index = -1;
+		fdt->edge_mask = 0;
 	} else {
 		p->events[fdt->index].events = 0;
 
@@ -1625,7 +1675,11 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 			p->events[fdt->index].events |= POLLOUT;
 		}
 
-		p->data[fdt->index] = data;
+		if ((fdt->op & SC_SOCK_EDGE) == 0) {
+			fdt->edge_mask = 0;
+		}
+
+		p->data[fdt->index].data = data;
 	}
 
 	return 0;
@@ -1633,11 +1687,15 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 void *sc_sock_poll_data(struct sc_sock_poll *p, int i)
 {
-	return p->data[i];
+	return p->data[i].data;
 }
 
 uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 {
+	if (p->events[i].fd == SC_INVALID) {
+		return SC_SOCK_NONE;
+	}
+
 	uint32_t evs = 0;
 	uint32_t poll_evs = p->events[i].revents;
 
@@ -1647,6 +1705,15 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 
 	if (poll_evs & POLLOUT) {
 		evs |= SC_SOCK_WRITE;
+	}
+
+	// Start masking fired events in Edge-Triggered mode.
+	uint32_t *mask_ptr = &p->data[i].fdt->edge_mask;
+	uint32_t mask = *mask_ptr;
+
+	if (mask & SC_SOCK_EDGE) {
+		*mask_ptr |= evs;
+		evs &= ~mask;
 	}
 
 	poll_evs &= POLLHUP | POLLERR;
