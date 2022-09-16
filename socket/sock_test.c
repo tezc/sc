@@ -1806,6 +1806,90 @@ void test_poll_edge(void)
 	assert(sc_sock_poll_term(&p) == 0);
 }
 
+struct poll_and_sock {
+	struct sc_sock_poll poll;
+	struct sc_sock clt;
+};
+
+void *client_poll(void *arg)
+{
+	struct poll_and_sock *ps = (struct poll_and_sock*)arg;
+
+	int rc;
+
+	for (int i = 0;; i++) {
+		sc_sock_init(&ps->clt, 0, false, SC_SOCK_INET);
+		rc = sc_sock_connect(&ps->clt, "127.0.0.1", "11000", NULL, NULL);
+		if (rc == -1) {
+			assert(errno == EAGAIN);
+			break;
+		}
+		if (i == 10 || sc_sock_term(&ps->clt) != 0) {
+			return NULL;
+		}
+	}
+
+	// Sleep to make sure we started waiting on sc_sock_poll_wait() in the main thread.
+	sc_time_sleep(1000);
+	rc = sc_sock_poll_add(&ps->poll, &ps->clt.fdt,
+    			      SC_SOCK_READ | SC_SOCK_WRITE,
+    			      &ps->clt);
+
+	return rc == 0 ? &ps->clt : NULL;
+}
+
+void test_poll_threadsafe(void)
+{
+	uint32_t ev;
+	int rc, count, found;
+	struct sc_sock srv, *sock;
+	struct poll_and_sock ps;
+
+	rc = sc_sock_poll_init(&ps.poll);
+	assert(rc == 0);
+
+	sc_sock_init(&srv, 0, true, SC_SOCK_INET);
+	rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
+	assert(rc == 0);
+
+	struct sc_thread thread;
+	sc_thread_init(&thread);
+	assert(sc_thread_start(&thread, client_poll, &ps) == 0);
+
+	count = sc_sock_poll_wait(&ps.poll, -1);
+	assert(count >= 1);
+	found = 0;
+
+	for (int i = 0; i < count; i++) {
+		ev = sc_sock_poll_event(&ps.poll, i);
+		sock = sc_sock_poll_data(&ps.poll, i);
+
+		if (ev == 0) {
+			continue;
+		}
+
+		assert(sock == &ps.clt);
+		if (ev & SC_SOCK_WRITE) {
+			rc = sc_sock_finish_connect(&ps.clt);
+			assert(rc == 0);
+		}
+
+		if (ev & SC_SOCK_READ) {
+			assert(false);
+		}
+		found++;
+	}
+	assert(found == 1);
+
+	void *thread_ret;
+	assert(sc_thread_join(&thread, &thread_ret) == 0);
+	assert(thread_ret == &ps.clt);
+
+	assert(sc_sock_term(&srv) == 0);
+	assert(sc_sock_term(&ps.clt) == 0);
+	assert(sc_sock_poll_term(&ps.poll) == 0);
+}
+
 void test_err(void)
 {
 	struct sc_sock sock;
@@ -1873,6 +1957,7 @@ int main(void)
 	test_err();
 	test_poll_mass();
 	test_poll_edge();
+	test_poll_threadsafe();
 
 	assert(sc_sock_cleanup() == 0);
 
