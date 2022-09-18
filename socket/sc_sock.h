@@ -79,17 +79,17 @@ struct sc_sock_fd {
 	sc_sock_int fd;
 	enum sc_sock_ev op;
 	int type; // user data
-	int index;
 #if defined(_WIN32) || defined(_WIN64)
+	int index;
 	uint32_t edge_mask;
 #endif
+	char err[128];
 };
 
 struct sc_sock {
-	struct sc_sock_fd fdt;
 	bool blocking;
 	int family;
-	char err[128];
+	struct sc_sock_fd fdt;
 };
 
 /**
@@ -258,9 +258,8 @@ void sc_sock_print(struct sc_sock *s, char *buf, size_t len);
 int sc_sock_notify_systemd(const char *msg);
 
 struct sc_sock_pipe {
-	struct sc_sock_fd fdt;
 	sc_sock_int fds[2];
-	char err[128];
+	struct sc_sock_fd fdt;
 };
 
 /**
@@ -391,7 +390,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
  * @param p      poll
  * @param fdt    fdt
  * @param events SC_SOCK_READ, SC_SOCK_WRITE or SC_SOCK_READ | SC_SOCK_WRITE
- * 		 SC_SOCK_EDGE to cancel edge-triggerred mode
+ * 		 SC_SOCK_EDGE to cancel edge-triggered mode
  * @param data   user data
  * @return       '0' on success, negative number on failure,
  *               call sc_sock_poll_err() to get error string
@@ -416,8 +415,8 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
  *  }
  *
  * @param poll    poll
- * @param timeout timeout
- * @return
+ * @param timeout timeout in milliseconds or -1 to wait infinitely
+ * @return number of events to handle or negative value on failure
  */
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout);
 
