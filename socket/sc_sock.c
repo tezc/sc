@@ -861,8 +861,6 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
 	p->fdt.type = type;
 	p->fdt.op = SC_SOCK_NONE;
 	p->fdt.index = -1;
-	p->fds[0] = INVALID_SOCKET;
-	p->fds[1] = INVALID_SOCKET;
 
 	/*  Create listening socket. */
 	listener = socket(AF_INET, SOCK_STREAM, 0);
@@ -917,6 +915,7 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
 		goto wsafail;
 	}
 
+	p->fdt.fd = p->fds[0];
 	closesocket(listener);
 
 	return 0;
@@ -959,7 +958,7 @@ int sc_sock_pipe_write(struct sc_sock_pipe *p, void *data, unsigned int len)
 	int rc;
 
 	rc = send(p->fds[1], data, len, 0);
-	if (rc == SOCKET_ERROR || (unsigned int) rc != len) {
+	if (rc == SOCKET_ERROR) {
 		sc_sock_pipe_set_err(p, "pipe send() : err(%d) ",
 				     WSAGetLastError());
 	}
@@ -972,7 +971,7 @@ int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, unsigned int len)
 	int rc;
 
 	rc = recv(p->fds[0], (char *) data, len, 0);
-	if (rc == SOCKET_ERROR || (unsigned int) rc != len) {
+	if (rc == SOCKET_ERROR) {
 		sc_sock_pipe_set_err(p, "pipe recv() : err(%d) ",
 				     WSAGetLastError());
 	}
@@ -1521,9 +1520,17 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 		p->events[i].fd = SC_INVALID;
 	}
 
+	if (sc_sock_pipe_init(&p->signal_pipe, 0) != 0) {
+		goto err;
+	}
+
+	InitializeCriticalSectionAndSpinCount(&p->lock, 4000);
+	sc_sock_poll_add(p, &p->signal_pipe.fdt, SC_SOCK_READ, NULL);
+
 	return 0;
 err:
 	sc_sock_free(p->events);
+	sc_sock_free(p->data);
 	p->events = NULL;
 	p->data = NULL;
 
@@ -1538,8 +1545,13 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 		return 0;
 	}
 
+	sc_sock_poll_del(p, &p->signal_pipe.fdt, SC_SOCK_READ, NULL);
+	sc_sock_pipe_term(&p->signal_pipe);
+	DeleteCriticalSection(&p->lock);
+
 	sc_sock_free(p->events);
 	sc_sock_free(p->data);
+	sc_sock_free(p->ops);
 
 	p->events = NULL;
 	p->cap = 0;
@@ -1559,7 +1571,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
 			goto err;
 		}
 
-		cap = p->cap * 2;
+		cap = p->cap * 3 / 2;
 		ev = sc_sock_realloc(p->events, cap * sizeof(*ev));
 		if (ev == NULL) {
 			goto err;
@@ -1588,6 +1600,48 @@ err:
 	return -1;
 }
 
+static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
+     		     enum sc_sock_ev events, void *data, bool add) {
+	int rc = 0;
+	int index = p->ops_count;
+	int cap = p->ops_cap;
+	struct sc_sock_fd_op *ops = p->ops;
+
+	if (index == cap) {
+		if (cap >= SC_SIZE_MAX / 2) {
+    		ops = NULL;
+    	} else if (ops == NULL) {
+			cap = 16;
+			ops = sc_sock_malloc(cap * sizeof(*ops));
+		} else {
+			cap = cap * 3 / 2;
+			ops = sc_sock_realloc(ops, cap * sizeof(*ops));
+		}
+		if (ops != NULL) {
+			p->ops_cap = cap;
+            p->ops = ops;
+		} else {
+			// TODO set OOM error
+			return -1;
+        }
+	}
+
+	p->ops[index] = (struct sc_sock_fd_op){
+		.add = add,
+		.events = events,
+		.fdt = fdt,
+		.data = data,
+	};
+	p->ops_count++;
+
+	// Signal only the first time to wakeup the poller thread.
+	if (index == 0 && sc_sock_pipe_write(&p->signal_pipe, "s", 1) != 1) {
+		// TODO set error from pipe to socket
+		return -1;
+	}
+	return 0;
+}
+
 int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
@@ -1599,10 +1653,21 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		return 0;
 	}
 
+	EnterCriticalSection(&p->lock);
+
+	if (p->polling) {
+		rc = sc_sock_poll_signal(p, fdt, events, data, true);
+
+		LeaveCriticalSection(&p->lock);
+		return rc;
+	}
+
 	if (fdt->op == SC_SOCK_NONE) {
 		rc = sc_sock_poll_expand(p);
 		if (rc != 0) {
-			sc_sock_poll_set_err(p, "Out of memory.");
+			sc_sock_poll_set_err(p, "Out of memory."); // TODO set err to sock
+
+			LeaveCriticalSection(&p->lock);
 			return -1;
 		}
 
@@ -1643,6 +1708,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	p->data[fdt->index].data = data;
 
+	LeaveCriticalSection(&p->lock);
 	return 0;
 }
 
@@ -1651,6 +1717,15 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	if ((fdt->op & events) == 0) {
 		return 0;
+	}
+
+	EnterCriticalSection(&p->lock);
+
+	if (p->polling) {
+		int rc = sc_sock_poll_signal(p, fdt, events, data, false);
+
+		LeaveCriticalSection(&p->lock);
+		return rc;
 	}
 
 	fdt->op &= ~events;
@@ -1682,16 +1757,22 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->data[fdt->index].data = data;
 	}
 
+	LeaveCriticalSection(&p->lock);
 	return 0;
 }
 
 void *sc_sock_poll_data(struct sc_sock_poll *p, int i)
 {
+	// We always have signal_pipe at index 0, thus adjusting the index.
+	i++;
 	return p->data[i].data;
 }
 
 uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 {
+	// We always have signal_pipe at index 0, thus adjusting the index.
+	i++;
+
 	if (p->events[i].fd == SC_INVALID) {
 		return SC_SOCK_NONE;
 	}
@@ -1726,9 +1807,15 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
-	int n, rc = p->cap;
-
+	int n, rc;
 	timeout = (timeout == -1) ? 16 : timeout;
+
+	EnterCriticalSection(&p->lock);
+	p->polling = true;
+	LeaveCriticalSection(&p->lock);
+
+	// When p->polling is set to true p->cap is stable and can be read outside of the lock.
+	rc = p->cap - 1;
 
 	do {
 		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
@@ -1738,6 +1825,27 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		rc = -1;
 		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
 	}
+
+	EnterCriticalSection(&p->lock);
+	p->polling = false;
+
+	// Process signalled socket operations if any.
+	for (int i = 0; i < p->ops_count; i++) {
+		struct sc_sock_fd_op *o = &p->ops[i];
+		if (o->add) {
+			sc_sock_poll_add(p, o->fdt, o->events, o->data);
+		} else {
+			sc_sock_poll_del(p, o->fdt, o->events, o->data);
+		}
+	}
+	p->ops_count = 0;
+
+	// Drain signal_pipe only when we can do that without blocking.
+	if (n > 0 && sc_sock_poll_event(p, -1) == SC_SOCK_READ) {
+		char signal[8];
+		sc_sock_pipe_read(&p->signal_pipe, signal, 8);
+	}
+	LeaveCriticalSection(&p->lock);
 
 	return rc;
 }

@@ -343,11 +343,28 @@ struct sc_sock_fd_data {
 	void *data;
 };
 
+struct sc_sock_fd_op {
+    bool add;
+    enum sc_sock_ev events;
+	struct sc_sock_fd *fdt;
+    void *data;
+};
+
 struct sc_sock_poll {
+	CRITICAL_SECTION lock;
+
 	int count;
 	int cap;
 	struct sc_sock_fd_data *data;
 	struct pollfd *events;
+
+	int ops_count;
+	int ops_cap;
+	struct sc_sock_fd_op *ops;
+
+	bool polling;
+	struct sc_sock_pipe signal_pipe;
+
 	char err[128];
 };
 
