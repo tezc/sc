@@ -81,7 +81,7 @@ struct sc_sock_fd {
 	int type; // user data
 #if defined(_WIN32) || defined(_WIN64)
 	int index;
-	uint32_t edge_mask;
+	volatile LONG edge_mask;
 #endif
 	char err[128];
 };

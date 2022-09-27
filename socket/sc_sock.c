@@ -235,7 +235,7 @@ void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 	s->fdt.op = SC_SOCK_NONE;
 #if defined(_WIN32) || defined(_WIN64)
 	s->fdt.index = -1;
-	s->fdt.edge_mask = 0;
+	InterlockedExchange(&s->fdt.edge_mask, SC_SOCK_NONE);
 #endif
 
 	s->blocking = blocking;
@@ -620,7 +620,7 @@ retry:
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
 			// Stop masking WRITE event.
-			s->fdt.edge_mask &= ~SC_SOCK_WRITE;
+			InterlockedAnd(&s->fdt.edge_mask, ~SC_SOCK_WRITE);
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -655,7 +655,7 @@ retry:
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
 			// Stop masking READ event.
-			s->fdt.edge_mask &= ~SC_SOCK_READ;
+			InterlockedAnd(&s->fdt.edge_mask, ~SC_SOCK_READ);
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -1703,7 +1703,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	if (mask & SC_SOCK_EDGE) {
-		fdt->edge_mask |= SC_SOCK_EDGE;
+		InterlockedOr(&fdt->edge_mask, SC_SOCK_EDGE);
 	}
 
 	p->data[fdt->index].data = data;
@@ -1738,7 +1738,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->events[fdt->index].fd = SC_INVALID;
 		p->count--;
 		fdt->index = -1;
-		fdt->edge_mask = 0;
+		InterlockedExchange(&fdt->edge_mask, SC_SOCK_NONE);
 	} else {
 		p->events[fdt->index].events = 0;
 
@@ -1751,7 +1751,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 
 		if ((fdt->op & SC_SOCK_EDGE) == 0) {
-			fdt->edge_mask = 0;
+			InterlockedExchange(&fdt->edge_mask, SC_SOCK_NONE);
 		}
 
 		p->data[fdt->index].data = data;
@@ -1780,6 +1780,10 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 	uint32_t evs = 0;
 	uint32_t poll_evs = p->events[i].revents;
 
+	if (poll_evs == 0) {
+		return SC_SOCK_NONE;
+	}
+
 	if (poll_evs & POLLIN) {
 		evs |= SC_SOCK_READ;
 	}
@@ -1789,11 +1793,21 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 	}
 
 	// Start masking fired events in Edge-Triggered mode.
-	uint32_t *mask_ptr = &p->data[i].fdt->edge_mask;
-	uint32_t mask = *mask_ptr;
+	volatile LONG *mask_ptr = &p->data[i].fdt->edge_mask;
+retry:
+	LONG mask = *mask_ptr;
 
 	if (mask & SC_SOCK_EDGE) {
-		*mask_ptr |= evs;
+		// Since the kernel calls and edge_mask updates are separate events,
+		// we can have two possible race conditions:
+		// 1. "stop masking" happens after "start masking" will result in
+		//     an extra event fired, which is fine.
+		// 2. "stop masking" happens before "start masking" will mean that
+		//     the current event will not be masked here, which is also fine.
+		// It means the scenario when we miss events and hang should be impossible.
+		if (mask != InterlockedCompareExchange(mask_ptr, mask | evs, mask)) {
+			goto retry;
+		}
 		evs &= ~mask;
 	}
 
