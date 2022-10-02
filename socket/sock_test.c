@@ -436,7 +436,6 @@ void test_poll_mass(void)
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 
@@ -455,7 +454,6 @@ void test_poll_mass(void)
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 
 	assert(sc_sock_poll_init(&poll) == 0);
@@ -473,7 +471,6 @@ void test_poll_mass(void)
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 
@@ -490,7 +487,6 @@ void test_poll_mass(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[i]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 }
 
@@ -912,7 +908,6 @@ void poll_fail_test(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[j]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	fail_realloc = false;
 
@@ -934,7 +929,6 @@ void poll_fail_test(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[j]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	fail_realloc = false;
 
@@ -955,7 +949,6 @@ void poll_fail_test(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[j]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	fail_realloc = false;
 
@@ -978,7 +971,6 @@ void poll_fail_test(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[j]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	fail_realloc = false;
 
@@ -1001,7 +993,6 @@ void poll_fail_test(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[j]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	fail_realloc = false;
 
@@ -1027,7 +1018,6 @@ void poll_fail_test(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[j]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 	fail_realloc = false;
 
@@ -1046,7 +1036,6 @@ void poll_fail_test(void)
 					NULL) == 0);
 		assert(sc_sock_pipe_term(&pipe[j]) == 0);
 	}
-	assert(poll.count == 0);
 	assert(sc_sock_poll_term(&poll) == 0);
 }
 

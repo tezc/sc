@@ -1087,27 +1087,16 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 
 	*p = (struct sc_sock_poll){0};
 
-	p->events = sc_sock_malloc(sizeof(*p->events) * 16);
-	if (p->events == NULL) {
-		errno = ENOMEM;
-		goto error;
-	}
-
 	fds = epoll_create1(0);
 	if (fds == -1) {
 		goto error;
 	}
-
-	p->cap = 16;
 	p->fds = fds;
 
 	return 0;
 error:
 	sc_sock_poll_set_err(p, strerror(errno));
-	sc_sock_free(p->events);
-
-	p->events = NULL;
-	p->fds = -1;
+	p->fds = SC_INVALID;
 
 	return -1;
 }
@@ -1116,50 +1105,17 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 {
 	int rc;
 
-	if (!p->events) {
+	if (p->fds == SC_INVALID) {
 		return 0;
 	}
-
-	sc_sock_free(p->events);
 
 	rc = close(p->fds);
 	if (rc != 0) {
 		sc_sock_poll_set_err(p, strerror(errno));
 	}
-
-	p->events = NULL;
 	p->fds = SC_INVALID;
-	p->cap = 0;
-	p->count = 0;
 
 	return rc;
-}
-
-static int sc_sock_poll_expand(struct sc_sock_poll *p)
-{
-	int cap, rc = 0;
-	void *ev;
-
-	if (p->count == p->cap) {
-		if (p->cap >= SC_SIZE_MAX / 2) {
-			goto error;
-		}
-
-		cap = p->cap * 2;
-		ev = sc_sock_realloc(p->events, cap * sizeof(*p->events));
-		if (ev == NULL) {
-			goto error;
-		}
-
-		p->cap = cap;
-		p->events = ev;
-	}
-
-	return rc;
-
-error:
-	sc_sock_poll_set_err(p, "Out of memory.");
-	return -1;
 }
 
 int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
@@ -1178,11 +1134,6 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 
 	if (fdt->op == SC_SOCK_NONE) {
-		rc = sc_sock_poll_expand(p);
-		if (rc != 0) {
-			return -1;
-		}
-
 		op = EPOLL_CTL_ADD;
 	}
 
@@ -1204,7 +1155,6 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		return -1;
 	}
 
-	p->count += fdt->op == SC_SOCK_NONE;
 	fdt->op = mask;
 
 	return 0;
@@ -1249,10 +1199,6 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		return -1;
 	}
 
-	if (fdt->op == SC_SOCK_NONE) {
-		p->count--;
-	}
-
 	return 0;
 }
 
@@ -1287,7 +1233,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	int n;
 
 	do {
-		n = epoll_wait(p->fds, &p->events[0], p->cap, timeout);
+		n = epoll_wait(p->fds, p->events, SC_SOCK_POLL_MAX_EVENTS, timeout);
 	} while (n < 0 && errno == EINTR);
 
 	if (n == -1) {
@@ -1305,54 +1251,17 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 
 	*p = (struct sc_sock_poll){0};
 
-	p->events = sc_sock_malloc(sizeof(*p->events) * 16);
-	if (p->events == NULL) {
-		errno = ENOMEM;
-		goto err;
-	}
-
 	fds = kqueue();
 	if (fds == -1) {
 		goto err;
 	}
-
-	p->cap = 16;
 	p->fds = fds;
 
 	return 0;
 err:
 	sc_sock_poll_set_err(p, strerror(errno));
-	sc_sock_free(p->events);
-	p->events = NULL;
-	p->fds = -1;
+	p->fds = SC_INVALID;
 
-	return -1;
-}
-
-static int sc_sock_poll_expand(struct sc_sock_poll *p)
-{
-	int rc = 0, cap;
-	void *ev;
-
-	if (p->count == p->cap) {
-		if (p->cap >= SC_SIZE_MAX / 2) {
-			goto err;
-		}
-
-		cap = p->cap * 2;
-		ev = sc_sock_realloc(p->events, cap * sizeof(*p->events));
-		if (ev == NULL) {
-			goto err;
-		}
-
-		p->cap = cap;
-		p->events = ev;
-	}
-
-	return rc;
-
-err:
-	sc_sock_poll_set_err(p, "Out of memory.");
 	return -1;
 }
 
@@ -1360,21 +1269,16 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 {
 	int rc;
 
-	if (!p->events) {
+	if (p->fds == SC_INVALID) {
 		return 0;
 	}
-
-	sc_sock_free(p->events);
 
 	rc = close(p->fds);
 	if (rc != 0) {
 		sc_sock_poll_set_err(p, strerror(errno));
 	}
 
-	p->events = NULL;
 	p->fds = SC_INVALID;
-	p->cap = 0;
-	p->count = 0;
 
 	return rc;
 }
@@ -1388,13 +1292,6 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (fdt->op == mask) {
 		return 0;
-	}
-
-	if (fdt->op == SC_SOCK_NONE) {
-		rc = sc_sock_poll_expand(p);
-		if (rc != 0) {
-			return -1;
-		}
 	}
 
 	unsigned short act = EV_ADD;
@@ -1417,7 +1314,6 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		return -1;
 	}
 
-	p->count += fdt->op == SC_SOCK_NONE;
 	fdt->op = mask;
 
 	return 0;
@@ -1458,8 +1354,6 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		fdt->op = SC_SOCK_NONE;
 	}
 
-	p->count -= fdt->op == SC_SOCK_NONE;
-
 	return 0;
 }
 
@@ -1492,7 +1386,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		ts.tv_sec = timeout / 1000;
 		ts.tv_nsec = (timeout % 1000) * 1000000;
 
-		n = kevent(p->fds, NULL, 0, &p->events[0], p->cap,
+		n = kevent(p->fds, NULL, 0, p->events, SC_SOCK_POLL_MAX_EVENTS,
 			   timeout >= 0 ? &ts : NULL);
 	} while (n < 0 && errno == EINTR);
 
