@@ -234,8 +234,7 @@ void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 	s->fdt.type = type;
 	s->fdt.op = SC_SOCK_NONE;
 #if defined(_WIN32) || defined(_WIN64)
-	s->fdt.index = -1;
-	InterlockedExchange(&s->fdt.edge_mask, SC_SOCK_NONE);
+	s->fdt.poll_data = NULL;
 #endif
 
 	s->blocking = blocking;
@@ -620,7 +619,10 @@ retry:
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
 			// Stop masking WRITE event.
-			InterlockedAnd(&s->fdt.edge_mask, ~SC_SOCK_WRITE);
+			struct sc_sock_poll_data *pd = s->fdt.poll_data;
+            if (pd != NULL) {
+				InterlockedAnd(&pd->edge_mask, ~SC_SOCK_WRITE);
+			}
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -655,7 +657,10 @@ retry:
 		if (err == SC_EAGAIN) {
 #if defined(_WIN32) || defined(_WIN64)
 			// Stop masking READ event.
-			InterlockedAnd(&s->fdt.edge_mask, ~SC_SOCK_READ);
+			struct sc_sock_poll_data *pd = s->fdt.poll_data;
+			if (pd != NULL) {
+				InterlockedAnd(&pd->edge_mask, ~SC_SOCK_READ);
+			}
 #endif
 			errno = EAGAIN;
 			return -1;
@@ -860,7 +865,7 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
 
 	p->fdt.type = type;
 	p->fdt.op = SC_SOCK_NONE;
-	p->fdt.index = -1;
+	p->fdt.poll_data = NULL;
 
 	/*  Create listening socket. */
 	listener = socket(AF_INET, SOCK_STREAM, 0);
@@ -1500,6 +1505,12 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 #else // WINDOWS
 
+// Define GCC/Clang intrinsic for MSVC to be compatible.
+#ifdef _MSC_VER
+// Number of leading zeroes in unsigned int value.
+#define __builtin_clz(x) ((int)__lzcnt(x))
+#endif
+
 int sc_sock_poll_init(struct sc_sock_poll *p)
 {
 	*p = (struct sc_sock_poll){0};
@@ -1509,8 +1520,8 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 		goto err;
 	}
 
-	p->data = sc_sock_malloc(sizeof(*p->data) * 16);
-	if (p->data == NULL) {
+	p->data[0] = sc_sock_malloc(sizeof(struct sc_sock_poll_data) * 16);
+	if (p->data[0] == NULL) {
 		goto err;
 	}
 
@@ -1530,9 +1541,9 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 	return 0;
 err:
 	sc_sock_free(p->events);
-	sc_sock_free(p->data);
+	sc_sock_free(p->data[0]);
 	p->events = NULL;
-	p->data = NULL;
+	p->data[0] = NULL;
 
 	sc_sock_poll_set_err(p, "Out of memory.");
 
@@ -1549,8 +1560,12 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 	sc_sock_pipe_term(&p->signal_pipe);
 	DeleteCriticalSection(&p->lock);
 
+	for (int i = 0; i < 16 && p->data[i] != NULL; i++) {
+		sc_sock_free(p->data[i]);
+		p->data[i] = NULL;
+	}
+
 	sc_sock_free(p->events);
-	sc_sock_free(p->data);
 	sc_sock_free(p->ops);
 
 	p->events = NULL;
@@ -1563,7 +1578,6 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 static int sc_sock_poll_expand(struct sc_sock_poll *p)
 {
 	int cap, rc = 0;
-	struct sc_sock_fd_data *data = NULL;
 	struct pollfd *ev = NULL;
 
 	if (p->count == p->cap) {
@@ -1571,19 +1585,32 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
 			goto err;
 		}
 
-		cap = p->cap * 3 / 2;
+		cap = p->cap * 2;
 		ev = sc_sock_realloc(p->events, cap * sizeof(*ev));
 		if (ev == NULL) {
 			goto err;
 		}
 
-		data = sc_sock_realloc(p->data, cap * sizeof(*data));
-		if (data == NULL) {
-			goto err;
+		// Do not use realloc for p->data as with p->events because we need a stable
+		// pointer for sc_sock_poll_data->edge_mask, thus instead we append a next chunk
+		// as large as the current capacity, this way we double the total capacity.
+		// The resulting data structure will have the following chunk sizes: [16, 16, 32, 64, 128, 256... ]
+		// Important properties of this data structure are that:
+		//  - every new chunk is 2x larger than the previous one (except for the first chunk)
+		//  - all the chunk sizes are power of 2
+		// which allows to easily calculate coordinates in this 2D data structure
+		// from an absolute index (zero to cap).
+		for (int i = 1; i < 16; i++) {
+			if (p->data[i] == NULL) {
+				p->data[i] = sc_sock_malloc(sizeof(struct sc_sock_poll_data) * p->cap);
+				if (p->data[i] == NULL) {
+					goto err;
+				}
+				break;
+			}
 		}
 
 		p->events = ev;
-		p->data = data;
 
 		for (int i = p->cap; i < cap; i++) {
 			p->events[i].fd = SC_INVALID;
@@ -1605,7 +1632,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	int rc = 0;
 	int index = p->ops_count;
 	int cap = p->ops_cap;
-	struct sc_sock_fd_op *ops = p->ops;
+	struct sc_sock_poll_op *ops = p->ops;
 
 	if (index == cap) {
 		if (cap >= SC_SIZE_MAX / 2) {
@@ -1626,7 +1653,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
         }
 	}
 
-	p->ops[index] = (struct sc_sock_fd_op){
+	p->ops[index] = (struct sc_sock_poll_op){
 		.add = add,
 		.events = events,
 		.fdt = fdt,
@@ -1642,12 +1669,35 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	return 0;
 }
 
+static inline int sc_sock_number_of_meaningful_bits(unsigned int i) {
+	return sizeof(unsigned int) * 8 - __builtin_clz(i);
+}
+
+static struct sc_sock_poll_data *sc_sock_poll_data_inner(struct sc_sock_poll *p, int i)
+{
+	if (i < 16) {
+		return &p->data[0][i];
+	}
+
+	int n = sc_sock_number_of_meaningful_bits(i);
+
+	// Equivalent of `n + 1 - sc_sock_number_of_meaningful_bits(first_chunk_size)`,
+	// currently the smallest chunk size is 16, thus it is `n + 1 - 5`
+	int x = n - 4;
+
+	// Clear the most significant bit in i.
+	int y = i & ~(1 << (n - 1));
+
+	return &p->data[x][y];
+}
+
 int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
 	int rc;
-	int index = fdt->index;
+	int index = -1;
 	enum sc_sock_ev mask = fdt->op | events;
+	struct sc_sock_poll_data *pd = NULL;
 
 	if (fdt->op == mask) {
 		return 0;
@@ -1682,31 +1732,38 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 		assert(index != -1);
 
+		pd = sc_sock_poll_data_inner(p, index);
+		pd->index = index;
+		InterlockedExchange(&pd->edge_mask, SC_SOCK_NONE);
+		fdt->poll_data = pd;
+
 		p->events[index].fd = fdt->fd;
-		p->data[index].fdt = fdt;
-		fdt->index = index;
+	} else {
+		pd = fdt->poll_data;
+		index = pd->index;
 	}
 
 	assert(index != -1);
+	assert(pd != NULL);
 
 	fdt->op = mask;
 
-	p->events[fdt->index].events = 0;
-	p->events[fdt->index].revents = 0;
+	p->events[index].events = 0;
+	p->events[index].revents = 0;
 
 	if (mask & SC_SOCK_READ) {
-		p->events[fdt->index].events |= POLLIN;
+		p->events[index].events |= POLLIN;
 	}
 
 	if (mask & SC_SOCK_WRITE) {
-		p->events[fdt->index].events |= POLLOUT;
+		p->events[index].events |= POLLOUT;
 	}
 
 	if (mask & SC_SOCK_EDGE) {
-		InterlockedOr(&fdt->edge_mask, SC_SOCK_EDGE);
+		InterlockedOr(&pd->edge_mask, SC_SOCK_EDGE);
 	}
 
-	p->data[fdt->index].data = data;
+	pd->data = data;
 
 	LeaveCriticalSection(&p->lock);
 	return 0;
@@ -1734,27 +1791,29 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		fdt->op = SC_SOCK_NONE;
 	}
 
+	struct sc_sock_poll_data *pd = fdt->poll_data;
+
 	if (fdt->op == SC_SOCK_NONE) {
-		p->events[fdt->index].fd = SC_INVALID;
+		fdt->poll_data = NULL;
+		p->events[pd->index].fd = SC_INVALID;
 		p->count--;
-		fdt->index = -1;
-		InterlockedExchange(&fdt->edge_mask, SC_SOCK_NONE);
+		InterlockedExchange(&pd->edge_mask, SC_SOCK_NONE);
 	} else {
-		p->events[fdt->index].events = 0;
+		p->events[pd->index].events = 0;
 
 		if (fdt->op & SC_SOCK_READ) {
-			p->events[fdt->index].events |= POLLIN;
+			p->events[pd->index].events |= POLLIN;
 		}
 
 		if (fdt->op & SC_SOCK_WRITE) {
-			p->events[fdt->index].events |= POLLOUT;
+			p->events[pd->index].events |= POLLOUT;
 		}
 
 		if ((fdt->op & SC_SOCK_EDGE) == 0) {
-			InterlockedExchange(&fdt->edge_mask, SC_SOCK_NONE);
+			InterlockedExchange(&pd->edge_mask, SC_SOCK_NONE);
 		}
 
-		p->data[fdt->index].data = data;
+		pd->data = data;
 	}
 
 	LeaveCriticalSection(&p->lock);
@@ -1763,16 +1822,16 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 void *sc_sock_poll_data(struct sc_sock_poll *p, int i)
 {
-	// We always have signal_pipe at index 0, thus adjusting the index.
-	i++;
-	return p->data[i].data;
+	// TODO buffer
 }
 
 uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 {
-	// We always have signal_pipe at index 0, thus adjusting the index.
-	i++;
+	// TODO buffer
+}
 
+static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
+{
 	if (p->events[i].fd == SC_INVALID) {
 		return SC_SOCK_NONE;
 	}
@@ -1793,9 +1852,9 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 	}
 
 	// Start masking fired events in Edge-Triggered mode.
-	volatile LONG *mask_ptr = &p->data[i].fdt->edge_mask;
+	struct sc_sock_poll_data *pd = sc_sock_poll_data_inner(p, i);
 retry:
-	LONG mask = *mask_ptr;
+	LONG mask = pd->edge_mask;
 
 	if (mask & SC_SOCK_EDGE) {
 		// Since the kernel calls and edge_mask updates are separate events,
@@ -1805,7 +1864,7 @@ retry:
 		// 2. "stop masking" happens before "start masking" will mean that
 		//     the current event will not be masked here, which is also fine.
 		// It means the scenario when we miss events and hang should be impossible.
-		if (mask != InterlockedCompareExchange(mask_ptr, mask | evs, mask)) {
+		if (mask != InterlockedCompareExchange(&pd->edge_mask, mask | evs, mask)) {
 			goto retry;
 		}
 		evs &= ~mask;
@@ -1825,8 +1884,14 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	timeout = (timeout == -1) ? 16 : timeout;
 
 	EnterCriticalSection(&p->lock);
+	// TODO check if we have remaining to fill buffer and return right away
+
 	p->polling = true;
 	LeaveCriticalSection(&p->lock);
+
+	if (!p->polling) {
+		return rc;
+	}
 
 	// When p->polling is set to true p->cap is stable and can be read outside of the lock.
 	rc = p->cap - 1;
@@ -1845,7 +1910,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 	// Process signalled socket operations if any.
 	for (int i = 0; i < p->ops_count; i++) {
-		struct sc_sock_fd_op *o = &p->ops[i];
+		struct sc_sock_poll_op *o = &p->ops[i];
 		if (o->add) {
 			sc_sock_poll_add(p, o->fdt, o->events, o->data);
 		} else {
@@ -1854,10 +1919,12 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 	p->ops_count = 0;
 
+	// TODO fill the results buffer starting with 1 because 0 is pipe
+
 	// Drain signal_pipe only when we can do that without blocking.
-	if (n > 0 && sc_sock_poll_event(p, -1) == SC_SOCK_READ) {
-		char signal[8];
-		sc_sock_pipe_read(&p->signal_pipe, signal, 8);
+	if (n > 0 && sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
+		char signal[16];
+		sc_sock_pipe_read(&p->signal_pipe, signal, 16);
 	}
 	LeaveCriticalSection(&p->lock);
 

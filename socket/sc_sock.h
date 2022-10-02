@@ -75,13 +75,20 @@ enum sc_sock_family
 	SC_SOCK_UNIX = AF_UNIX
 };
 
+#if defined(_WIN32) || defined(_WIN64)
+struct sc_sock_poll_data {
+	volatile LONG edge_mask;
+	int index;
+	void *data;
+};
+#endif
+
 struct sc_sock_fd {
 	sc_sock_int fd;
 	enum sc_sock_ev op;
 	int type; // user data
 #if defined(_WIN32) || defined(_WIN64)
-	int index;
-	volatile LONG edge_mask;
+	struct sc_sock_poll_data *poll_data;
 #endif
 	char err[128];
 };
@@ -338,12 +345,7 @@ struct sc_sock_poll {
 #include <poll.h>
 #endif
 
-struct sc_sock_fd_data {
-	struct sc_sock_fd *fdt;
-	void *data;
-};
-
-struct sc_sock_fd_op {
+struct sc_sock_poll_op {
     bool add;
     enum sc_sock_ev events;
 	struct sc_sock_fd *fdt;
@@ -355,12 +357,12 @@ struct sc_sock_poll {
 
 	int count;
 	int cap;
-	struct sc_sock_fd_data *data;
+	struct sc_sock_poll_data *data[16];
 	struct pollfd *events;
 
 	int ops_count;
 	int ops_cap;
-	struct sc_sock_fd_op *ops;
+	struct sc_sock_poll_op *ops;
 
 	bool polling;
 	struct sc_sock_pipe signal_pipe;
