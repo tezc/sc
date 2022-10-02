@@ -1505,9 +1505,9 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 #else // WINDOWS
 
-// Define GCC/Clang intrinsic for MSVC to be compatible.
+// Define GCC intrinsic for MSVC to be compatible.
 #ifdef _MSC_VER
-// Number of leading zeroes in unsigned int value.
+// Number of leading zeros in unsigned int value.
 #define __builtin_clz(x) ((int)__lzcnt(x))
 #endif
 
@@ -1591,23 +1591,28 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
 			goto err;
 		}
 
-		// Do not use realloc for p->data as with p->events because we need a stable
+		// We do not use realloc for p->data as with p->events because we need a stable
 		// pointer for sc_sock_poll_data->edge_mask, thus instead we append a next chunk
 		// as large as the current capacity, this way we double the total capacity.
 		// The resulting data structure will have the following chunk sizes: [16, 16, 32, 64, 128, 256... ]
 		// Important properties of this data structure are that:
 		//  - every new chunk is 2x larger than the previous one (except for the first chunk)
 		//  - all the chunk sizes are power of 2
-		// which allows to easily calculate coordinates in this 2D data structure
-		// from an absolute index (zero to cap).
+		// which allow to easily calculate coordinates in this two-dimensional data structure
+		// from an absolute index (from zero to capacity).
+		bool data_expanded = false;
 		for (int i = 1; i < 16; i++) {
 			if (p->data[i] == NULL) {
 				p->data[i] = sc_sock_malloc(sizeof(struct sc_sock_poll_data) * p->cap);
 				if (p->data[i] == NULL) {
 					goto err;
 				}
+				data_expanded = true;
 				break;
 			}
+		}
+		if (!data_expanded) {
+			goto err;
 		}
 
 		p->events = ev;
@@ -1629,7 +1634,6 @@ err:
 
 static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
      		     enum sc_sock_ev events, void *data, bool add) {
-	int rc = 0;
 	int index = p->ops_count;
 	int cap = p->ops_cap;
 	struct sc_sock_poll_op *ops = p->ops;
@@ -1705,6 +1709,8 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	EnterCriticalSection(&p->lock);
 
+	// If polling is in progress we can not modify p->events, instead submit
+	// the operation for asynchronous processing later by the poller thread.
 	if (p->polling) {
 		rc = sc_sock_poll_signal(p, fdt, events, data, true);
 
@@ -1778,6 +1784,8 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	EnterCriticalSection(&p->lock);
 
+	// If polling is in progress we can not modify p->events, instead submit
+	// the operation for asynchronous processing later by the poller thread.
 	if (p->polling) {
 		int rc = sc_sock_poll_signal(p, fdt, events, data, false);
 
@@ -1878,34 +1886,70 @@ retry:
 	return evs;
 }
 
+static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
+	int found = 0;
+	int remaining = p->results_remaining;
+
+	for (int i = p->results_offset; i < p->cap && remaining > 0; i++) {
+		enum sc_sock_ev events = sc_sock_poll_event_inner(p, i);
+
+		if (events != SC_SOCK_NONE) {
+			remaining--;
+
+			p->results[found++] = (struct sc_sock_poll_result){
+				.events = events,
+				.data = sc_sock_poll_data_inner(p, i)->data,
+			};
+
+			if (found == 4096) {
+				p->results_offset = i + 1;
+				break;
+			}
+		}
+	}
+	p->results_remaining = remaining;
+	return found;
+}
+
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
 	int n, rc;
 	timeout = (timeout == -1) ? 16 : timeout;
 
 	EnterCriticalSection(&p->lock);
-	// TODO check if we have remaining to fill buffer and return right away
-
-	p->polling = true;
+	if (p->polling) {
+		rc = -1;
+		sc_sock_poll_set_err(p, "poll : polling is already in progress in parallel thread");
+	} else if (p->results_remaining > 0) {
+		// Fill the remaining results that did not fit into p->results in the previous iteration.
+		rc = sc_sock_poll_fill_results(p);
+	} else {
+		// When p->polling is set to true, no add/del operations can happen,
+		// instead these operations will be submitted to the sc_sock_poll->ops list
+		// and processed by the poller thread after the polling is finished.
+		p->polling = true;
+	}
 	LeaveCriticalSection(&p->lock);
 
 	if (!p->polling) {
 		return rc;
 	}
 
-	// When p->polling is set to true p->cap is stable and can be read outside of the lock.
-	rc = p->cap - 1;
-
 	do {
+		// When p->polling is set to true p->events and p->cap are stable
+		// and can be read outside of the lock.
 		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
 	} while (n < 0 && errno == EINTR);
 
-	if (n == SC_INVALID) {
+	if (n == 0) {
+		rc = 0;
+	} else if (n == SC_INVALID) {
 		rc = -1;
 		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
 	}
 
 	EnterCriticalSection(&p->lock);
+	// Have to reset this flag before processing p->ops because it will be checked inside of add/del.
 	p->polling = false;
 
 	// Process signalled socket operations if any.
@@ -1919,15 +1963,21 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 	p->ops_count = 0;
 
-	// TODO fill the results buffer starting with 1 because 0 is pipe
+	if (n > 0) {
+		// Drain signal_pipe only when we can do that without blocking.
+		if (sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
+			char signal[16];
+			sc_sock_pipe_read(&p->signal_pipe, signal, 16);
+			n--;
+		}
 
-	// Drain signal_pipe only when we can do that without blocking.
-	if (n > 0 && sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
-		char signal[16];
-		sc_sock_pipe_read(&p->signal_pipe, signal, 16);
+		// Fill the results.
+		p->results_offset = 1;
+		p->results_remaining = n;
+		rc = sc_sock_poll_fill_results(p);
 	}
-	LeaveCriticalSection(&p->lock);
 
+	LeaveCriticalSection(&p->lock);
 	return rc;
 }
 

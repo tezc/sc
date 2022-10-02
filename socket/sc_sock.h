@@ -352,13 +352,18 @@ struct sc_sock_poll_op {
     void *data;
 };
 
+struct sc_sock_poll_result {
+	enum sc_sock_ev events;
+	void *data;
+};
+
 struct sc_sock_poll {
 	CRITICAL_SECTION lock;
 
 	int count;
 	int cap;
-	struct sc_sock_poll_data *data[16];
 	struct pollfd *events;
+	struct sc_sock_poll_data *data[16];
 
 	int ops_count;
 	int ops_cap;
@@ -366,6 +371,10 @@ struct sc_sock_poll {
 
 	bool polling;
 	struct sc_sock_pipe signal_pipe;
+
+	int results_remaining;
+	int results_offset;
+	struct sc_sock_poll_result results[4096];
 
 	char err[128];
 };
