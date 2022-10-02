@@ -374,7 +374,7 @@ struct sc_sock_poll {
 
 	int results_remaining;
 	int results_offset;
-	struct sc_sock_poll_result results[4096];
+	struct sc_sock_poll_result results[1024];
 
 	char err[128];
 };

@@ -1830,12 +1830,12 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 void *sc_sock_poll_data(struct sc_sock_poll *p, int i)
 {
-	// TODO buffer
+	return p->results[i].data;
 }
 
 uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 {
-	// TODO buffer
+	return p->results[i].events;
 }
 
 static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
@@ -1889,6 +1889,7 @@ retry:
 static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 	int found = 0;
 	int remaining = p->results_remaining;
+	int results_cap = sizeof(p->results)/sizeof(struct sc_sock_poll_result);
 
 	for (int i = p->results_offset; i < p->cap && remaining > 0; i++) {
 		enum sc_sock_ev events = sc_sock_poll_event_inner(p, i);
@@ -1896,12 +1897,14 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 		if (events != SC_SOCK_NONE) {
 			remaining--;
 
-			p->results[found++] = (struct sc_sock_poll_result){
+			p->results[found] = (struct sc_sock_poll_result){
 				.events = events,
 				.data = sc_sock_poll_data_inner(p, i)->data,
 			};
 
-			if (found == 4096) {
+			found++;
+
+			if (found == results_cap) {
 				p->results_offset = i + 1;
 				break;
 			}
@@ -1914,6 +1917,8 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
 	int n, rc;
+	bool drain_pipe = false;
+
 	timeout = (timeout == -1) ? 16 : timeout;
 
 	EnterCriticalSection(&p->lock);
@@ -1949,7 +1954,9 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 
 	EnterCriticalSection(&p->lock);
-	// Have to reset this flag before processing p->ops because it will be checked inside of add/del.
+	// Have to reset this flag before processing p->ops because it will be checked
+	// inside of sc_sock_poll_add() and sc_sock_poll_del().
+	assert(p->polling);
 	p->polling = false;
 
 	// Process signalled socket operations if any.
@@ -1966,18 +1973,30 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	if (n > 0) {
 		// Drain signal_pipe only when we can do that without blocking.
 		if (sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
-			char signal[16];
-			sc_sock_pipe_read(&p->signal_pipe, signal, 16);
+			drain_pipe = true;
 			n--;
 		}
 
-		// Fill the results.
+		// We have a separate buffer for results and we fill it under the lock
+		// because otherwise we would need to acquire the lock on every
+		// sc_sock_poll_event() and sc_sock_poll_data() call which would be suboptimal.
 		p->results_offset = 1;
 		p->results_remaining = n;
 		rc = sc_sock_poll_fill_results(p);
 	}
 
 	LeaveCriticalSection(&p->lock);
+
+	// Drain signal_pipe outside of the lock to reduce contention.
+	if (drain_pipe) {
+		// At this point we may have any number of bytes in signal_pipe,
+		// we just pick reasonably large buffer size for draining and
+		// assume that sc_sock_pipe_read() supports partial reads (less than
+		// the provided buffer size).
+		char signal[16];
+        sc_sock_pipe_read(&p->signal_pipe, signal, 16);
+	}
+
 	return rc;
 }
 
