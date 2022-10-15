@@ -327,7 +327,7 @@ const char *sc_sock_pipe_err(struct sc_sock_pipe *p);
 
 struct sc_sock_poll {
 	int fds;
-	struct epoll_event events[SC_SOCK_POLL_MAX_EVENTS];
+	struct epoll_event *events;
 	char err[128];
 };
 
@@ -336,7 +336,7 @@ struct sc_sock_poll {
 
 struct sc_sock_poll {
 	int fds;
-	struct kevent events[SC_SOCK_POLL_MAX_EVENTS];
+	struct kevent *events;
 	char err[128];
 };
 #else
@@ -374,7 +374,7 @@ struct sc_sock_poll {
 
 	int results_remaining;
 	int results_offset;
-	struct sc_sock_poll_result results[SC_SOCK_POLL_MAX_EVENTS];
+	struct sc_sock_poll_result *results;
 
 	char err[128];
 };

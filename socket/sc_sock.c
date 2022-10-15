@@ -230,7 +230,7 @@ int sc_sock_set_blocking(struct sc_sock *s, bool blocking)
 
 void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 {
-	s->fdt.fd = SC_INVALID;
+	s->fdt.fd = -1;
 	s->fdt.type = type;
 	s->fdt.op = SC_SOCK_NONE;
 #if defined(_WIN32) || defined(_WIN64)
@@ -620,7 +620,7 @@ retry:
 #if defined(_WIN32) || defined(_WIN64)
 			// Stop masking WRITE event.
 			struct sc_sock_poll_data *pd = s->fdt.poll_data;
-            if (pd != NULL) {
+            if (pd != NULL && (pd->edge_mask & SC_SOCK_WRITE)) {
 				InterlockedAnd(&pd->edge_mask, ~SC_SOCK_WRITE);
 			}
 #endif
@@ -658,7 +658,7 @@ retry:
 #if defined(_WIN32) || defined(_WIN64)
 			// Stop masking READ event.
 			struct sc_sock_poll_data *pd = s->fdt.poll_data;
-			if (pd != NULL) {
+			if (pd != NULL && (pd->edge_mask & SC_SOCK_READ)) {
 				InterlockedAnd(&pd->edge_mask, ~SC_SOCK_READ);
 			}
 #endif
@@ -833,6 +833,7 @@ void sc_sock_print(struct sc_sock *sock, char *buf, size_t len)
 
 const char *sc_sock_pipe_err(struct sc_sock_pipe *pipe)
 {
+	pipe->fdt.err[sizeof(pipe->fdt.err) - 1] = '\0';
 	return pipe->fdt.err;
 }
 
@@ -1087,6 +1088,12 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 
 	*p = (struct sc_sock_poll){0};
 
+	p->events = sc_sock_malloc(sizeof(*p->events) * SC_SOCK_POLL_MAX_EVENTS);
+	if (p->events == NULL) {
+		errno = ENOMEM;
+		goto error;
+	}
+
 	fds = epoll_create1(0);
 	if (fds == -1) {
 		goto error;
@@ -1096,7 +1103,10 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 	return 0;
 error:
 	sc_sock_poll_set_err(p, strerror(errno));
-	p->fds = SC_INVALID;
+	sc_sock_free(p->events);
+
+	p->events = NULL;
+	p->fds = -1;
 
 	return -1;
 }
@@ -1105,14 +1115,18 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 {
 	int rc;
 
-	if (p->fds == SC_INVALID) {
+	if (!p->events) {
 		return 0;
 	}
+
+	sc_sock_free(p->events);
 
 	rc = close(p->fds);
 	if (rc != 0) {
 		sc_sock_poll_set_err(p, strerror(errno));
 	}
+
+	p->events = NULL;
 	p->fds = SC_INVALID;
 
 	return rc;
@@ -1251,6 +1265,12 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 
 	*p = (struct sc_sock_poll){0};
 
+	p->events = sc_sock_malloc(sizeof(*p->events) * SC_SOCK_POLL_MAX_EVENTS);
+	if (p->events == NULL) {
+		errno = ENOMEM;
+		goto err;
+	}
+
 	fds = kqueue();
 	if (fds == -1) {
 		goto err;
@@ -1260,7 +1280,9 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 	return 0;
 err:
 	sc_sock_poll_set_err(p, strerror(errno));
-	p->fds = SC_INVALID;
+	sc_sock_free(p->events);
+	p->events = NULL;
+	p->fds = -1;
 
 	return -1;
 }
@@ -1269,15 +1291,18 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 {
 	int rc;
 
-	if (p->fds == SC_INVALID) {
+	if (!p->events) {
 		return 0;
 	}
+
+	sc_sock_free(p->events);
 
 	rc = close(p->fds);
 	if (rc != 0) {
 		sc_sock_poll_set_err(p, strerror(errno));
 	}
 
+	p->events = NULL;
 	p->fds = SC_INVALID;
 
 	return rc;
@@ -1399,15 +1424,14 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 #else // WINDOWS
 
-// Define GCC intrinsic for MSVC to be compatible.
-#ifdef _MSC_VER
-// Number of leading zeros in unsigned int value.
-#define __builtin_clz(x) ((int)__lzcnt(x))
-#endif
-
 int sc_sock_poll_init(struct sc_sock_poll *p)
 {
 	*p = (struct sc_sock_poll){0};
+
+	p->results = sc_sock_malloc(sizeof(*p->results) * SC_SOCK_POLL_MAX_EVENTS);
+	if (p->results == NULL) {
+		goto err;
+	}
 
 	p->events = sc_sock_malloc(sizeof(*p->events) * 16);
 	if (p->events == NULL) {
@@ -1434,6 +1458,7 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 
 	return 0;
 err:
+	sc_sock_free(p->results);
 	sc_sock_free(p->events);
 	sc_sock_free(p->data[0]);
 	p->events = NULL;
@@ -1459,6 +1484,7 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 		p->data[i] = NULL;
 	}
 
+	sc_sock_free(p->results);
 	sc_sock_free(p->events);
 	sc_sock_free(p->ops);
 
@@ -1571,6 +1597,12 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	}
 	return 0;
 }
+
+// Define GCC intrinsic for MSVC to be compatible.
+#ifdef _MSC_VER
+// Number of leading zeros in unsigned int value.
+#define __builtin_clz(x) ((int)__lzcnt(x))
+#endif
 
 static inline int sc_sock_number_of_meaningful_bits(unsigned int i) {
 	return sizeof(unsigned int) * 8 - __builtin_clz(i);
@@ -1867,7 +1899,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	assert(p->polling);
 	p->polling = false;
 
-	// Process signalled socket operations in-order.
+	// Process signalled socket operations in the same order they were added.
 	for (int i = 0; i < p->ops_count; i++) {
 		struct sc_sock_poll_op *o = &p->ops[i];
 		if (o->add) {
