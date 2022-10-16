@@ -1453,7 +1453,10 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 		goto err;
 	}
 
+	// Never fails.
 	InitializeCriticalSectionAndSpinCount(&p->lock, 4000);
+
+	// The only possible error is "Out of memory", which must be impossible here.
 	sc_sock_poll_add(p, &p->signal_pipe.fdt, SC_SOCK_READ, NULL);
 
 	return 0;
@@ -1598,7 +1601,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	return 0;
 }
 
-// Define GCC intrinsic for MSVC to be compatible.
+// Define GCC intrinsic for MSVC to be compatible with both.
 #ifdef _MSC_VER
 // Number of leading zeros in unsigned int value.
 #define __builtin_clz(x) ((int)__lzcnt(x))
@@ -1788,21 +1791,15 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 
 	// Start masking fired events in Edge-Triggered mode.
 	struct sc_sock_poll_data *pd = sc_sock_poll_data_inner(p, i);
-retry:
-	LONG mask = pd->edge_mask;
 
-	if (mask & SC_SOCK_EDGE) {
-		// Since the kernel calls and edge_mask updates are separate events,
-		// we can have two possible race conditions:
-		// 1. "stop masking" happens after "start masking" will result in
+	if (pd->edge_mask & SC_SOCK_EDGE) {
+		// We can have two possible race conditions on edge_mask updates:
+		// 1. "stop masking" wrongly happens after "start masking" will result in
 		//     an extra event fired, which is fine.
-		// 2. "stop masking" happens before "start masking" will mean that
+		// 2. "stop masking" wrongly happens before "start masking" will mean that
 		//     the current event will not be masked here, which is also fine.
 		// It means the scenario when we miss events and hang should be impossible.
-		if (mask != InterlockedCompareExchange(&pd->edge_mask, mask | evs, mask)) {
-			goto retry;
-		}
-		evs &= ~mask;
+		evs &= ~InterlockedOr(&pd->edge_mask, evs);
 	}
 
 	poll_evs &= POLLHUP | POLLERR;
