@@ -1245,9 +1245,15 @@ uint32_t sc_sock_poll_event(struct sc_sock_poll *p, int i)
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
 	int n;
+	struct epoll_event *events = p->events;
+
+	if (events == NULL) {
+		sc_sock_poll_set_err(p, "sc_sock_poll is not initialized or is terminated");
+		return -1;
+	}
 
 	do {
-		n = epoll_wait(p->fds, p->events, SC_SOCK_POLL_MAX_EVENTS, timeout);
+		n = epoll_wait(p->fds, events, SC_SOCK_POLL_MAX_EVENTS, timeout);
 	} while (n < 0 && errno == EINTR);
 
 	if (n == -1) {
@@ -1406,12 +1412,18 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
 	int n;
 	struct timespec ts;
+	struct kevent *events = p->events;
+
+	if (events == NULL) {
+		sc_sock_poll_set_err(p, "sc_sock_poll is not initialized or is terminated");
+		return -1;
+	}
 
 	do {
 		ts.tv_sec = timeout / 1000;
 		ts.tv_nsec = (timeout % 1000) * 1000000;
 
-		n = kevent(p->fds, NULL, 0, p->events, SC_SOCK_POLL_MAX_EVENTS,
+		n = kevent(p->fds, NULL, 0, events, SC_SOCK_POLL_MAX_EVENTS,
 			   timeout >= 0 ? &ts : NULL);
 	} while (n < 0 && errno == EINTR);
 
