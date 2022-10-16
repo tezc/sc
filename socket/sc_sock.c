@@ -1855,6 +1855,11 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 	timeout = (timeout == -1) ? 16 : timeout;
 
+	if (p->events == NULL) {
+		sc_sock_poll_set_err(p, "sc_sock_poll is not initialized or is terminated");
+		return -1;
+	}
+
 	EnterCriticalSection(&p->lock);
 	if (p->polling) {
 		rc = -1;
