@@ -346,10 +346,10 @@ struct sc_sock_poll {
 #endif
 
 struct sc_sock_poll_op {
-    bool add;
-    enum sc_sock_ev events;
+	bool add;
+	enum sc_sock_ev events;
 	struct sc_sock_fd *fdt;
-    void *data;
+	void *data;
 };
 
 struct sc_sock_poll_result {

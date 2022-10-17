@@ -536,7 +536,7 @@ int sc_sock_connect(struct sc_sock *s, const char *dst_addr,
 
 	for (int i = 0; i < 2; i++) {
 		for (p = sinfo; p != NULL; p = p->ai_next) {
-			// Try same family addresses in the first iteration.                        
+			// Try same family addresses in the first iteration.
 			if ((i == 0) ^ (p->ai_family == family)) {
 				continue;
 			}
@@ -620,7 +620,7 @@ retry:
 #if defined(_WIN32) || defined(_WIN64)
 			// Stop masking WRITE event.
 			struct sc_sock_poll_data *pd = s->fdt.poll_data;
-            if (pd != NULL && (pd->edge_mask & SC_SOCK_WRITE)) {
+			if (pd != NULL && (pd->edge_mask & SC_SOCK_WRITE)) {
 				InterlockedAnd(&pd->edge_mask, ~SC_SOCK_WRITE);
 			}
 #endif
@@ -1576,8 +1576,8 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (index == cap) {
 		if (cap >= SC_SIZE_MAX / 2) {
-    		ops = NULL;
-    	} else if (ops == NULL) {
+			ops = NULL;
+		} else if (ops == NULL) {
 			cap = 16;
 			ops = sc_sock_malloc(cap * sizeof(*ops));
 		} else {
@@ -1586,12 +1586,12 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 		if (ops != NULL) {
 			p->ops_cap = cap;
-            p->ops = ops;
+			p->ops = ops;
 		} else {
 			// TODO set OOM error
 			LeaveCriticalSection(&p->lock);
 			return -1;
-        }
+		}
 	}
 
 	p->ops[index] = (struct sc_sock_poll_op){
@@ -1918,7 +1918,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 	if (n == SOCKET_ERROR) {
 		rc = -1;
-        sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
+		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
 		goto exit;
 	}
 	assert(n >= 0);
