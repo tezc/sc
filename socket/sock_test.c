@@ -1550,6 +1550,7 @@ void test_poll_edge(void)
 
 		total_w += w;
 	}
+	assert(total_w > 0);
 
 	do {
 		sc_time_sleep(50);

@@ -1248,7 +1248,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	struct epoll_event *events = p->events;
 
 	if (events == NULL) {
-		sc_sock_poll_set_err(p, "sc_sock_poll is not initialized or is terminated");
+		sc_sock_poll_set_err(p, "poll : sc_sock_poll is not initialized or already terminated");
 		return -1;
 	}
 
@@ -1415,7 +1415,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	struct kevent *events = p->events;
 
 	if (events == NULL) {
-		sc_sock_poll_set_err(p, "sc_sock_poll is not initialized or is terminated");
+		sc_sock_poll_set_err(p, "poll : sc_sock_poll is not initialized or already terminated");
 		return -1;
 	}
 
@@ -1470,6 +1470,7 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 
 	// The only possible error is "Out of memory", which must be impossible here.
 	sc_sock_poll_add(p, &p->signal_pipe.fdt, SC_SOCK_READ, NULL);
+	assert(p->signal_pipe.fdt.poll_data->index == 0);
 
 	return 0;
 err:
@@ -1793,6 +1794,8 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 		return SC_SOCK_NONE;
 	}
 
+	p->results_remaining--;
+
 	if (poll_evs & POLLIN) {
 		evs |= SC_SOCK_READ;
 	}
@@ -1824,28 +1827,27 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 
 static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 	int found = 0;
-	int remaining = p->results_remaining;
 
-	for (int i = p->results_offset; i < p->cap && remaining > 0; i++) {
+	for (int i = p->results_offset; i < p->cap && p->results_remaining > 0; i++) {
 		enum sc_sock_ev events = sc_sock_poll_event_inner(p, i);
 
 		if (events != SC_SOCK_NONE) {
-			remaining--;
-
 			p->results[found] = (struct sc_sock_poll_result){
 				.events = events,
 				.data = sc_sock_poll_data_inner(p, i)->data,
 			};
 
-			found++;
-
-			if (found == SC_SOCK_POLL_MAX_EVENTS) {
+			if (++found == SC_SOCK_POLL_MAX_EVENTS) {
 				p->results_offset = i + 1;
-				break;
+				return found;
 			}
 		}
 	}
-	p->results_remaining = remaining;
+
+	// We only can reach this line when either p->results_remaining is already 0 or
+	// when i reaches p->cap, in the latter case we need to reset p->results_remaining to 0
+	// because we are missing some expected events after processing socket ops.
+	p->results_remaining = 0;
 	return found;
 }
 
@@ -1856,28 +1858,28 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	timeout = (timeout == -1) ? 16 : timeout;
 
 	if (p->events == NULL) {
-		sc_sock_poll_set_err(p, "sc_sock_poll is not initialized or is terminated");
+		sc_sock_poll_set_err(p, "poll : sc_sock_poll is not initialized or already terminated");
 		return -1;
 	}
 
 	EnterCriticalSection(&p->lock);
 	if (p->polling) {
 		rc = -1;
-		sc_sock_poll_set_err(p, "poll : polling is already in progress in parallel thread");
-	} else if (p->results_remaining > 0) {
+		sc_sock_poll_set_err(p, "poll : polling is already in progress in a parallel thread");
+		goto exit;
+	}
+	if (p->results_remaining > 0) {
+		assert(p->results_offset > 1);
 		// Fill the remaining results that did not fit into p->results in the previous iteration.
 		rc = sc_sock_poll_fill_results(p);
-	} else {
-		// When p->polling is set to true, no add/del operations can happen,
-		// instead these operations will be submitted to the sc_sock_poll->ops list
-		// and processed by the poller thread after the polling is finished.
-		p->polling = true;
+		goto exit;
 	}
-	LeaveCriticalSection(&p->lock);
 
-	if (!p->polling) {
-		return rc;
-	}
+	// When p->polling is set to true, no add/del operations can happen,
+	// instead these operations will be submitted to the sc_sock_poll->ops
+	// and processed by the poller thread after the polling is finished.
+	p->polling = true;
+	LeaveCriticalSection(&p->lock);
 
 	do {
 		// When p->polling is set to true p->events and p->cap are stable
@@ -1885,26 +1887,27 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
 	} while (n < 0 && errno == EINTR);
 
-	// Drain signal_pipe only when we can do that without blocking.
-	if (n > 0 && sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
-		n--;
-		// To reduce contention we drain signal_pipe outside of the lock,
-		// it is OK to do that before the processing of p->ops: this way we do
-		// not drain any extra signals.
-		//
-		// At this point we may have any number of bytes in signal_pipe,
-		// we just pick reasonably large buffer size for draining and
-		// assume that sc_sock_pipe_read() supports partial reads (less than
-		// the provided buffer size).
-		char drain_buf[16];
-		sc_sock_pipe_read(&p->signal_pipe, drain_buf, sizeof(drain_buf));
-	}
+	if (n > 0) {
+		// sc_sock_poll_event_inner() will decrement p->results_remaining
+		// when some events found.
+		p->results_remaining = n;
 
-	if (n == 0) {
-		rc = 0;
-	} else if (n == SOCKET_ERROR) {
-		rc = -1;
-		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
+		// Drain signal_pipe only when we can do that without blocking.
+		if (sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
+			// To reduce contention we drain signal_pipe outside of the lock,
+			// it is OK to do that before the processing of p->ops, this way we do
+			// not drain any extra signals.
+			//
+			// At this point we may have any number of bytes in signal_pipe,
+			// we just pick reasonably large buffer size for draining and
+			// assume that sc_sock_pipe_read() supports partial reads (less than
+			// the provided buffer size).
+			char drain_buf[16];
+			sc_sock_pipe_read(&p->signal_pipe, drain_buf, sizeof(drain_buf));
+		}
+	} else {
+		// Because otherwise we would not even start polling.
+		assert(p->results_remaining == 0);
 	}
 
 	EnterCriticalSection(&p->lock);
@@ -1913,28 +1916,32 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	assert(p->polling);
 	p->polling = false;
 
-	// Process signalled socket operations in the same order they were added.
+	if (n == SOCKET_ERROR) {
+		rc = -1;
+        sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
+		goto exit;
+	}
+	assert(n >= 0);
+
+	// Process signalled socket operations in the same order as they were added.
 	for (int i = 0; i < p->ops_count; i++) {
-		struct sc_sock_poll_op *o = &p->ops[i];
-		if (o->add) {
-			sc_sock_poll_add(p, o->fdt, o->events, o->data);
+		struct sc_sock_poll_op o = p->ops[i];
+		if (o.add) {
+			sc_sock_poll_add(p, o.fdt, o.events, o.data);
 		} else {
-			sc_sock_poll_del(p, o->fdt, o->events, o->data);
+			sc_sock_poll_del(p, o.fdt, o.events, o.data);
 		}
 	}
 	p->ops_count = 0;
 
-	if (n > 0) {
-		// We have a separate buffer for results and fill it under the lock
-		// because otherwise we would need to acquire the lock on every
-		// sc_sock_poll_event() and sc_sock_poll_data() call which would be suboptimal.
-		p->results_offset = 1;
-		p->results_remaining = n;
-		rc = sc_sock_poll_fill_results(p);
-	}
+	// We have a separate buffer for results and fill it under the lock
+	// because otherwise we would need to acquire the lock on every
+	// sc_sock_poll_event() and sc_sock_poll_data() call to safely access p->events.
+	p->results_offset = 1;
+	rc = sc_sock_poll_fill_results(p);
 
+exit:
 	LeaveCriticalSection(&p->lock);
-
 	return rc;
 }
 
