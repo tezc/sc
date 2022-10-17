@@ -1697,6 +1697,10 @@ void test_poll_threadsafe(void)
 	assert(sc_thread_start(&thread, client_poll, &ps) == 0);
 
 	count = sc_sock_poll_wait(&ps.poll, 7200000);
+	assert(count >= 0);
+	if (count == 0) {
+		count = sc_sock_poll_wait(&ps.poll, 100);
+	}
 	assert(count >= 1);
 	found = 0;
 
