@@ -345,10 +345,19 @@ struct sc_sock_poll {
 #include <poll.h>
 #endif
 
+enum sc_sock_poll_op_type {
+	SC_SOCK_POLL_OP_ADD = 1u,
+	SC_SOCK_POLL_OP_PART_DEL = 2u,
+	SC_SOCK_POLL_OP_FULL_DEL = 3u,
+};
+
 struct sc_sock_poll_op {
-	bool add;
+	enum sc_sock_poll_op_type op_type;
 	enum sc_sock_ev events;
-	struct sc_sock_fd *fdt;
+	union {
+		struct sc_sock_fd *fdt;
+		struct sc_sock_poll_data *poll_data;
+	};
 	void *data;
 };
 

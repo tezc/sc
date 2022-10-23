@@ -1647,11 +1647,28 @@ void test_poll_edge(void)
 }
 
 struct poll_and_sock {
-	struct sc_sock_poll poll;
+	struct sc_sock_poll *poll;
 	struct sc_sock clt;
+	int index;
+	bool added;
+	bool deleted;
 };
 
-void *client_poll(void *arg)
+void *client_poll_del(void *arg)
+{
+	struct poll_and_sock *ps = (struct poll_and_sock*)arg;
+
+    int rc = sc_sock_poll_del(ps->poll, &ps->clt.fdt,
+        			      SC_SOCK_READ | SC_SOCK_WRITE,
+        			      ps);
+
+	assert(sc_sock_term(&clt) == 0);
+	// TODO dealloc clt
+
+    return rc == 0 ? ps : NULL;
+}
+
+void *client_poll_add(void *arg)
 {
 	struct poll_and_sock *ps = (struct poll_and_sock*)arg;
 
@@ -1671,67 +1688,77 @@ void *client_poll(void *arg)
 
 	// Sleep to make sure we started waiting on sc_sock_poll_wait() in the main thread.
 	sc_time_sleep(1000);
-	rc = sc_sock_poll_add(&ps->poll, &ps->clt.fdt,
+	rc = sc_sock_poll_add(ps->poll, &ps->clt.fdt,
     			      SC_SOCK_READ | SC_SOCK_WRITE,
-    			      &ps->clt);
+    			      ps);
 
-	return rc == 0 ? &ps->clt : NULL;
+	return rc == 0 ? ps : NULL;
 }
 
 void test_poll_threadsafe(void)
 {
+	enum { THREAD_COUNT = 100 };
 	uint32_t ev;
-	int rc, count, found;
-	struct sc_sock srv, *sock;
-	struct poll_and_sock ps;
+	int rc, count, added = 0, deleted = 0;
 
-	rc = sc_sock_poll_init(&ps.poll);
+	struct sc_sock srv;
+	struct sc_sock_poll poll;
+	struct poll_and_sock *psi;
+
+	struct poll_and_sock ps[THREAD_COUNT];
+	struct sc_thread add_thread[THREAD_COUNT];
+	struct sc_thread del_thread[THREAD_COUNT];
+
+	rc = sc_sock_poll_init(&poll);
 	assert(rc == 0);
 
 	sc_sock_init(&srv, 0, true, SC_SOCK_INET);
 	rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
 	assert(rc == 0);
 
-	struct sc_thread thread;
-	sc_thread_init(&thread);
-	assert(sc_thread_start(&thread, client_poll, &ps) == 0);
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		ps[i] = (struct poll_and_sock){
+			.index = i,
+			.poll = &poll,
+		};
 
-	count = sc_sock_poll_wait(&ps.poll, 7200000);
-	assert(count >= 0);
-	if (count == 0) {
-		count = sc_sock_poll_wait(&ps.poll, 100);
+		sc_thread_init(&add_thread[i]);
+		assert(sc_thread_start(&add_thread[i], client_poll_add, &ps[i]) == 0);
 	}
-	assert(count >= 1);
-	found = 0;
 
-	for (int i = 0; i < count; i++) {
-		ev = sc_sock_poll_event(&ps.poll, i);
-		sock = sc_sock_poll_data(&ps.poll, i);
+	while (added < THREAD_COUNT && deleted < THREAD_COUNT) {
+		count = sc_sock_poll_wait(&poll, 7200000);
+        assert(count >= 0);
 
-		if (ev == 0) {
-			continue;
+		for (int i = 0; i < count; i++) {
+			ev = sc_sock_poll_event(&poll, i);
+			psi = sc_sock_poll_data(&poll, i);
+
+			if (ev == 0) {
+				continue;
+			}
+
+			if (ev & SC_SOCK_WRITE) {
+				rc = sc_sock_finish_connect(&psi->clt);
+				assert(rc == 0);
+			}
+
+			if (ev & SC_SOCK_READ) {
+				assert(false);
+			}
+
+			psi->added = true;
+			added++;
+
+			sc_thread_init(&del_thread[psi->index]);
+            assert(sc_thread_start(&del_thread[psi->index], client_poll_del, psi) == 0);
 		}
-
-		assert(sock == &ps.clt);
-		if (ev & SC_SOCK_WRITE) {
-			rc = sc_sock_finish_connect(&ps.clt);
-			assert(rc == 0);
-		}
-
-		if (ev & SC_SOCK_READ) {
-			assert(false);
-		}
-		found++;
 	}
-	assert(found == 1);
-
-	void *thread_ret;
-	assert(sc_thread_join(&thread, &thread_ret) == 0);
-	assert(thread_ret == &ps.clt);
+	assert(added == THREAD_COUNT);
+	assert(deleted == THREAD_COUNT);
 
 	assert(sc_sock_term(&srv) == 0);
-	assert(sc_sock_term(&ps.clt) == 0);
-	assert(sc_sock_poll_term(&ps.poll) == 0);
+	assert(sc_sock_poll_term(&poll) == 0);
 }
 
 void test_err(void)

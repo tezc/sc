@@ -1528,7 +1528,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
 		}
 
 		// We do not use realloc for p->data as with p->events because we need a stable
-		// pointer for sc_sock_poll_data->edge_mask, thus instead we append a next chunk
+		// pointer for sc_sock_poll_data from sc_sock_fd, thus instead we append a next chunk
 		// as large as the current capacity, this way we double the total capacity.
 		// The resulting data structure will have the following chunk sizes: [16, 16, 32, 64, 128, 256... ]
 		// Important properties of this data structure are that:
@@ -1594,12 +1594,30 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 	}
 
-	p->ops[index] = (struct sc_sock_poll_op){
-		.add = add,
+	struct sc_sock_poll_op *op = &p->ops[index];
+
+	*op = (struct sc_sock_poll_op){
 		.events = events,
-		.fdt = fdt,
 		.data = data,
 	};
+
+	// If we are completely removing fdt from poll,
+	// we only provide a reference to poll_data, because
+	// fdt can be deallocated right away after this call.
+	if (add || (fdt->op & ~(events & SC_SOCK_EDGE)) != 0) {
+		op->op_type = add ? SC_SOCK_POLL_OP_ADD : SC_SOCK_POLL_OP_PART_DEL;
+		op->fdt = fdt;
+	} else {
+		op->op_type = SC_SOCK_POLL_OP_FULL_DEL;
+		op->poll_data = fdt->poll_data;
+
+		// Update fdt while we are under the lock.
+		// This should not cause any races because any subsequent operations
+		// on this fdt are guaranteed to be processed after the current del operation.
+		fdt->poll_data = NULL;
+		fdt->op = SC_SOCK_NONE;
+	}
+
 	p->ops_count++;
 
 	LeaveCriticalSection(&p->lock);
@@ -1645,16 +1663,18 @@ static struct sc_sock_poll_data *sc_sock_poll_data_inner(struct sc_sock_poll *p,
 int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
-	int rc;
+	int rc = 0;
 	int index = -1;
-	enum sc_sock_ev mask = fdt->op | events;
 	struct sc_sock_poll_data *pd = NULL;
-
-	if (fdt->op == mask) {
-		return 0;
-	}
+	enum sc_sock_ev mask;
 
 	EnterCriticalSection(&p->lock);
+
+	mask = fdt->op | events;
+
+	if (fdt->op == mask) {
+		goto exit;
+	}
 
 	// If polling is in progress we can not modify p->events, instead submit
 	// the operation for asynchronous processing later by the poller thread.
@@ -1667,9 +1687,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		rc = sc_sock_poll_expand(p);
 		if (rc != 0) {
 			sc_sock_poll_set_err(p, "Out of memory."); // TODO set err to sock
-
-			LeaveCriticalSection(&p->lock);
-			return -1;
+			goto exit;
 		}
 
 		p->count++;
@@ -1716,18 +1734,25 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	pd->data = data;
 
+exit:
 	LeaveCriticalSection(&p->lock);
-	return 0;
+	return rc;
+}
+
+static void sc_sock_poll_del_full(struct sc_sock_poll *p, struct sc_sock_poll_data *pd) {
+	p->events[pd->index].fd = SC_INVALID;
+	p->count--;
+	InterlockedExchange(&pd->edge_mask, SC_SOCK_NONE);
 }
 
 int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
-	if ((fdt->op & events) == 0) {
-		return 0;
-	}
-
 	EnterCriticalSection(&p->lock);
+
+	if ((fdt->op & events) == 0) {
+		goto exit;
+	}
 
 	// If polling is in progress we can not modify p->events, instead submit
 	// the operation for asynchronous processing later by the poller thread.
@@ -1746,9 +1771,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (fdt->op == SC_SOCK_NONE) {
 		fdt->poll_data = NULL;
-		p->events[pd->index].fd = SC_INVALID;
-		p->count--;
-		InterlockedExchange(&pd->edge_mask, SC_SOCK_NONE);
+		sc_sock_poll_del_full(p, pd);
 	} else {
 		p->events[pd->index].events = 0;
 
@@ -1767,6 +1790,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		pd->data = data;
 	}
 
+exit:
 	LeaveCriticalSection(&p->lock);
 	return 0;
 }
@@ -1894,8 +1918,8 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 		// Drain signal_pipe only when we can do that without blocking.
 		if (sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
-			// To reduce contention we drain signal_pipe outside of the lock,
-			// it is OK to do that before the processing of p->ops, this way we do
+			// To reduce contention we drain signal_pipe outside of the lock.
+			// It is safe to do that before the processing of p->ops, this way we do
 			// not drain any extra signals.
 			//
 			// At this point we may have any number of bytes in signal_pipe,
@@ -1908,6 +1932,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	} else {
 		// Because otherwise we would not even start polling.
 		assert(p->results_remaining == 0);
+		assert(n == 0 || n == SOCKET_ERROR);
 	}
 
 	EnterCriticalSection(&p->lock);
@@ -1923,13 +1948,25 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 	assert(n >= 0);
 
-	// Process signalled socket operations in the same order as they were added.
+	// Process signalled operations in the same order as they were submitted.
 	for (int i = 0; i < p->ops_count; i++) {
 		struct sc_sock_poll_op o = p->ops[i];
-		if (o.add) {
-			sc_sock_poll_add(p, o.fdt, o.events, o.data);
-		} else {
-			sc_sock_poll_del(p, o.fdt, o.events, o.data);
+
+		switch (o.op_type) {
+			case SC_SOCK_POLL_OP_ADD:
+				sc_sock_poll_add(p, o.fdt, o.events, o.data);
+				break;
+
+			case SC_SOCK_POLL_OP_PART_DEL:
+				sc_sock_poll_del(p, o.fdt, o.events, o.data);
+				break;
+
+			case SC_SOCK_POLL_OP_FULL_DEL:
+				sc_sock_poll_del_full(p, o.poll_data);
+				break;
+
+			default:
+				assert(false);
 		}
 	}
 	p->ops_count = 0;
