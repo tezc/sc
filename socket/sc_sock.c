@@ -1570,6 +1570,13 @@ err:
 
 static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
      		     enum sc_sock_ev events, void *data, bool add) {
+	// Do not allow more than one asynchronous operation.
+	if (fdt->op_running) {
+		LeaveCriticalSection(&p->lock);
+		// TODO set error message
+		return -1;
+	}
+
 	int index = p->ops_count;
 	int cap = p->ops_cap;
 	struct sc_sock_poll_op *ops = p->ops;
@@ -1607,6 +1614,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	if (add || (fdt->op & ~(events & SC_SOCK_EDGE)) != 0) {
 		op->op_type = add ? SC_SOCK_POLL_OP_ADD : SC_SOCK_POLL_OP_PART_DEL;
 		op->fdt = fdt;
+		fdt->op_running = true;
 	} else {
 		op->op_type = SC_SOCK_POLL_OP_FULL_DEL;
 		op->poll_data = fdt->poll_data;
@@ -1833,9 +1841,9 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 
 	if (pd->edge_mask & SC_SOCK_EDGE) {
 		// We can have two possible race conditions on edge_mask updates:
-		// 1. "stop masking" wrongly happens after "start masking" will result in
+		// 1. "stop masking" incorrectly happens after "start masking" will result in
 		//     an extra event fired, which is fine.
-		// 2. "stop masking" wrongly happens before "start masking" will mean that
+		// 2. "stop masking" incorrectly happens before "start masking" will mean that
 		//     the current event will not be masked here, which is also fine.
 		// It means the scenario when we miss events and hang should be impossible.
 		evs &= ~InterlockedOr(&pd->edge_mask, evs);
@@ -1932,7 +1940,6 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	} else {
 		// Because otherwise we would not even start polling.
 		assert(p->results_remaining == 0);
-		assert(n == 0 || n == SOCKET_ERROR);
 	}
 
 	EnterCriticalSection(&p->lock);
@@ -1954,10 +1961,12 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 		switch (o.op_type) {
 			case SC_SOCK_POLL_OP_ADD:
+				o.fdt->op_running = false;
 				sc_sock_poll_add(p, o.fdt, o.events, o.data);
 				break;
 
 			case SC_SOCK_POLL_OP_PART_DEL:
+				o.fdt->op_running = false;
 				sc_sock_poll_del(p, o.fdt, o.events, o.data);
 				break;
 

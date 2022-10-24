@@ -89,6 +89,7 @@ struct sc_sock_fd {
 	int type; // user data
 #if defined(_WIN32) || defined(_WIN64)
 	struct sc_sock_poll_data *poll_data;
+	bool op_running;
 #endif
 	char err[128];
 };
