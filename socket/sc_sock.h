@@ -89,7 +89,7 @@ struct sc_sock_fd {
 	int type; // user data
 #if defined(_WIN32) || defined(_WIN64)
 	struct sc_sock_poll_data *poll_data;
-	bool op_running;
+	int ops_running; // number of async add/del ops running
 #endif
 	char err[128];
 };
@@ -347,9 +347,9 @@ struct sc_sock_poll {
 #endif
 
 enum sc_sock_poll_op_type {
-	SC_SOCK_POLL_OP_ADD = 1u,
-	SC_SOCK_POLL_OP_PART_DEL = 2u,
-	SC_SOCK_POLL_OP_FULL_DEL = 3u,
+	SC_SOCK_POLL_ADD = 1u,
+	SC_SOCK_POLL_PART_DEL = 2u,
+	SC_SOCK_POLL_FULL_DEL = 3u,
 };
 
 struct sc_sock_poll_op {

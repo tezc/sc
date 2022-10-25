@@ -1649,14 +1649,20 @@ void test_poll_edge(void)
 struct poll_and_sock {
 	struct sc_sock_poll *poll;
 	struct sc_sock clt;
+	bool visited;
 };
 
 void *client_poll_add(void *arg)
 {
+	int rc;
+
 	struct sc_sock_poll *poll = (struct sc_sock_poll*)arg;
 	struct poll_and_sock *ps = sc_sock_malloc(sizeof(struct poll_and_sock));
 
-	int rc;
+	*ps = (struct poll_and_sock){
+		.poll = poll,
+		.visited = false,
+	};
 
 	for (int i = 0;; i++) {
 		sc_sock_init(&ps->clt, 0, false, SC_SOCK_INET);
@@ -1688,35 +1694,18 @@ void *client_poll_del(void *arg)
 	struct sc_sock *clt = &ps->clt;
 	int rc;
 
-	rc = sc_sock_finish_connect(clt);
-    assert(rc == 0);
-
-	char buf[8];
-	rc = sc_sock_recv(clt, buf, 8, 0);
-	assert(rc != 0);
-    assert(errno == EAGAIN);
-
 	// Partial delete.
-//    rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_READ, ps);
-//    if (rc != 0) {
-//    	printf("Err: %s \n", sc_sock_poll_err(poll));
-//    }
-//	assert(rc == 0);
+    rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_READ, ps);
+	assert(rc == 0);
 
 	// Full delete.
-//	do {
-	assert(clt->fdt.op == (SC_SOCK_READ | SC_SOCK_WRITE));
-    	rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
-		if (rc != 0) {
-			printf("Err: %s \n", sc_sock_poll_err(poll));
-		}
-    	assert(rc == 0);
-//	} while (rc != 0);
+    rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_WRITE, NULL);
+    assert(rc == 0);
 
 	assert(clt->fdt.op == SC_SOCK_NONE);
 	assert(sc_sock_term(clt) == 0);
 
-	// Must be able to free fdt right after successful full delete.
+	// Must be able to free fdt right after successful full delete from poll.
 	sc_sock_free(ps);
 
     return poll;
@@ -1724,19 +1713,20 @@ void *client_poll_del(void *arg)
 
 void test_poll_threadsafe(void)
 {
-	enum { THREAD_COUNT = 1 };
+	enum { THREAD_COUNT = 100 };
 	uint32_t ev;
 	int rc, count, added = 0;
 
 	struct sc_sock srv;
 	struct sc_sock_poll poll;
+
 	struct poll_and_sock *ps;
 
-//	int accepted = 0;
-//	struct sc_sock acc[THREAD_COUNT];
+	int accepted = 0;
+	struct sc_sock acc[THREAD_COUNT];
 
-//	struct sc_thread add_thread[THREAD_COUNT];
-//	struct sc_thread del_thread[THREAD_COUNT];
+	struct sc_thread add_thread[THREAD_COUNT];
+	struct sc_thread del_thread[THREAD_COUNT];
 
 	rc = sc_sock_poll_init(&poll);
 	assert(rc == 0);
@@ -1746,20 +1736,17 @@ void test_poll_threadsafe(void)
 	assert(rc == 0);
 
 	// Check that we are actually non-blocking.
-//	rc = sc_sock_accept(&srv, acc);
-//	assert(rc != 0);
-
-	printf("Starting 'add' threads: %d \n", THREAD_COUNT);
-
-//	for (int i = 0; i < THREAD_COUNT; i++) {
-//    	sc_thread_init(&add_thread[i]);
-//    	sc_thread_init(&del_thread[i]);
-//    }
+	rc = sc_sock_accept(&srv, acc);
+	assert(rc != 0);
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
-		client_poll_add(&poll);
-//		rc = sc_thread_start(&add_thread[i], client_poll_add, &poll);
-//		assert(rc == 0);
+    	sc_thread_init(&add_thread[i]);
+    	sc_thread_init(&del_thread[i]);
+    }
+
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		rc = sc_thread_start(&add_thread[i], client_poll_add, &poll);
+		assert(rc == 0);
 	}
 
 	while (added < THREAD_COUNT) {
@@ -1767,57 +1754,56 @@ void test_poll_threadsafe(void)
         assert(count >= 0);
 
 		for (int i = 0; i < count; i++) {
-//			if (sc_sock_accept(&srv, &acc[accepted]) == 0) {
-//				accepted++;
-//			}
+			if (sc_sock_accept(&srv, &acc[accepted]) == 0) {
+				accepted++;
+			}
 
 			ev = sc_sock_poll_event(&poll, i);
 			ps = sc_sock_poll_data(&poll, i);
 
-			if (ev == 0) {
+			assert(ps != NULL);
+
+			if (ev == 0 || ps->visited) {
 				continue;
 			}
 
-			assert(ps != NULL);
 			assert((ev & SC_SOCK_READ) == 0);
 			assert(ev & SC_SOCK_WRITE);
 
-			client_poll_del(ps);
-
-//            rc = sc_thread_start(&del_thread[added], client_poll_del, ps);
-//            assert(rc == 0);
-
-            added++;
+			ps->visited = true;
+            rc = sc_thread_start(&del_thread[added++], client_poll_del, ps);
+            assert(rc == 0);
 		}
 	}
 	assert(added == THREAD_COUNT);
 
-	printf("Joining 'add' threads: %d \n", THREAD_COUNT);
-//	sc_time_sleep(15000);
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		void *thread_result;
+		rc = sc_thread_join(&add_thread[i], &thread_result);
+		assert(rc == 0);
+		assert(thread_result == &poll);
+	}
 
-//	for (int i = 0; i < THREAD_COUNT; i++) {
-//		void *thread_result;
-//		rc = sc_thread_join(&add_thread[i], &thread_result);
-//		assert(rc == 0);
-//		assert(thread_result == &poll);
-//	}
-//
-//	printf("Joining 'del' threads: %d \n", THREAD_COUNT);
-//
-//	for (int i = 0; i < THREAD_COUNT; i++) {
-//		void *thread_result;
-//		rc = sc_thread_join(&del_thread[i], &thread_result);
-//		assert(rc == 0);
-//		assert(thread_result == &poll);
-//	}
-//
-//	printf("Terminating accepted sockets: %d \n", accepted);
-//
-//	for (int i = 0; i < accepted; i++) {
-//		assert(sc_sock_term(&acc[i]) == 0);
-//	}
-//
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		void *thread_result;
+		rc = sc_thread_join(&del_thread[i], &thread_result);
+		assert(rc == 0);
+		assert(thread_result == &poll);
+	}
+
+	for (int i = 0; i < accepted; i++) {
+		assert(sc_sock_term(&acc[i]) == 0);
+	}
+
 	assert(sc_sock_term(&srv) == 0);
+
+#if defined(_WIN32) || defined(_WIN64)
+	assert(!poll.polling);
+	assert(poll.count == 0);
+	assert(poll.ops_cap > 0);
+	assert(poll.ops_count == 0);
+#endif
+
 	assert(sc_sock_poll_term(&poll) == 0);
 }
 

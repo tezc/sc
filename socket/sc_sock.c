@@ -230,13 +230,10 @@ int sc_sock_set_blocking(struct sc_sock *s, bool blocking)
 
 void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 {
+	*s = (struct sc_sock){0};
+
 	s->fdt.fd = -1;
 	s->fdt.type = type;
-	s->fdt.op = SC_SOCK_NONE;
-#if defined(_WIN32) || defined(_WIN64)
-	s->fdt.poll_data = NULL;
-#endif
-
 	s->blocking = blocking;
 	s->family = family;
 
@@ -865,8 +862,6 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
 	};
 
 	p->fdt.type = type;
-	p->fdt.op = SC_SOCK_NONE;
-	p->fdt.poll_data = NULL;
 
 	/*  Create listening socket. */
 	listener = socket(AF_INET, SOCK_STREAM, 0);
@@ -1570,11 +1565,12 @@ err:
 
 static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
      		     enum sc_sock_ev events, void *data, bool add) {
-	// Do not allow more than one asynchronous operation.
-	if (fdt->op_running) {
-		LeaveCriticalSection(&p->lock);
-		// TODO set error message
-		return -1;
+
+	// TODO we actually have to start with checking ops_running and calculate full_del from there.
+	bool full_del = !add && (fdt->op & ~(events & SC_SOCK_EDGE)) == 0;
+
+	if (full_del && fdt->ops_running > 0) {
+		// TODO scan forward and decide if it is actually full_del
 	}
 
 	int index = p->ops_count;
@@ -1611,12 +1607,12 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	// If we are completely removing fdt from poll,
 	// we only provide a reference to poll_data, because
 	// fdt can be deallocated right away after this call.
-	if (add || (fdt->op & ~(events & SC_SOCK_EDGE)) != 0) {
-		op->op_type = add ? SC_SOCK_POLL_OP_ADD : SC_SOCK_POLL_OP_PART_DEL;
+	if (!full_del) {
+		op->op_type = add ? SC_SOCK_POLL_ADD : SC_SOCK_POLL_PART_DEL;
 		op->fdt = fdt;
-		fdt->op_running = true;
+		fdt->ops_running++;
 	} else {
-		op->op_type = SC_SOCK_POLL_OP_FULL_DEL;
+		op->op_type = SC_SOCK_POLL_FULL_DEL;
 		op->poll_data = fdt->poll_data;
 
 		// Update fdt while we are under the lock.
@@ -1624,6 +1620,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		// on this fdt are guaranteed to be processed after the current del operation.
 		fdt->poll_data = NULL;
 		fdt->op = SC_SOCK_NONE;
+		assert(fdt->ops_running == 0);
 	}
 
 	p->ops_count++;
@@ -1864,12 +1861,12 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 		enum sc_sock_ev events = sc_sock_poll_event_inner(p, i);
 
 		if (events != SC_SOCK_NONE) {
-			p->results[found] = (struct sc_sock_poll_result){
+			p->results[found++] = (struct sc_sock_poll_result){
 				.events = events,
 				.data = sc_sock_poll_data_inner(p, i)->data,
 			};
 
-			if (++found == SC_SOCK_POLL_MAX_EVENTS) {
+			if (found == SC_SOCK_POLL_MAX_EVENTS) {
 				p->results_offset = i + 1;
 				return found;
 			}
@@ -1878,7 +1875,7 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 
 	// We only can reach this line when either p->results_remaining is already 0 or
 	// when i reaches p->cap, in the latter case we need to reset p->results_remaining to 0
-	// because we are missing some expected events after processing socket ops.
+	// because we are missing some expected events after processing signalled socket ops.
 	p->results_remaining = 0;
 	return found;
 }
@@ -1960,17 +1957,17 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		struct sc_sock_poll_op o = p->ops[i];
 
 		switch (o.op_type) {
-			case SC_SOCK_POLL_OP_ADD:
-				o.fdt->op_running = false;
+			case SC_SOCK_POLL_ADD:
+				o.fdt->ops_running--;
 				sc_sock_poll_add(p, o.fdt, o.events, o.data);
 				break;
 
-			case SC_SOCK_POLL_OP_PART_DEL:
-				o.fdt->op_running = false;
+			case SC_SOCK_POLL_PART_DEL:
+				o.fdt->ops_running--;
 				sc_sock_poll_del(p, o.fdt, o.events, o.data);
 				break;
 
-			case SC_SOCK_POLL_OP_FULL_DEL:
+			case SC_SOCK_POLL_FULL_DEL:
 				sc_sock_poll_del_full(p, o.poll_data);
 				break;
 
