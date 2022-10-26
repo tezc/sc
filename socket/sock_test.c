@@ -1648,7 +1648,7 @@ void test_poll_edge(void)
 
 struct poll_and_sock {
 	struct sc_sock_poll *poll;
-	struct sc_sock clt;
+	struct sc_sock *clt;
 	bool visited;
 };
 
@@ -1656,22 +1656,20 @@ void *client_poll_add(void *arg)
 {
 	int rc;
 
-	struct sc_sock_poll *poll = (struct sc_sock_poll*)arg;
-	struct poll_and_sock *ps = sc_sock_malloc(sizeof(struct poll_and_sock));
+	struct poll_and_sock *ps = (struct poll_and_sock*)arg;
+	struct sc_sock_poll *poll = ps->poll;
 
-	*ps = (struct poll_and_sock){
-		.poll = poll,
-		.visited = false,
-	};
+	ps->clt = sc_sock_malloc(sizeof(struct sc_sock));
 
 	for (int i = 0;; i++) {
-		sc_sock_init(&ps->clt, 0, false, SC_SOCK_INET);
-		rc = sc_sock_connect(&ps->clt, "127.0.0.1", "11000", NULL, NULL);
+		sc_sock_init(ps->clt, 0, false, SC_SOCK_INET);
+		rc = sc_sock_connect(ps->clt, "127.0.0.1", "11000", NULL, NULL);
+
 		if (rc == -1) {
 			assert(errno == EAGAIN);
 			break;
 		}
-		if (i == 10 || sc_sock_term(&ps->clt) != 0) {
+		if (i == 10 || sc_sock_term(ps->clt) != 0) {
 			assert(false);
 		}
 	}
@@ -1679,7 +1677,7 @@ void *client_poll_add(void *arg)
 	// Sleep to make sure we started waiting on sc_sock_poll_wait() in the main thread.
 	sc_time_sleep(1000);
 
-	rc = sc_sock_poll_add(poll, &ps->clt.fdt,
+	rc = sc_sock_poll_add(poll, &ps->clt->fdt,
     			      SC_SOCK_READ | SC_SOCK_WRITE,
     			      ps);
     assert(rc == 0);
@@ -1691,7 +1689,7 @@ void *client_poll_del(void *arg)
 {
 	struct poll_and_sock *ps = (struct poll_and_sock*)arg;
 	struct sc_sock_poll *poll = ps->poll;
-	struct sc_sock *clt = &ps->clt;
+	struct sc_sock *clt = ps->clt;
 	int rc;
 
 	// Partial delete.
@@ -1706,7 +1704,8 @@ void *client_poll_del(void *arg)
 	assert(sc_sock_term(clt) == 0);
 
 	// Must be able to free fdt right after successful full delete from poll.
-	sc_sock_free(ps);
+	sc_sock_free(clt);
+	ps->clt = NULL;
 
     return poll;
 }
@@ -1720,6 +1719,7 @@ void test_poll_threadsafe(void)
 	struct sc_sock srv;
 	struct sc_sock_poll poll;
 
+	struct poll_and_sock pss[THREAD_COUNT];
 	struct poll_and_sock *ps;
 
 	int accepted = 0;
@@ -1740,12 +1740,15 @@ void test_poll_threadsafe(void)
 	assert(rc != 0);
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
+		pss[i] = (struct poll_and_sock){
+			.poll = &poll,
+		};
     	sc_thread_init(&add_thread[i]);
     	sc_thread_init(&del_thread[i]);
     }
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
-		rc = sc_thread_start(&add_thread[i], client_poll_add, &poll);
+		rc = sc_thread_start(&add_thread[i], client_poll_add, &pss[i]);
 		assert(rc == 0);
 	}
 

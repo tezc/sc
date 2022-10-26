@@ -1131,40 +1131,52 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data)
 {
 	int rc, op = EPOLL_CTL_MOD;
-	enum sc_sock_ev mask = fdt->op | events;
+
+	enum sc_sock_ev old_mask = fdt->op;
+	enum sc_sock_ev new_mask = old_mask | events;
+
+	if (new_mask == SC_SOCK_EDGE) {
+		new_mask = SC_SOCK_NONE;
+	}
+
+	if (old_mask == new_mask) {
+		return 0;
+	}
 
 	struct epoll_event ep_ev = {
 		.data.ptr = data,
 		.events = EPOLLERR | EPOLLHUP | EPOLLRDHUP,
 	};
 
-	if (fdt->op == mask) {
-		return 0;
-	}
-
-	if (fdt->op == SC_SOCK_NONE) {
+	if (old_mask == SC_SOCK_NONE) {
 		op = EPOLL_CTL_ADD;
 	}
 
-	if (mask & SC_SOCK_READ) {
+	if (new_mask & SC_SOCK_READ) {
 		ep_ev.events |= EPOLLIN;
 	}
 
-	if (mask & SC_SOCK_WRITE) {
+	if (new_mask & SC_SOCK_WRITE) {
 		ep_ev.events |= EPOLLOUT;
 	}
 
-	if (mask & SC_SOCK_EDGE) {
+	if (new_mask & SC_SOCK_EDGE) {
 		ep_ev.events |= EPOLLET;
 	}
 
+	// Need to update fdt->op before epoll_ctl to avoid data race:
+	// no updates can happen after publishing data because otherwise
+	// a poller thread can see a partially updated fdt.
+	fdt->op = new_mask;
+
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
+
 	if (rc != 0) {
+		// Rollback to the original state if failed.
+		fdt->op = old_mask;
 		sc_sock_poll_set_err(p, "epoll_ctl : %s ", strerror(errno));
 		return -1;
 	}
-
-	fdt->op = mask;
 
 	return 0;
 }
@@ -1178,32 +1190,41 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		.events = EPOLLERR | EPOLLHUP | EPOLLRDHUP,
 	};
 
-	if ((fdt->op & events) == 0) {
+	enum sc_sock_ev old_mask = fdt->op;
+	enum sc_sock_ev new_mask = old_mask & ~events;
+
+	if (new_mask == SC_SOCK_EDGE) {
+		new_mask = SC_SOCK_NONE;
+	}
+
+	if (old_mask == new_mask) {
 		return 0;
 	}
 
-	fdt->op &= ~events;
+	op = new_mask == SC_SOCK_NONE ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
 
-	if (fdt->op == SC_SOCK_EDGE) {
-		fdt->op = SC_SOCK_NONE;
-	}
-
-	op = fdt->op == SC_SOCK_NONE ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
-
-	if (fdt->op & SC_SOCK_READ) {
+	if (new_mask & SC_SOCK_READ) {
 		ep_ev.events |= EPOLLIN;
 	}
 
-	if (fdt->op & SC_SOCK_WRITE) {
+	if (new_mask & SC_SOCK_WRITE) {
 		ep_ev.events |= EPOLLOUT;
 	}
 
-	if (fdt->op & SC_SOCK_EDGE) {
+	if (new_mask & SC_SOCK_EDGE) {
 		ep_ev.events |= EPOLLET;
 	}
 
+	// Need to update fdt->op before epoll_ctl to avoid data race:
+	// no updates can happen after publishing data because otherwise
+	// a poller thread can see a partially updated fdt.
+	fdt->op = new_mask;
+
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
+
 	if (rc != 0) {
+		// Rollback to the original state if failed.
+        fdt->op = old_mask;
 		sc_sock_poll_set_err(p, "epoll_ctl : %s ", strerror(errno));
 		return -1;
 	}
@@ -1314,33 +1335,45 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc, count = 0;
 	struct kevent ev[2];
-	enum sc_sock_ev mask = fdt->op | events;
 
-	if (fdt->op == mask) {
+	enum sc_sock_ev old_mask = fdt->op;
+	enum sc_sock_ev new_mask = old_mask | events;
+
+	if (new_mask == SC_SOCK_EDGE) {
+		new_mask = SC_SOCK_NONE;
+	}
+
+	if (old_mask == new_mask) {
 		return 0;
 	}
 
 	unsigned short act = EV_ADD;
 
-	if (mask & SC_SOCK_EDGE) {
+	if (new_mask & SC_SOCK_EDGE) {
 		act |= EV_CLEAR;
 	}
 
-	if (mask & SC_SOCK_WRITE) {
+	if (new_mask & SC_SOCK_WRITE) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, act, 0, 0, data);
 	}
 
-	if (mask & SC_SOCK_READ) {
+	if (new_mask & SC_SOCK_READ) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, act, 0, 0, data);
 	}
 
+	// Need to update fdt->op before kevent to avoid data race:
+	// no updates can happen after publishing data because otherwise
+	// a poller thread can see a partially updated fdt.
+	fdt->op = new_mask;
+
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
+
 	if (rc != 0) {
+		// Rollback to the original state if failed.
+		fdt->op = old_mask;
 		sc_sock_poll_set_err(p, "kevent : %s ", strerror(errno));
 		return -1;
 	}
-
-	fdt->op = mask;
 
 	return 0;
 }
@@ -1350,34 +1383,42 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	int rc, count = 0;
 	struct kevent ev[2];
-	enum sc_sock_ev mask = fdt->op & events;
 
-	if (mask == 0) {
+	enum sc_sock_ev old_mask = fdt->op;
+	enum sc_sock_ev new_mask = old_mask & ~events;
+
+	if (new_mask == SC_SOCK_EDGE) {
+		new_mask = SC_SOCK_NONE;
+	}
+
+	if (old_mask == new_mask) {
 		return 0;
 	}
 
-	if (mask & SC_SOCK_READ) {
+	if (new_mask & SC_SOCK_READ) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-	} else if ((mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_READ) != 0) {
+	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_READ) != 0) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
 	}
 
-	if (mask & SC_SOCK_WRITE) {
+	if (new_mask & SC_SOCK_WRITE) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-	} else if ((mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_WRITE) != 0) {
+	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_WRITE) != 0) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
+	// Need to update fdt->op before kevent to avoid data race:
+	// no updates can happen after publishing data because otherwise
+	// a poller thread can see a partially updated fdt.
+	fdt->op = new_mask;
+
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
+
 	if (rc != 0) {
+		// Rollback to the original state if failed.
+    	fdt->op = old_mask;
 		sc_sock_poll_set_err(p, "kevent : %s ", strerror(errno));
 		return -1;
-	}
-
-	fdt->op &= ~events;
-
-	if (fdt->op == SC_SOCK_EDGE) {
-		fdt->op = SC_SOCK_NONE;
 	}
 
 	return 0;
