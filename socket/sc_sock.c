@@ -1164,9 +1164,9 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		ep_ev.events |= EPOLLET;
 	}
 
-	// Need to update fdt->op before epoll_ctl to avoid data race:
-	// no updates can happen after publishing data because otherwise
-	// a poller thread can see a partially updated fdt.
+	// All the updates to fdt must be done before epoll_ctl() call to avoid data race:
+	// fdt can be published as *data here and this way a poller thread can see it
+	// partially updated if we do not follow that rule.
 	fdt->op = new_mask;
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
@@ -1215,9 +1215,9 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		ep_ev.events |= EPOLLET;
 	}
 
-	// Need to update fdt->op before epoll_ctl to avoid data race:
-	// no updates can happen after publishing data because otherwise
-	// a poller thread can see a partially updated fdt.
+	// All the updates to fdt must be done before epoll_ctl() call to avoid data race:
+	// fdt can be published as *data here and this way a poller thread can see it
+	// partially updated if we do not follow that rule.
 	fdt->op = new_mask;
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
@@ -1361,9 +1361,9 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, act, 0, 0, data);
 	}
 
-	// Need to update fdt->op before kevent to avoid data race:
-	// no updates can happen after publishing data because otherwise
-	// a poller thread can see a partially updated fdt.
+	// All the updates to fdt must be done before kevent() call to avoid data race:
+	// fdt can be published as *data here and this way a poller thread can see it
+	// partially updated if we do not follow that rule.
 	fdt->op = new_mask;
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1407,9 +1407,9 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
-	// Need to update fdt->op before kevent to avoid data race:
-	// no updates can happen after publishing data because otherwise
-	// a poller thread can see a partially updated fdt.
+	// All the updates to fdt must be done before kevent() call to avoid data race:
+	// fdt can be published as *data here and this way a poller thread can see it
+	// partially updated if we do not follow that rule.
 	fdt->op = new_mask;
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1474,6 +1474,8 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 int sc_sock_poll_init(struct sc_sock_poll *p)
 {
+	bool pipe_failed = false;
+
 	*p = (struct sc_sock_poll){0};
 
 	p->results = sc_sock_malloc(sizeof(*p->results) * SC_SOCK_POLL_MAX_EVENTS);
@@ -1498,6 +1500,7 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 	}
 
 	if (sc_sock_pipe_init(&p->signal_pipe, 0) != 0) {
+		pipe_failed = true;
 		goto err;
 	}
 
@@ -1516,7 +1519,8 @@ err:
 	p->events = NULL;
 	p->data[0] = NULL;
 
-	sc_sock_poll_set_err(p, "Out of memory.");
+	sc_sock_poll_set_err(p,
+		pipe_failed ? sc_sock_pipe_err(&p->signal_pipe) : "Out of memory.");
 
 	return -1;
 }
