@@ -1385,6 +1385,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	struct kevent ev[2];
 
 	enum sc_sock_ev old_mask = fdt->op;
+	enum sc_sock_ev del_mask = old_mask & events;
 	enum sc_sock_ev new_mask = old_mask & ~events;
 
 	if (new_mask == SC_SOCK_EDGE) {
@@ -1395,15 +1396,15 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		return 0;
 	}
 
-	if (new_mask & SC_SOCK_READ) {
+	if (del_mask & SC_SOCK_READ) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (new_mask & SC_SOCK_READ) != 0) {
+	} else if ((del_mask & SC_SOCK_EDGE) && (old_mask & SC_SOCK_READ)) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
 	}
 
-	if (new_mask & SC_SOCK_WRITE) {
+	if (del_mask & SC_SOCK_WRITE) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (new_mask & SC_SOCK_WRITE) != 0) {
+	} else if ((del_mask & SC_SOCK_EDGE) && (old_mask & SC_SOCK_WRITE)) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
