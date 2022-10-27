@@ -1397,13 +1397,13 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (new_mask & SC_SOCK_READ) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_DELETE, 0, 0, NULL);
-	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_READ) != 0) {
+	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (new_mask & SC_SOCK_READ) != 0) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, EV_ADD, 0, 0, data);
 	}
 
 	if (new_mask & SC_SOCK_WRITE) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
-	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (fdt->op & SC_SOCK_WRITE) != 0) {
+	} else if ((new_mask & SC_SOCK_EDGE) != 0 && (new_mask & SC_SOCK_WRITE) != 0) {
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
