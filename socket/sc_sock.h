@@ -89,7 +89,7 @@ struct sc_sock_fd {
 	int type; // user data
 #if defined(_WIN32) || defined(_WIN64)
 	struct sc_sock_poll_data *poll_data;
-	int ops_running; // number of async add/del ops running
+	int op_index;
 #endif
 	char err[128];
 };
@@ -346,15 +346,10 @@ struct sc_sock_poll {
 #include <poll.h>
 #endif
 
-enum sc_sock_poll_op_type {
-	SC_SOCK_POLL_ADD = 1u,
-	SC_SOCK_POLL_PART_DEL = 2u,
-	SC_SOCK_POLL_FULL_DEL = 3u,
-};
-
 struct sc_sock_poll_op {
-	enum sc_sock_poll_op_type op_type;
-	enum sc_sock_ev events;
+	bool full_del;
+	enum sc_sock_ev add_events;
+	enum sc_sock_ev del_events;
 	union {
 		struct sc_sock_fd *fdt;
 		struct sc_sock_poll_data *poll_data;

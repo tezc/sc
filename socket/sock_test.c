@@ -1669,9 +1669,9 @@ void *client_poll_add(void *arg)
 			assert(errno == EAGAIN);
 			break;
 		}
-		if (i == 10 || sc_sock_term(ps->clt) != 0) {
-			assert(false);
-		}
+		// TODO do we really need this loop??
+		assert(sc_sock_term(ps->clt) != 0);
+		assert(i < 30);
 	}
 
 	// Sleep to make sure we started waiting on sc_sock_poll_wait() in the main thread.

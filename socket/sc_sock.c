@@ -232,6 +232,10 @@ void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 {
 	*s = (struct sc_sock){0};
 
+#if defined(_WIN32) || defined(_WIN64)
+	s->fdt.op_index = -1;
+#endif
+
 	s->fdt.fd = -1;
 	s->fdt.type = type;
 	s->blocking = blocking;
@@ -1610,77 +1614,89 @@ err:
 }
 
 static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
-     		     enum sc_sock_ev events, void *data, bool add) {
+     		     enum sc_sock_ev events, void *data, bool add)
+{
+	bool wakeup_poller = false;
+	int rc, index, cap = p->ops_cap;
+	struct sc_sock_poll_op *o, *ops = p->ops;
 
-	// TODO we actually have to start with checking ops_running and calculate full_del from there.
-	bool full_del = !add && (fdt->op & ~(events & SC_SOCK_EDGE)) == 0;
+	if (fdt->op_index == -1) {
+		// Appends the new operation to the end of the list.
+		index = p->ops_count;
 
-	if (full_del && fdt->ops_running > 0) {
-		// TODO scan forward and decide if it is actually full_del
+		// Resize p->ops if capacity is exceeded.
+		if (index == cap) {
+			if (cap >= SC_SIZE_MAX) {
+				ops = NULL;
+			} else if (ops == NULL) {
+				cap = 16;
+				ops = sc_sock_malloc(cap * sizeof(*ops));
+			} else {
+				cap = cap * 3 / 2;
+				ops = sc_sock_realloc(ops, cap * sizeof(*ops));
+			}
+			if (ops != NULL) {
+				p->ops_cap = cap;
+				p->ops = ops;
+			} else {
+				// TODO set OOM error
+				rc = -1;
+				goto exit;
+			}
+		}
+
+		p->ops_count++;
+        ops[index] = (struct sc_sock_poll_op){0};
+
+		// It is enough to signal only for the first submitted operation
+		// to wake up the poller thread.
+		wakeup_poller = index == 0;
+	} else {
+		// We already have an operation submitted for the given fdt,
+		// here we will try to merge the new operation with the existing one.
+		index = fdt->op_index;
 	}
 
-	int index = p->ops_count;
-	int cap = p->ops_cap;
-	struct sc_sock_poll_op *ops = p->ops;
+	o = &ops[index];
 
-	if (index == cap) {
-		if (cap >= SC_SIZE_MAX / 2) {
-			ops = NULL;
-		} else if (ops == NULL) {
-			cap = 16;
-			ops = sc_sock_malloc(cap * sizeof(*ops));
-		} else {
-			cap = cap * 3 / 2;
-			ops = sc_sock_realloc(ops, cap * sizeof(*ops));
-		}
-		if (ops != NULL) {
-			p->ops_cap = cap;
-			p->ops = ops;
-		} else {
-			// TODO set OOM error
-			LeaveCriticalSection(&p->lock);
-			return -1;
-		}
+	if (add) {
+		o->add_events |= events;
+		o->del_events &= ~events;
+	} else {
+		o->add_events &= ~events;
+        o->del_events |= events;
 	}
 
-	struct sc_sock_poll_op *op = &p->ops[index];
-
-	*op = (struct sc_sock_poll_op){
-		.events = events,
-		.data = data,
-	};
+	o->full_del = ((fdt->op | o->add_events) & ~(o->del_events | SC_SOCK_EDGE)) == 0;
 
 	// If we are completely removing fdt from poll,
-	// we only provide a reference to poll_data, because
-	// fdt can be deallocated right away after this call.
-	if (!full_del) {
-		op->op_type = add ? SC_SOCK_POLL_ADD : SC_SOCK_POLL_PART_DEL;
-		op->fdt = fdt;
-		fdt->ops_running++;
-	} else {
-		op->op_type = SC_SOCK_POLL_FULL_DEL;
-		op->poll_data = fdt->poll_data;
+	// we only provide a reference to poll_data instead of fdt,
+	// because fdt can be deallocated right away after this call.
+	if (o->full_del) {
+		o->poll_data = fdt->poll_data;
 
 		// Update fdt while we are under the lock.
 		// This should not cause any races because any subsequent operations
-		// on this fdt are guaranteed to be processed after the current del operation.
+		// on this fdt are guaranteed to be processed after the current full_del operation.
 		fdt->poll_data = NULL;
+		fdt->op_index = -1;
 		fdt->op = SC_SOCK_NONE;
-		assert(fdt->ops_running == 0);
+	} else {
+		o->fdt = fdt;
+		fdt->op_index = index;
 	}
 
-	p->ops_count++;
-
+	o->data = data;
+	rc = 0;
+exit:
 	LeaveCriticalSection(&p->lock);
 
 	// Signal outside of the lock to reduce contention.
-	// Signal only for the first submitted operation because it is not
-	// any useful to do that for any subsequent one.
-	if (index == 0 && sc_sock_pipe_write(&p->signal_pipe, "s", 1) != 1) {
+	if (rc == 0 && wakeup_poller && sc_sock_pipe_write(&p->signal_pipe, "s", 1) != 1) {
 		// TODO set error from pipe to socket
-		return -1;
+		rc = -1;
 	}
-	return 0;
+	return rc;
 }
 
 // Define GCC intrinsic for MSVC to be compatible with both.
@@ -1689,7 +1705,8 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 #define __builtin_clz(x) ((int)__lzcnt(x))
 #endif
 
-static inline int sc_sock_number_of_meaningful_bits(unsigned int i) {
+static inline int sc_sock_number_of_meaningful_bits(unsigned int i)
+{
 	return sizeof(unsigned int) * 8 - __builtin_clz(i);
 }
 
@@ -1721,17 +1738,17 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	EnterCriticalSection(&p->lock);
 
-	mask = fdt->op | events;
-
-	if (fdt->op == mask) {
-		goto exit;
-	}
-
 	// If polling is in progress we can not modify p->events, instead submit
 	// the operation for asynchronous processing later by the poller thread.
 	if (p->polling) {
 		// sc_sock_poll_signal() calls LeaveCriticalSection()
 		return sc_sock_poll_signal(p, fdt, events, data, true);
+	}
+
+	mask = fdt->op | events;
+
+	if (fdt->op == mask) {
+		goto exit;
 	}
 
 	if (fdt->op == SC_SOCK_NONE) {
@@ -1790,7 +1807,8 @@ exit:
 	return rc;
 }
 
-static void sc_sock_poll_del_full(struct sc_sock_poll *p, struct sc_sock_poll_data *pd) {
+static void sc_sock_poll_del_full(struct sc_sock_poll *p, struct sc_sock_poll_data *pd)
+{
 	p->events[pd->index].fd = SC_INVALID;
 	p->count--;
 	InterlockedExchange(&pd->edge_mask, SC_SOCK_NONE);
@@ -1801,15 +1819,15 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 {
 	EnterCriticalSection(&p->lock);
 
-	if ((fdt->op & events) == 0) {
-		goto exit;
-	}
-
 	// If polling is in progress we can not modify p->events, instead submit
 	// the operation for asynchronous processing later by the poller thread.
 	if (p->polling) {
 		// sc_sock_poll_signal() calls LeaveCriticalSection()
 		return sc_sock_poll_signal(p, fdt, events, data, false);
+    }
+
+	if ((fdt->op & events) == 0) {
+		goto exit;
 	}
 
 	fdt->op &= ~events;
@@ -1928,7 +1946,7 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
-	int n, rc;
+	int n, rc = 0;
 
 	timeout = (timeout == -1) ? 16 : timeout;
 
@@ -1986,7 +2004,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 
 	EnterCriticalSection(&p->lock);
-	// Have to reset this flag before processing p->ops because it will be checked
+	// Have to reset p->polling before processing p->ops because it will be checked
 	// inside of sc_sock_poll_add() and sc_sock_poll_del().
 	assert(p->polling);
 	p->polling = false;
@@ -1998,36 +2016,32 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 	assert(n >= 0);
 
-	// Process signalled operations in the same order as they were submitted.
+	// Process operations in the same order as they were submitted by other threads.
 	for (int i = 0; i < p->ops_count; i++) {
 		struct sc_sock_poll_op o = p->ops[i];
 
-		switch (o.op_type) {
-			case SC_SOCK_POLL_ADD:
-				o.fdt->ops_running--;
-				sc_sock_poll_add(p, o.fdt, o.events, o.data);
-				break;
-
-			case SC_SOCK_POLL_PART_DEL:
-				o.fdt->ops_running--;
-				sc_sock_poll_del(p, o.fdt, o.events, o.data);
-				break;
-
-			case SC_SOCK_POLL_FULL_DEL:
-				sc_sock_poll_del_full(p, o.poll_data);
-				break;
-
-			default:
-				assert(false);
+		if (o.full_del) {
+			sc_sock_poll_del_full(p, o.poll_data);
+		} else {
+			if ((o.add_events != 0 &&
+					sc_sock_poll_add(p, o.fdt, o.add_events, o.data) != 0) ||
+				(o.del_events != 0 &&
+					sc_sock_poll_del(p, o.fdt, o.del_events, o.data) != 0)) {
+				// TODO set poll error to fdt error
+				rc = -1;
+			}
+			o.fdt->op_index = -1;
 		}
 	}
 	p->ops_count = 0;
-
-	// We have a separate buffer for results and fill it under the lock
-	// because otherwise we would need to acquire the lock on every
-	// sc_sock_poll_event() and sc_sock_poll_data() call to safely access p->events.
 	p->results_offset = 1;
-	rc = sc_sock_poll_fill_results(p);
+
+	if (rc == 0) {
+		// We have a separate buffer for results and fill it under the lock
+		// because otherwise we would need to acquire the lock on every
+		// sc_sock_poll_event() and sc_sock_poll_data() call to safely access p->events.
+		rc = sc_sock_poll_fill_results(p);
+	}
 
 exit:
 	LeaveCriticalSection(&p->lock);
