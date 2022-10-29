@@ -1063,6 +1063,11 @@ retry:
 
 #endif
 
+#ifdef _MSC_VER
+// Thread local for MSVC compiler.
+#define __thread __declspec(thread)
+#endif
+
 static __thread char sc_sock_poll_err_chars[128];
 
 const char *sc_sock_poll_err(struct sc_sock_poll *p)
@@ -1643,7 +1648,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 				p->ops_cap = cap;
 				p->ops = ops;
 			} else {
-				// TODO set OOM error
+				sc_sock_poll_set_err(p, "Out of memory.");
 				rc = -1;
 				goto exit;
 			}
@@ -1681,7 +1686,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 		// Update fdt while we are under the lock.
 		// This should not cause any races because any subsequent operations
-		// on this fdt are guaranteed to be processed after the current full_del operation.
+		// on this fdt are guaranteed to be processed after the current full delete operation.
 		fdt->poll_data = NULL;
 		fdt->op_index = -1;
 		fdt->op = SC_SOCK_NONE;
@@ -1697,7 +1702,7 @@ exit:
 
 	// Signal outside of the lock to reduce contention.
 	if (rc == 0 && wakeup_poller && sc_sock_pipe_write(&p->signal_pipe, "s", 1) != 1) {
-		// TODO set error from pipe to socket
+		sc_sock_poll_set_err(p, "poll wakeup : %s", sc_sock_pipe_err(&p->signal_pipe));
 		rc = -1;
 	}
 	return rc;
@@ -1758,7 +1763,7 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	if (fdt->op == SC_SOCK_NONE) {
 		rc = sc_sock_poll_expand(p);
 		if (rc != 0) {
-			sc_sock_poll_set_err(p, "Out of memory."); // TODO set err to sock
+			sc_sock_poll_set_err(p, "Out of memory.");
 			goto exit;
 		}
 
@@ -2031,7 +2036,6 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 					sc_sock_poll_add(p, o.fdt, o.add_events, o.data) != 0) ||
 				(o.del_events != 0 &&
 					sc_sock_poll_del(p, o.fdt, o.del_events, o.data) != 0)) {
-				// TODO set poll error to fdt error
 				rc = -1;
 			}
 			o.fdt->op_index = -1;
