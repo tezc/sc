@@ -1661,17 +1661,10 @@ void *client_poll_add(void *arg)
 
 	ps->clt = sc_sock_malloc(sizeof(struct sc_sock));
 
-	for (int i = 0;; i++) {
-		sc_sock_init(ps->clt, 0, false, SC_SOCK_INET);
-		rc = sc_sock_connect(ps->clt, "127.0.0.1", "11000", NULL, NULL);
-
-		if (rc == -1) {
-			assert(errno == EAGAIN);
-			break;
-		}
-		// TODO do we really need this loop??
-		assert(sc_sock_term(ps->clt) != 0);
-		assert(i < 30);
+	sc_sock_init(ps->clt, 0, false, SC_SOCK_INET);
+	rc = sc_sock_connect(ps->clt, "127.0.0.1", "11000", NULL, NULL);
+	if (rc == -1) {
+		assert(errno == EAGAIN);
 	}
 
 	// Sleep to make sure we started waiting on sc_sock_poll_wait() in the main thread.
@@ -1802,12 +1795,13 @@ void test_poll_threadsafe(void)
 
 #if defined(_WIN32) || defined(_WIN64)
 	assert(!poll.polling);
-	assert(poll.count == 0);
+	assert(poll.count == 1);
 	assert(poll.ops_cap > 0);
 	assert(poll.ops_count == 0);
 #endif
 
 	assert(sc_sock_poll_term(&poll) == 0);
+	assert(poll.events == NULL);
 }
 
 void test_err(void)
