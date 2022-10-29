@@ -1063,20 +1063,24 @@ retry:
 
 #endif
 
+static __thread char sc_sock_poll_err_chars[128];
+
 const char *sc_sock_poll_err(struct sc_sock_poll *p)
 {
-	return p->err;
+	(void)p;
+	return sc_sock_poll_err_chars;
 }
 
 static void sc_sock_poll_set_err(struct sc_sock_poll *p, const char *fmt, ...)
 {
+	(void)p;
 	va_list args;
 
 	va_start(args, fmt);
-	vsnprintf(p->err, sizeof(p->err), fmt, args);
+	vsnprintf(sc_sock_poll_err_chars, sizeof(sc_sock_poll_err_chars), fmt, args);
 	va_end(args);
 
-	p->err[sizeof(p->err) - 1] = '\0';
+	sc_sock_poll_err_chars[sizeof(sc_sock_poll_err_chars) - 1] = '\0';
 }
 
 #if defined(__linux__)

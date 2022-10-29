@@ -329,7 +329,6 @@ const char *sc_sock_pipe_err(struct sc_sock_pipe *p);
 struct sc_sock_poll {
 	int fds;
 	struct epoll_event *events;
-	char err[128];
 };
 
 #elif defined(__FreeBSD__) || defined(__APPLE__)
@@ -338,7 +337,6 @@ struct sc_sock_poll {
 struct sc_sock_poll {
 	int fds;
 	struct kevent *events;
-	char err[128];
 };
 #else
 
@@ -380,8 +378,6 @@ struct sc_sock_poll {
 	int results_remaining;
 	int results_offset;
 	struct sc_sock_poll_result *results;
-
-	char err[128];
 };
 
 #endif
