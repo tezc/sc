@@ -1650,6 +1650,7 @@ struct poll_and_sock {
 	struct sc_sock_poll *poll;
 	struct sc_sock *clt;
 	bool visited;
+	int index;
 };
 
 void *client_poll_add(void *arg)
@@ -1685,12 +1686,20 @@ void *client_poll_del(void *arg)
 	struct sc_sock *clt = ps->clt;
 	int rc;
 
-	// Partial delete.
-    rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_READ, ps);
-	assert(rc == 0);
+	if (ps->index & 1) {
+		// Partial delete.
+		rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_READ, ps);
+		assert(rc == 0);
+
+		if ((ps->index >> 1) & 1) {
+			// Add again.
+			rc = sc_sock_poll_add(poll, &clt->fdt, SC_SOCK_READ, ps);
+            assert(rc == 0);
+		}
+	}
 
 	// Full delete.
-    rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_WRITE, NULL);
+    rc = sc_sock_poll_del(poll, &clt->fdt, SC_SOCK_READ | SC_SOCK_WRITE, NULL);
     assert(rc == 0);
 
 	assert(clt->fdt.op == SC_SOCK_NONE);
@@ -1731,10 +1740,12 @@ void test_poll_threadsafe(void)
 	// Check that we are actually non-blocking.
 	rc = sc_sock_accept(&srv, acc);
 	assert(rc != 0);
+	printf("server socket ready \n");
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
 		pss[i] = (struct poll_and_sock){
 			.poll = &poll,
+			.index = i,
 		};
     	sc_thread_init(&add_thread[i]);
     	sc_thread_init(&del_thread[i]);
@@ -1744,6 +1755,7 @@ void test_poll_threadsafe(void)
 		rc = sc_thread_start(&add_thread[i], client_poll_add, &pss[i]);
 		assert(rc == 0);
 	}
+	printf("add-threads started \n");
 
 	while (added < THREAD_COUNT) {
 		count = sc_sock_poll_wait(&poll, 7200000);
@@ -1771,6 +1783,7 @@ void test_poll_threadsafe(void)
             assert(rc == 0);
 		}
 	}
+	printf("added sockets: %d \n", added);
 	assert(added == THREAD_COUNT);
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
@@ -1779,6 +1792,7 @@ void test_poll_threadsafe(void)
 		assert(rc == 0);
 		assert(thread_result == &poll);
 	}
+	printf("add-threads joined \n");
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
 		void *thread_result;
@@ -1786,6 +1800,7 @@ void test_poll_threadsafe(void)
 		assert(rc == 0);
 		assert(thread_result == &poll);
 	}
+	printf("del-threads joined \n");
 
 	for (int i = 0; i < accepted; i++) {
 		assert(sc_sock_term(&acc[i]) == 0);
