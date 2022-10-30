@@ -1633,7 +1633,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		// Appends the new operation to the end of the list.
 		index = p->ops_count;
 
-		// Resize p->ops if capacity is exceeded.
+		// Expand p->ops if capacity is exceeded.
 		if (index == cap) {
 			if (cap >= SC_SIZE_MAX) {
 				ops = NULL;
@@ -1971,7 +1971,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		goto exit;
 	}
 	if (p->results_remaining > 0) {
-		assert(p->results_offset > 1);
+		assert(p->results_offset > 0);
 		// Fill the remaining results that did not fit into p->results in the previous iteration.
 		rc = sc_sock_poll_fill_results(p);
 		goto exit;
@@ -1991,7 +1991,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 	if (n > 0) {
 		// sc_sock_poll_event_inner() will decrement p->results_remaining
-		// when some events found.
+		// when we have some events found.
 		p->results_remaining = n;
 
 		// Drain signal_pipe only when we can do that without blocking.
@@ -2032,13 +2032,14 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		if (o.full_del) {
 			sc_sock_poll_del_full(p, o.poll_data);
 		} else {
+			o.fdt->op_index = -1;
+
 			if ((o.add_events != 0 &&
 					sc_sock_poll_add(p, o.fdt, o.add_events, o.data) != 0) ||
 				(o.del_events != 0 &&
 					sc_sock_poll_del(p, o.fdt, o.del_events, o.data) != 0)) {
 				rc = -1;
 			}
-			o.fdt->op_index = -1;
 		}
 	}
 	p->ops_count = 0;
