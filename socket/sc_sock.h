@@ -374,7 +374,7 @@ struct sc_sock_poll {
 	struct sc_sock_poll_op *ops;
 
 	bool polling;
-	struct sc_sock_pipe signal_pipe;
+	struct sc_sock_pipe wakeup_pipe;
 
 	int results_remaining;
 	int results_offset;

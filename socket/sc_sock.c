@@ -1513,7 +1513,7 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 		p->events[i].fd = SC_INVALID;
 	}
 
-	if (sc_sock_pipe_init(&p->signal_pipe, 0) != 0) {
+	if (sc_sock_pipe_init(&p->wakeup_pipe, 0) != 0) {
 		pipe_failed = true;
 		goto err;
 	}
@@ -1522,8 +1522,8 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 	InitializeCriticalSectionAndSpinCount(&p->lock, 4000);
 
 	// The only possible error is "Out of memory", which must be impossible here.
-	sc_sock_poll_add(p, &p->signal_pipe.fdt, SC_SOCK_READ, NULL);
-	assert(p->signal_pipe.fdt.poll_data->index == 0);
+	sc_sock_poll_add(p, &p->wakeup_pipe.fdt, SC_SOCK_READ, NULL);
+	assert(p->wakeup_pipe.fdt.poll_data->index == 0);
 
 	return 0;
 err:
@@ -1534,7 +1534,7 @@ err:
 	p->data[0] = NULL;
 
 	sc_sock_poll_set_err(p,
-		pipe_failed ? sc_sock_pipe_err(&p->signal_pipe) : "Out of memory.");
+		pipe_failed ? sc_sock_pipe_err(&p->wakeup_pipe) : "Out of memory.");
 
 	return -1;
 }
@@ -1545,8 +1545,8 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 		return 0;
 	}
 
-	sc_sock_poll_del(p, &p->signal_pipe.fdt, SC_SOCK_READ, NULL);
-	sc_sock_pipe_term(&p->signal_pipe);
+	sc_sock_poll_del(p, &p->wakeup_pipe.fdt, SC_SOCK_READ, NULL);
+	sc_sock_pipe_term(&p->wakeup_pipe);
 	DeleteCriticalSection(&p->lock);
 
 	for (int i = 0; i < 16 && p->data[i] != NULL; i++) {
@@ -1622,7 +1622,7 @@ err:
 	return -1;
 }
 
-static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
+static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
      		     enum sc_sock_ev events, void *data, bool add)
 {
 	bool wakeup_poller = false;
@@ -1657,8 +1657,7 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		p->ops_count++;
         ops[index] = (struct sc_sock_poll_op){0};
 
-		// It is enough to signal only for the first submitted operation
-		// to wake up the poller thread.
+		// It is enough to wake up the poller only for the first submitted operation.
 		wakeup_poller = index == 0;
 	} else {
 		// We already have an operation submitted for the given fdt,
@@ -1700,9 +1699,9 @@ static int sc_sock_poll_signal(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 exit:
 	LeaveCriticalSection(&p->lock);
 
-	// Signal outside of the lock to reduce contention.
-	if (rc == 0 && wakeup_poller && sc_sock_pipe_write(&p->signal_pipe, "s", 1) != 1) {
-		sc_sock_poll_set_err(p, "poll wakeup : %s", sc_sock_pipe_err(&p->signal_pipe));
+	// Write to wakeup_pipe outside of the lock to reduce lock contention.
+	if (rc == 0 && wakeup_poller && sc_sock_pipe_write(&p->wakeup_pipe, "W", 1) != 1) {
+		sc_sock_poll_set_err(p, "poll wakeup : %s", sc_sock_pipe_err(&p->wakeup_pipe));
 		rc = -1;
 	}
 	return rc;
@@ -1750,8 +1749,8 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	// If polling is in progress we can not modify p->events, instead submit
 	// the operation for asynchronous processing later by the poller thread.
 	if (p->polling) {
-		// sc_sock_poll_signal() calls LeaveCriticalSection()
-		return sc_sock_poll_signal(p, fdt, events, data, true);
+		// sc_sock_poll_submit() calls LeaveCriticalSection()
+		return sc_sock_poll_submit(p, fdt, events, data, true);
 	}
 
 	mask = fdt->op | events;
@@ -1831,8 +1830,8 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	// If polling is in progress we can not modify p->events, instead submit
 	// the operation for asynchronous processing later by the poller thread.
 	if (p->polling) {
-		// sc_sock_poll_signal() calls LeaveCriticalSection()
-		return sc_sock_poll_signal(p, fdt, events, data, false);
+		// sc_sock_poll_submit() calls LeaveCriticalSection()
+		return sc_sock_poll_submit(p, fdt, events, data, false);
     }
 
 	if ((fdt->op & events) == 0) {
@@ -1948,7 +1947,7 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 
 	// We only can reach this line when either p->results_remaining is already 0 or
 	// when i reaches p->cap, in the latter case we need to reset p->results_remaining to 0
-	// because we are missing some expected events after processing signalled socket ops.
+	// because we are missing some expected events after processing submitted socket ops.
 	p->results_remaining = 0;
 	return found;
 }
@@ -1971,7 +1970,7 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		goto exit;
 	}
 	if (p->results_remaining > 0) {
-		assert(p->results_offset > 0);
+		assert(p->results_offset >= 1);
 		// Fill the remaining results that did not fit into p->results in the previous iteration.
 		rc = sc_sock_poll_fill_results(p);
 		goto exit;
@@ -1994,18 +1993,18 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 		// when we have some events found.
 		p->results_remaining = n;
 
-		// Drain signal_pipe only when we can do that without blocking.
+		// Drain wakeup_pipe only when we can do that without blocking.
 		if (sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
-			// To reduce contention we drain signal_pipe outside of the lock.
+			// To reduce contention we drain wakeup_pipe outside of the lock.
 			// It is safe to do that before the processing of p->ops, this way we do
-			// not drain any extra signals.
+			// not drain any extra wakeup signals.
 			//
-			// At this point we may have any number of bytes in signal_pipe,
+			// At this point we may have any number of bytes in wakeup_pipe,
 			// we just pick reasonably large buffer size for draining and
 			// assume that sc_sock_pipe_read() supports partial reads (less than
 			// the provided buffer size).
 			char drain_buf[16];
-			sc_sock_pipe_read(&p->signal_pipe, drain_buf, sizeof(drain_buf));
+			sc_sock_pipe_read(&p->wakeup_pipe, drain_buf, sizeof(drain_buf));
 		}
 	} else {
 		// Because otherwise we would not even start polling.
