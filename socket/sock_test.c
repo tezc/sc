@@ -1787,6 +1787,10 @@ void test_poll_threadsafe(void)
 	assert(added == THREAD_COUNT);
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
+    	assert(pss[i].visited);
+    }
+
+	for (int i = 0; i < THREAD_COUNT; i++) {
 		void *thread_result;
 		rc = sc_thread_join(&add_thread[i], &thread_result);
 		assert(rc == 0);
