@@ -77,7 +77,7 @@ static void sc_sock_errstr(struct sc_sock *s, int gai_err)
 				    FORMAT_MESSAGE_FROM_SYSTEM,
 			    NULL, err, 0, (LPSTR) &str, 0, NULL);
 	if (rc != 0) {
-		strncpy(s->fdt.err, str, sizeof(s->fdt.err) - 1);
+		strncpy(s->err, str, sizeof(s->err) - 1);
 		LocalFree(str);
 	}
 }
@@ -210,7 +210,7 @@ static void sc_sock_errstr(struct sc_sock *s, int gai_err)
 	const char *str;
 
 	str = gai_err ? gai_strerror(gai_err) : strerror(errno);
-	strncpy(s->fdt.err, str, sizeof(s->fdt.err) - 1);
+	strncpy(s->err, str, sizeof(s->err) - 1);
 }
 
 int sc_sock_set_blocking(struct sc_sock *s, bool blocking)
@@ -241,7 +241,7 @@ void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 	s->blocking = blocking;
 	s->family = family;
 
-	memset(s->fdt.err, 0, sizeof(s->fdt.err));
+	memset(s->err, 0, sizeof(s->err));
 }
 
 static int sc_sock_close(struct sc_sock *s)
@@ -332,7 +332,7 @@ static int sc_sock_bind(struct sc_sock *s, const char *host, const char *port)
 		.ai_socktype = SOCK_STREAM,
 	};
 
-	*s->fdt.err = '\0';
+	*s->err = '\0';
 
 	if (s->family == AF_UNIX) {
 		sc_sock_int fd = socket(AF_UNIX, SOCK_STREAM, 0);
@@ -735,8 +735,8 @@ err:
 
 const char *sc_sock_error(struct sc_sock *s)
 {
-	s->fdt.err[sizeof(s->fdt.err) - 1] = '\0';
-	return s->fdt.err;
+	s->err[sizeof(s->err) - 1] = '\0';
+	return s->err;
 }
 
 static const char *sc_sock_addr(struct sc_sock *sock, int af, void *cp,
@@ -834,8 +834,8 @@ void sc_sock_print(struct sc_sock *sock, char *buf, size_t len)
 
 const char *sc_sock_pipe_err(struct sc_sock_pipe *pipe)
 {
-	pipe->fdt.err[sizeof(pipe->fdt.err) - 1] = '\0';
-	return pipe->fdt.err;
+	pipe->err[sizeof(pipe->err) - 1] = '\0';
+	return pipe->err;
 }
 
 static void sc_sock_pipe_set_err(struct sc_sock_pipe *pipe, const char *fmt,
@@ -844,10 +844,10 @@ static void sc_sock_pipe_set_err(struct sc_sock_pipe *pipe, const char *fmt,
 	va_list args;
 
 	va_start(args, fmt);
-	vsnprintf(pipe->fdt.err, sizeof(pipe->fdt.err), fmt, args);
+	vsnprintf(pipe->err, sizeof(pipe->err), fmt, args);
 	va_end(args);
 
-	pipe->fdt.err[sizeof(pipe->fdt.err) - 1] = '\0';
+	pipe->err[sizeof(pipe->err) - 1] = '\0';
 }
 
 #if defined(_WIN32) || defined(_WIN64)

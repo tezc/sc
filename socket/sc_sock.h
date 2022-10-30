@@ -91,13 +91,13 @@ struct sc_sock_fd {
 	struct sc_sock_poll_data *poll_data;
 	int op_index;
 #endif
-	char err[128];
 };
 
 struct sc_sock {
+	struct sc_sock_fd fdt;
 	bool blocking;
 	int family;
-	struct sc_sock_fd fdt;
+	char err[128];
 };
 
 /**
@@ -266,8 +266,9 @@ void sc_sock_print(struct sc_sock *s, char *buf, size_t len);
 int sc_sock_notify_systemd(const char *msg);
 
 struct sc_sock_pipe {
-	sc_sock_int fds[2];
 	struct sc_sock_fd fdt;
+	sc_sock_int fds[2];
+	char err[128];
 };
 
 /**
