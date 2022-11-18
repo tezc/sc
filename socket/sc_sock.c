@@ -46,6 +46,10 @@
 #define SC_SIZE_MAX INT32_MAX
 #endif
 
+#ifndef SC_SOCK_POLL_MAX_EVENTS
+#define SC_SOCK_POLL_MAX_EVENTS 1024
+#endif
+
 #if defined(_WIN32) || defined(_WIN64)
 #include <afunix.h>
 #include <assert.h>
@@ -230,18 +234,16 @@ int sc_sock_set_blocking(struct sc_sock *s, bool blocking)
 
 void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 {
-	*s = (struct sc_sock){0};
+	*s = (struct sc_sock){
+		.fdt.fd = -1,
+		.fdt.type = type,
+		.blocking = blocking,
+		.family = family
+	};
 
 #if defined(_WIN32) || defined(_WIN64)
 	s->fdt.op_index = -1;
 #endif
-
-	s->fdt.fd = -1;
-	s->fdt.type = type;
-	s->blocking = blocking;
-	s->family = family;
-
-	memset(s->err, 0, sizeof(s->err));
 }
 
 static int sc_sock_close(struct sc_sock *s)
@@ -1068,12 +1070,12 @@ retry:
 #define __thread __declspec(thread)
 #endif
 
-static __thread char sc_sock_poll_err_chars[128];
+static __thread char sc_sock_poll_errstr[128];
 
 const char *sc_sock_poll_err(struct sc_sock_poll *p)
 {
 	(void)p;
-	return sc_sock_poll_err_chars;
+	return sc_sock_poll_errstr;
 }
 
 static void sc_sock_poll_set_err(struct sc_sock_poll *p, const char *fmt, ...)
@@ -1082,10 +1084,10 @@ static void sc_sock_poll_set_err(struct sc_sock_poll *p, const char *fmt, ...)
 	va_list args;
 
 	va_start(args, fmt);
-	vsnprintf(sc_sock_poll_err_chars, sizeof(sc_sock_poll_err_chars), fmt, args);
+	vsnprintf(sc_sock_poll_errstr, sizeof(sc_sock_poll_errstr), fmt, args);
 	va_end(args);
 
-	sc_sock_poll_err_chars[sizeof(sc_sock_poll_err_chars) - 1] = '\0';
+	sc_sock_poll_errstr[sizeof(sc_sock_poll_errstr) - 1] = '\0';
 }
 
 #if defined(__linux__)
@@ -1177,9 +1179,10 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		ep_ev.events |= EPOLLET;
 	}
 
-	// All the updates to fdt must be done before epoll_ctl() call to avoid data race:
-	// fdt can be published as *data here and this way a poller thread can see it
-	// partially updated if we do not follow that rule.
+	// All the updates to fdt must be done before epoll_ctl() call to
+	// avoid data race: fdt can be published as *data here and this way
+	// a poller thread can see it partially updated if we do not follow
+	// that rule.
 	fdt->op = new_mask;
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
@@ -1228,16 +1231,16 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		ep_ev.events |= EPOLLET;
 	}
 
-	// All the updates to fdt must be done before epoll_ctl() call to avoid data race:
-	// fdt can be published as *data here and this way a poller thread can see it
-	// partially updated if we do not follow that rule.
+	// All the updates to fdt must be done before epoll_ctl() call to avoid
+	// data race: fdt can be published as *data here and this way a poller
+	// thread can see it partially updated if we do not follow that rule.
 	fdt->op = new_mask;
 
 	rc = epoll_ctl(p->fds, op, fdt->fd, &ep_ev);
 
 	if (rc != 0) {
 		// Rollback to the original state if failed.
-        fdt->op = old_mask;
+		fdt->op = old_mask;
 		sc_sock_poll_set_err(p, "epoll_ctl : %s ", strerror(errno));
 		return -1;
 	}
@@ -1374,9 +1377,9 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		EV_SET(&ev[count++], fdt->fd, EVFILT_READ, act, 0, 0, data);
 	}
 
-	// All the updates to fdt must be done before kevent() call to avoid data race:
-	// fdt can be published as *data here and this way a poller thread can see it
-	// partially updated if we do not follow that rule.
+	// All the updates to fdt must be done before kevent() call to avoid
+	// data race: fdt can be published as *data here and this way a poller
+	// thread can see it partially updated if we do not follow that rule.
 	fdt->op = new_mask;
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1421,9 +1424,9 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		EV_SET(&ev[count++], fdt->fd, EVFILT_WRITE, EV_ADD, 0, 0, data);
 	}
 
-	// All the updates to fdt must be done before kevent() call to avoid data race:
-	// fdt can be published as *data here and this way a poller thread can see it
-	// partially updated if we do not follow that rule.
+	// All the updates to fdt must be done before kevent() call to avoid
+	// data race: fdt can be published as *data here and this way a poller
+	// thread can see it partially updated if we do not follow that rule.
 	fdt->op = new_mask;
 
 	rc = kevent(p->fds, ev, count, NULL, 0, NULL);
@@ -1521,7 +1524,8 @@ int sc_sock_poll_init(struct sc_sock_poll *p)
 	// Never fails.
 	InitializeCriticalSectionAndSpinCount(&p->lock, 4000);
 
-	// The only possible error is "Out of memory", which must be impossible here.
+	// The only possible error is "Out of memory", which must be impossible
+	// here.
 	sc_sock_poll_add(p, &p->wakeup_pipe.fdt, SC_SOCK_READ, NULL);
 	assert(p->wakeup_pipe.fdt.poll_data->index == 0);
 
@@ -1581,15 +1585,19 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
 			goto err;
 		}
 
-		// We do not use realloc for p->data as with p->events because we need a stable
-		// pointer for sc_sock_poll_data from sc_sock_fd, thus instead we append a next chunk
-		// as large as the current capacity, this way we double the total capacity.
-		// The resulting data structure will have the following chunk sizes: [16, 16, 32, 64, 128, 256... ]
+		// We do not use realloc for p->data as with p->events because
+		// we need a stable pointer for sc_sock_poll_data from
+		// sc_sock_fd, thus instead we append a next chunk as large as
+		// the current capacity, this way we double the total capacity.
+		// The resulting data structure will have the following
+		// chunk sizes: [16, 16, 32, 64, 128, 256... ]
 		// Important properties of this data structure are that:
-		//  - every new chunk is 2x larger than the previous one (except for the first chunk)
+		//  - every new chunk is 2x larger than the previous one
+		//    (except for the first chunk)
 		//  - all the chunk sizes are power of 2
-		// which allow to easily calculate coordinates in this two-dimensional data structure
-		// from an absolute index (from zero to capacity).
+		// which allow to easily calculate coordinates in this
+		// two-dimensional data structure from an absolute index
+		// (from zero to capacity).
 		bool data_expanded = false;
 		for (int i = 1; i < 16; i++) {
 			if (p->data[i] == NULL) {
@@ -1623,7 +1631,7 @@ err:
 }
 
 static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
-     		     enum sc_sock_ev events, void *data, bool add)
+			       enum sc_sock_ev events, void *data, bool add)
 {
 	bool wakeup_poller = false;
 	int rc, index, cap = p->ops_cap;
@@ -1655,13 +1663,15 @@ static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 
 		p->ops_count++;
-        ops[index] = (struct sc_sock_poll_op){0};
+        	ops[index] = (struct sc_sock_poll_op){0};
 
-		// It is enough to wake up the poller only for the first submitted operation.
+		// It is enough to wake up the poller only for the first
+		// submitted operation.
 		wakeup_poller = index == 0;
 	} else {
 		// We already have an operation submitted for the given fdt,
-		// here we will try to merge the new operation with the existing one.
+		// here we will try to merge the new operation with the existing
+		// one.
 		index = fdt->op_index;
 	}
 
@@ -1672,7 +1682,7 @@ static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		o->del_events &= ~events;
 	} else {
 		o->add_events &= ~events;
-        o->del_events |= events;
+        	o->del_events |= events;
 	}
 
 	o->full_del = ((fdt->op | o->add_events) & ~(o->del_events | SC_SOCK_EDGE)) == 0;
@@ -1684,8 +1694,9 @@ static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		o->poll_data = fdt->poll_data;
 
 		// Update fdt while we are under the lock.
-		// This should not cause any races because any subsequent operations
-		// on this fdt are guaranteed to be processed after the current full delete operation.
+		// This should not cause any races because any subsequent
+		// operations on this fdt are guaranteed to be processed after
+		// the current full delete operation.
 		fdt->poll_data = NULL;
 		fdt->op_index = -1;
 		fdt->op = SC_SOCK_NONE;
@@ -1700,7 +1711,8 @@ exit:
 	LeaveCriticalSection(&p->lock);
 
 	// Write to wakeup_pipe outside of the lock to reduce lock contention.
-	if (rc == 0 && wakeup_poller && sc_sock_pipe_write(&p->wakeup_pipe, "W", 1) != 1) {
+	if (rc == 0 && wakeup_poller &&
+	    sc_sock_pipe_write(&p->wakeup_pipe, "W", 1) != 1) {
 		sc_sock_poll_set_err(p, "poll wakeup : %s", sc_sock_pipe_err(&p->wakeup_pipe));
 		rc = -1;
 	}
@@ -1815,7 +1827,8 @@ exit:
 	return rc;
 }
 
-static void sc_sock_poll_del_full(struct sc_sock_poll *p, struct sc_sock_poll_data *pd)
+static void sc_sock_poll_del_full(struct sc_sock_poll *p,
+				  struct sc_sock_poll_data *pd)
 {
 	p->events[pd->index].fd = SC_INVALID;
 	p->count--;
@@ -1832,7 +1845,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	if (p->polling) {
 		// sc_sock_poll_submit() calls LeaveCriticalSection()
 		return sc_sock_poll_submit(p, fdt, events, data, false);
-    }
+    	}
 
 	if ((fdt->op & events) == 0) {
 		goto exit;
@@ -1910,11 +1923,13 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 
 	if (pd->edge_mask & SC_SOCK_EDGE) {
 		// We can have two possible race conditions on edge_mask updates:
-		// 1. "stop masking" incorrectly happens after "start masking" will result in
-		//     an extra event fired, which is fine.
-		// 2. "stop masking" incorrectly happens before "start masking" will mean that
-		//     the current event will not be masked here, which is also fine.
-		// It means the scenario when we miss events and hang should be impossible.
+		// 1. "stop masking" incorrectly happens after "start masking"
+		//     will result in an extra event fired, which is fine.
+		// 2. "stop masking" incorrectly happens before "start masking"
+		//     will mean that the current event will not be masked here,
+		//     which is also fine.
+		// It means the scenario when we miss events and hang should be
+		// impossible.
 		evs &= ~InterlockedOr(&pd->edge_mask, evs);
 	}
 
@@ -1926,7 +1941,8 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 	return evs;
 }
 
-static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
+static int sc_sock_poll_fill_results(struct sc_sock_poll *p)
+{
 	int found = 0;
 
 	for (int i = p->results_offset; i < p->cap && p->results_remaining > 0; i++) {
@@ -1945,9 +1961,10 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p) {
 		}
 	}
 
-	// We only can reach this line when either p->results_remaining is already 0 or
-	// when i reaches p->cap, in the latter case we need to reset p->results_remaining to 0
-	// because we are missing some expected events after processing submitted socket ops.
+	// We only can reach this line when either p->results_remaining is
+	// already 0 or when i reaches p->cap, in the latter case we need to
+	// reset p->results_remaining to 0 because we are missing some expected
+	// events after processing submitted socket ops.
 	p->results_remaining = 0;
 	return found;
 }
@@ -1971,7 +1988,8 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 	if (p->results_remaining > 0) {
 		assert(p->results_offset >= 1);
-		// Fill the remaining results that did not fit into p->results in the previous iteration.
+		// Fill the remaining results that did not fit into p->results
+		// in the previous iteration.
 		rc = sc_sock_poll_fill_results(p);
 		goto exit;
 	}
@@ -1983,28 +2001,30 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	LeaveCriticalSection(&p->lock);
 
 	do {
-		// When p->polling is set to true p->events and p->cap are stable
-		// and can be read outside of the lock.
+		// When p->polling is set to true p->events and p->cap are
+		// stable and can be read outside of the lock.
 		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
 	} while (n < 0 && errno == EINTR);
 
 	if (n > 0) {
-		// sc_sock_poll_event_inner() will decrement p->results_remaining
-		// when we have some events found.
+		// sc_sock_poll_event_inner() will decrement
+		// p->results_remaining when we have some events found.
 		p->results_remaining = n;
 
 		// Drain wakeup_pipe only when we can do that without blocking.
 		if (sc_sock_poll_event_inner(p, 0) == SC_SOCK_READ) {
-			// To reduce contention we drain wakeup_pipe outside of the lock.
-			// It is safe to do that before the processing of p->ops, this way we do
-			// not drain any extra wakeup signals.
+			// To reduce contention we drain wakeup_pipe outside of
+			// the lock. It is safe to do that before the processing
+			// of p->ops, this way we do not drain any extra wakeup
+			// signals.
 			//
-			// At this point we may have any number of bytes in wakeup_pipe,
-			// we just pick reasonably large buffer size for draining and
-			// assume that sc_sock_pipe_read() supports partial reads (less than
-			// the provided buffer size).
-			char drain_buf[16];
-			sc_sock_pipe_read(&p->wakeup_pipe, drain_buf, sizeof(drain_buf));
+			// At this point we may have any number of bytes in
+			// wakeup_pipe, we just pick reasonably large buffer
+			// size for draining and assume that sc_sock_pipe_read()
+			// supports partial reads
+			// (less than the provided buffer size).
+			char buf[16];
+			sc_sock_pipe_read(&p->wakeup_pipe, buf, sizeof(buf));
 		}
 	} else {
 		// Because otherwise we would not even start polling.
@@ -2012,8 +2032,8 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 
 	EnterCriticalSection(&p->lock);
-	// Have to reset p->polling before processing p->ops because it will be checked
-	// inside of sc_sock_poll_add() and sc_sock_poll_del().
+	// Have to reset p->polling before processing p->ops because it will
+	// be checked inside of sc_sock_poll_add() and sc_sock_poll_del().
 	assert(p->polling);
 	p->polling = false;
 
@@ -2024,7 +2044,8 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	}
 	assert(n >= 0);
 
-	// Process operations in the same order as they were submitted by other threads.
+	// Process operations in the same order as they were submitted by other
+	// threads.
 	for (int i = 0; i < p->ops_count; i++) {
 		struct sc_sock_poll_op o = p->ops[i];
 
@@ -2045,9 +2066,10 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	p->results_offset = 1;
 
 	if (rc == 0) {
-		// We have a separate buffer for results and fill it under the lock
-		// because otherwise we would need to acquire the lock on every
-		// sc_sock_poll_event() and sc_sock_poll_data() call to safely access p->events.
+		// We have a separate buffer for results and fill it under
+		// the lock because otherwise we would need to acquire the lock
+		// on every sc_sock_poll_event() and sc_sock_poll_data() call to
+		// safely access p->events.
 		rc = sc_sock_poll_fill_results(p);
 	}
 

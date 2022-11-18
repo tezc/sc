@@ -319,10 +319,6 @@ int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, unsigned int len);
  */
 const char *sc_sock_pipe_err(struct sc_sock_pipe *p);
 
-#ifndef SC_SOCK_POLL_MAX_EVENTS
-#define SC_SOCK_POLL_MAX_EVENTS 1024
-#endif
-
 #if defined(__linux__)
 
 #include <sys/epoll.h>
