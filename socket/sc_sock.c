@@ -1433,7 +1433,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	if (rc != 0) {
 		// Rollback to the original state if failed.
-    	fdt->op = old_mask;
+		fdt->op = old_mask;
 		sc_sock_poll_set_err(p, "kevent : %s ", strerror(errno));
 		return -1;
 	}
