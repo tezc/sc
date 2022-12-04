@@ -1669,7 +1669,7 @@ static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		}
 
 		p->ops_count++;
-        	ops[index] = (struct sc_sock_poll_op){0};
+        ops[index] = (struct sc_sock_poll_op){0};
 
 		// It is enough to wake up the poller only for the first
 		// submitted operation.
@@ -1688,7 +1688,7 @@ static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		o->del_events &= ~events;
 	} else {
 		o->add_events &= ~events;
-        	o->del_events |= events;
+        o->del_events |= events;
 	}
 
 	o->full_del = ((fdt->op | o->add_events) & ~(o->del_events | SC_SOCK_EDGE)) == 0;
@@ -1851,7 +1851,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 	if (p->polling) {
 		// sc_sock_poll_submit() calls LeaveCriticalSection()
 		return sc_sock_poll_submit(p, fdt, events, data, false);
-    	}
+    }
 
 	if ((fdt->op & events) == 0) {
 		goto exit;
