@@ -1702,7 +1702,7 @@ static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		o->del_events &= ~events;
 	} else {
 		o->add_events &= ~events;
-        o->del_events |= events;
+		o->del_events |= events;
 	}
 
 	o->full_del = ((fdt->op | o->add_events) & ~(o->del_events | SC_SOCK_EDGE)) == 0;
