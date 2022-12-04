@@ -1549,8 +1549,14 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 		return 0;
 	}
 
-	sc_sock_poll_del(p, &p->wakeup_pipe.fdt, SC_SOCK_READ, NULL);
-	sc_sock_pipe_term(&p->wakeup_pipe);
+	int rc = 0;
+
+	if (sc_sock_poll_del(p, &p->wakeup_pipe.fdt, SC_SOCK_READ, NULL) != 0) {
+		rc = -1;
+	} else if (sc_sock_pipe_term(&p->wakeup_pipe) != 0) {
+		rc = -1;
+		sc_sock_poll_set_err(p, "poll term : %s", sc_sock_pipe_err(&p->wakeup_pipe));
+	}
 	DeleteCriticalSection(&p->lock);
 
 	for (int i = 0; i < 16 && p->data[i] != NULL; i++) {
@@ -1566,7 +1572,7 @@ int sc_sock_poll_term(struct sc_sock_poll *p)
 	p->cap = 0;
 	p->count = 0;
 
-	return 0;
+	return rc;
 }
 
 static int sc_sock_poll_expand(struct sc_sock_poll *p)
@@ -2024,9 +2030,13 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 			// supports partial reads
 			// (less than the provided buffer size).
 			char buf[16];
-			sc_sock_pipe_read(&p->wakeup_pipe, buf, sizeof(buf));
+			int drained = sc_sock_pipe_read(&p->wakeup_pipe, buf, sizeof(buf));
+			assert(drained >= 0);
 		}
 	} else {
+		// We have either empty result or error here, in both cases
+		// we do not need to assign p->results_remaining.
+		assert(n == 0 || n == SOCKET_ERROR);
 		// Because otherwise we would not even start polling.
 		assert(p->results_remaining == 0);
 	}
