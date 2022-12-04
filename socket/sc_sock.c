@@ -1489,6 +1489,20 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 #else // WINDOWS
 
+static void sc_sock_poll_set_err_from_code(int err_code)
+{
+	int rc;
+	LPSTR str = 0;
+
+	rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
+				    FORMAT_MESSAGE_FROM_SYSTEM,
+			    NULL, err_code, 0, (LPSTR) &str, 0, NULL);
+	if (rc != 0) {
+		strncpy(sc_sock_poll_errstr, str, sizeof(sc_sock_poll_errstr) - 1);
+		LocalFree(str);
+	}
+}
+
 int sc_sock_poll_init(struct sc_sock_poll *p)
 {
 	bool pipe_failed = false;
@@ -1977,7 +1991,7 @@ static int sc_sock_poll_fill_results(struct sc_sock_poll *p)
 
 int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 {
-	int n, rc = 0;
+	int n, last_err, rc = 0;
 
 	timeout = (timeout == -1) ? 16 : timeout;
 
@@ -2006,11 +2020,17 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	p->polling = true;
 	LeaveCriticalSection(&p->lock);
 
-	do {
-		// When p->polling is set to true p->events and p->cap are
-		// stable and can be read outside of the lock.
-		n = WSAPoll(p->events, (ULONG) p->cap, timeout);
-	} while (n < 0 && errno == EINTR);
+retry:
+	// When p->polling is set to true p->events and p->cap are
+	// stable and can be read outside of the lock.
+	n = WSAPoll(p->events, (ULONG) p->cap, timeout);
+
+	if (n == SOCKET_ERROR) {
+		last_err = WSAGetLastError();
+		if (last_err == WSAEINTR) {
+			goto retry;
+		}
+	}
 
 	if (n > 0) {
 		// sc_sock_poll_event_inner() will decrement
@@ -2048,9 +2068,16 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 	p->polling = false;
 
 	if (n == SOCKET_ERROR) {
-		rc = -1;
-		sc_sock_poll_set_err(p, "poll : %s ", strerror(errno));
-		goto exit;
+		if (last_err == WSAENOTSOCK && p->ops_count > 0) {
+			// WSAPoll() failed because a socket was concurrently closed,
+			// we assume that the dead socket fd will be deleted here in
+			// sc_sock_poll_del_full() and we will be able to continue.
+			n = 0;
+		} else {
+			rc = -1;
+			sc_sock_poll_set_err_from_code(last_err);
+			goto exit;
+		}
 	}
 	assert(n >= 0);
 

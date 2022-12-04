@@ -1764,7 +1764,11 @@ void test_poll_threadsafe(void)
 
 	while (added < THREAD_COUNT) {
 		count = sc_sock_poll_wait(&poll, 7200000);
-		assert(count >= 0);
+
+		if (count < 0) {
+			printf("poll err: %s \n", sc_sock_poll_err(&poll));
+			assert(count >= 0);
+		}
 
 		for (int i = 0; i < count; i++) {
 			if (sc_sock_accept(&srv, &acc[accepted]) == 0) {
