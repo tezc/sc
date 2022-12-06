@@ -1745,6 +1745,7 @@ void test_poll_threadsafe(void)
 	// Check that we are actually non-blocking.
 	rc = sc_sock_accept(&srv, acc);
 	assert(rc != 0);
+	assert(errno == EAGAIN);
 	printf("server socket ready \n");
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
@@ -1833,6 +1834,110 @@ void test_poll_threadsafe(void)
 	assert(poll.events == NULL);
 }
 
+struct poll_and_srv {
+	struct sc_sock_poll poll;
+	struct sc_sock *srv;
+};
+
+void *multithreaded_accept(void *arg)
+{
+	struct poll_and_srv *ps = (struct poll_and_srv *) arg;
+	struct sc_sock acc;
+
+	int n = sc_sock_poll_wait(&ps->poll, 2000);
+	printf("poll %d \n", n);
+	if (n == 0) {
+		return ps->srv;
+	}
+
+	assert(n == 1);
+
+	enum sc_sock_ev ev = sc_sock_poll_event(&ps->poll, 0);
+	assert(ev == SC_SOCK_READ);
+
+	int rc = sc_sock_accept(ps->srv, &acc);
+
+    if (rc == 0) {
+    	rc = sc_sock_term(&acc);
+    	assert(rc == 0);
+    	return ps;
+    }
+
+    assert(errno = EAGAIN);
+    return ps->srv;
+}
+
+void test_poll_multithreaded_accept(void)
+{
+	enum
+	{
+		THREAD_COUNT = 8
+	};
+
+	int rc;
+
+	struct poll_and_srv polls[THREAD_COUNT];
+	struct sc_thread threads[THREAD_COUNT];
+
+	struct sc_sock srv, clt;
+	sc_sock_init(&srv, 0, false, SC_SOCK_INET);
+	rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
+	assert(rc == 0);
+
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		sc_thread_init(&threads[i]);
+		rc = sc_sock_poll_init(&polls[i].poll);
+		assert(rc == 0);
+
+		polls[i].srv = &srv;
+
+		srv.fdt.op = 0;
+#if defined(_WIN32) || defined(_WIN64)
+		assert(srv.fdt.op_index == -1);
+		srv.fdt.poll_data = NULL;
+#endif
+
+		sc_sock_poll_add(&polls[i].poll, &srv.fdt, SC_SOCK_READ, &polls[i]);
+		assert(rc == 0);
+	}
+
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		rc = sc_thread_start(&threads[i], multithreaded_accept, &polls[i]);
+		assert(rc == 0);
+	}
+
+	sc_time_sleep(200);
+
+	sc_sock_init(&clt, 0, true, SC_SOCK_INET);
+	rc = sc_sock_connect(&clt, "127.0.0.1", "11000", NULL, NULL);
+	assert(rc == 0);
+
+	printf("client connected \n");
+
+	int accepted = 0;
+
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		void *thread_result;
+		rc = sc_thread_join(&threads[i], &thread_result);
+		assert(rc == 0);
+
+        if (thread_result == &polls[i]) {
+        	accepted++;
+        } else {
+        	assert(thread_result == &srv);
+        }
+	}
+
+	printf("accepted %d \n", accepted);
+	assert(accepted == 1);
+
+	rc = sc_sock_term(&clt);
+    assert(rc == 0);
+
+	rc = sc_sock_term(&srv);
+    assert(rc == 0);
+}
+
 void test_err(void)
 {
 	struct sc_sock sock;
@@ -1901,6 +2006,7 @@ int main(void)
 	test_poll_mass();
 	test_poll_edge();
 	test_poll_threadsafe();
+	test_poll_multithreaded_accept();
 
 	assert(sc_sock_cleanup() == 0);
 

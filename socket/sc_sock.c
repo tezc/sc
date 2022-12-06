@@ -685,7 +685,11 @@ int sc_sock_accept(struct sc_sock *s, struct sc_sock *in)
 
 	fd = accept(s->fdt.fd, NULL, NULL);
 	if (fd == SC_INVALID) {
-		sc_sock_errstr(s, 0);
+		if (!s->blocking && sc_sock_err() == SC_EAGAIN) {
+			errno = EAGAIN;
+		} else {
+			sc_sock_errstr(s, 0);
+		}
 		return -1;
 	}
 
