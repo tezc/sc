@@ -67,7 +67,7 @@ static const struct sc_log_level_pair
 int sc_log_log(enum sc_log_level level, const char *fmt, ...);
 
 // Max file size to rotate, should not be more than 4 GB.
-#define SC_LOG_FILE_SIZE (2 * 1024 * 1024ul)
+#define SC_LOG_FILE_SIZE (2 * 1024 * 1024)
 
 // Define SC_LOG_PRINT_FILE_NAME to print file name and line no in the log line.
 #ifdef SC_LOG_PRINT_FILE_NAME
