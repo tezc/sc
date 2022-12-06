@@ -1834,37 +1834,37 @@ void test_poll_threadsafe(void)
 	assert(poll.events == NULL);
 }
 
-struct poll_and_srv {
-	struct sc_sock_poll poll;
-	struct sc_sock *srv;
-};
-
 void *multithreaded_accept(void *arg)
 {
-	struct poll_and_srv *ps = (struct poll_and_srv *) arg;
+	struct sc_sock_poll *poll = (struct sc_sock_poll *) arg;
 	struct sc_sock acc;
 
-	int n = sc_sock_poll_wait(&ps->poll, 2000);
+	int n = sc_sock_poll_wait(poll, 2000);
 	printf("poll %d \n", n);
+
 	if (n == 0) {
-		return ps->srv;
+		return poll;
 	}
 
 	assert(n == 1);
 
-	enum sc_sock_ev ev = sc_sock_poll_event(&ps->poll, 0);
+	enum sc_sock_ev ev = sc_sock_poll_event(poll, 0);
 	assert(ev == SC_SOCK_READ);
 
-	int rc = sc_sock_accept(ps->srv, &acc);
+	struct sc_sock *srv = sc_sock_poll_data(poll, 0);
+	assert(srv != NULL);
+
+	int rc = sc_sock_accept(srv, &acc);
 
 	if (rc == 0) {
 		rc = sc_sock_term(&acc);
 		assert(rc == 0);
-		return ps;
+		return srv;
 	}
 
-	assert(errno = EAGAIN);
-	return ps->srv;
+	assert(rc == -1);
+	assert(errno == EAGAIN);
+	return poll;
 }
 
 void test_poll_multithreaded_accept(void)
@@ -1876,7 +1876,7 @@ void test_poll_multithreaded_accept(void)
 
 	int rc;
 
-	struct poll_and_srv polls[THREAD_COUNT];
+	struct sc_sock_poll polls[THREAD_COUNT];
 	struct sc_thread threads[THREAD_COUNT];
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -1890,10 +1890,9 @@ void test_poll_multithreaded_accept(void)
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
 		sc_thread_init(&threads[i]);
-		rc = sc_sock_poll_init(&polls[i].poll);
-		assert(rc == 0);
 
-		polls[i].srv = &srv;
+		rc = sc_sock_poll_init(&polls[i]);
+		assert(rc == 0);
 
 		srv.fdt.op = SC_SOCK_NONE;
 
@@ -1901,7 +1900,7 @@ void test_poll_multithreaded_accept(void)
 		srv.fdt.poll_data = NULL;
 #endif
 
-		sc_sock_poll_add(&polls[i].poll, &srv.fdt, SC_SOCK_READ, &polls[i]);
+		sc_sock_poll_add(&polls[i], &srv.fdt, SC_SOCK_READ, &srv);
 		assert(rc == 0);
 
 #if defined(_WIN32) || defined(_WIN64)
@@ -1929,10 +1928,10 @@ void test_poll_multithreaded_accept(void)
 		rc = sc_thread_join(&threads[i], &thread_result);
 		assert(rc == 0);
 
-		if (thread_result == &polls[i]) {
+		if (thread_result == &srv) {
 			accepted++;
 		} else {
-			assert(thread_result == &srv);
+			assert(thread_result == &polls[i]);
 		}
 	}
 
@@ -1949,10 +1948,10 @@ void test_poll_multithreaded_accept(void)
 		srv.fdt.poll_data = poll_data[i];
 #endif
 
-		rc = sc_sock_poll_del(&polls[i].poll, &srv.fdt, SC_SOCK_READ, NULL);
+		rc = sc_sock_poll_del(&polls[i], &srv.fdt, SC_SOCK_READ, NULL);
 		assert(rc == 0);
 
-		rc = sc_sock_poll_term(&polls[i].poll);
+		rc = sc_sock_poll_term(&polls[i]);
 		assert(rc == 0);
 	}
 
