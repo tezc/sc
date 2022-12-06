@@ -32,7 +32,7 @@ if (SC_BUILD_TEST)
         set(CMAKE_C_CLANG_TIDY
                 clang-tidy;
                 -line-filter=[{"name":"${PROJECT_NAME}.h"},{"name":"${PROJECT_NAME}.c"}];
-                -checks=clang-analyzer-*,misc-*,portability-*,bugprone-*;
+                -checks=clang-analyzer-*,misc-*,portability-*,bugprone-*,-bugprone-implicit-widening-of-multiplication-result*;
                 -warnings-as-errors=clang-analyzer-*,misc-*,portability-*,bugprone-*;)
     endif ()
 
