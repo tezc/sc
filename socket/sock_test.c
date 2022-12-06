@@ -1857,14 +1857,14 @@ void *multithreaded_accept(void *arg)
 
 	int rc = sc_sock_accept(ps->srv, &acc);
 
-    if (rc == 0) {
-    	rc = sc_sock_term(&acc);
-    	assert(rc == 0);
-    	return ps;
-    }
+	if (rc == 0) {
+		rc = sc_sock_term(&acc);
+		assert(rc == 0);
+		return ps;
+	}
 
-    assert(errno = EAGAIN);
-    return ps->srv;
+	assert(errno = EAGAIN);
+	return ps->srv;
 }
 
 void test_poll_multithreaded_accept(void)
@@ -1879,6 +1879,10 @@ void test_poll_multithreaded_accept(void)
 	struct poll_and_srv polls[THREAD_COUNT];
 	struct sc_thread threads[THREAD_COUNT];
 
+#if defined(_WIN32) || defined(_WIN64)
+	struct sc_sock_poll_data *poll_data[THREAD_COUNT];
+#endif
+
 	struct sc_sock srv, clt;
 	sc_sock_init(&srv, 0, false, SC_SOCK_INET);
 	rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
@@ -1891,13 +1895,18 @@ void test_poll_multithreaded_accept(void)
 
 		polls[i].srv = &srv;
 
-		srv.fdt.op = 0;
+		srv.fdt.op = SC_SOCK_NONE;
+
 #if defined(_WIN32) || defined(_WIN64)
 		srv.fdt.poll_data = NULL;
 #endif
 
 		sc_sock_poll_add(&polls[i].poll, &srv.fdt, SC_SOCK_READ, &polls[i]);
 		assert(rc == 0);
+
+#if defined(_WIN32) || defined(_WIN64)
+		poll_data[i] = srv.fdt.poll_data;
+#endif
 	}
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
@@ -1920,26 +1929,35 @@ void test_poll_multithreaded_accept(void)
 		rc = sc_thread_join(&threads[i], &thread_result);
 		assert(rc == 0);
 
-        if (thread_result == &polls[i]) {
-        	accepted++;
-        } else {
-        	assert(thread_result == &srv);
-        }
+		if (thread_result == &polls[i]) {
+			accepted++;
+		} else {
+			assert(thread_result == &srv);
+		}
 	}
 
 	printf("accepted %d \n", accepted);
 	assert(accepted == 1);
 
 	rc = sc_sock_term(&clt);
-    assert(rc == 0);
+	assert(rc == 0);
+
+	for (int i = 0; i < THREAD_COUNT; i++) {
+		srv.fdt.op = SC_SOCK_READ;
+
+#if defined(_WIN32) || defined(_WIN64)
+		srv.fdt.poll_data = poll_data[i];
+#endif
+
+		rc = sc_sock_poll_del(&polls[i].poll, &srv.fdt, SC_SOCK_READ, NULL);
+		assert(rc == 0);
+
+		rc = sc_sock_poll_term(&polls[i].poll);
+		assert(rc == 0);
+	}
 
 	rc = sc_sock_term(&srv);
-    assert(rc == 0);
-
-    for (int i = 0; i < THREAD_COUNT; i++) {
-    	rc = sc_sock_poll_term(&polls[i].poll);
-    	assert(rc == 0);
-    }
+	assert(rc == 0);
 }
 
 void test_err(void)
