@@ -1893,7 +1893,6 @@ void test_poll_multithreaded_accept(void)
 
 		srv.fdt.op = 0;
 #if defined(_WIN32) || defined(_WIN64)
-		assert(srv.fdt.op_index == -1);
 		srv.fdt.poll_data = NULL;
 #endif
 
@@ -1906,7 +1905,7 @@ void test_poll_multithreaded_accept(void)
 		assert(rc == 0);
 	}
 
-	sc_time_sleep(200);
+	sc_time_sleep(500);
 
 	sc_sock_init(&clt, 0, true, SC_SOCK_INET);
 	rc = sc_sock_connect(&clt, "127.0.0.1", "11000", NULL, NULL);
@@ -1936,6 +1935,11 @@ void test_poll_multithreaded_accept(void)
 
 	rc = sc_sock_term(&srv);
     assert(rc == 0);
+
+    for (int i = 0; i < THREAD_COUNT; i++) {
+    	rc = sc_sock_poll_term(&polls[i].poll);
+    	assert(rc == 0);
+    }
 }
 
 void test_err(void)
