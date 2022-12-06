@@ -153,7 +153,7 @@ void sc_timer_cancel(struct sc_timer *t, uint64_t *id)
 		return;
 	}
 
-	pos = (((uint32_t) *id) * t->wheel) + (*id >> 32u);
+	pos = (uint64_t) (((uint32_t) *id) * t->wheel) + (*id >> 32u);
 
 	t->list[pos].timeout = SC_TIMER_INVALID;
 	*id = SC_TIMER_INVALID;

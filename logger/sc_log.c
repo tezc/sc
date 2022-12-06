@@ -370,7 +370,7 @@ static int sc_log_file(enum sc_log_level level, const char *fmt, va_list va)
 
 	sc_log.file_size += size;
 
-	if (sc_log.file_size > SC_LOG_FILE_SIZE) {
+	if (sc_log.file_size > (size_t) SC_LOG_FILE_SIZE) {
 		fclose(sc_log.fp);
 		(void) rename(sc_log.current_file, sc_log.prev_file);
 
