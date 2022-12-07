@@ -1879,10 +1879,6 @@ void test_poll_multithreaded_accept(void)
 	struct sc_sock_poll polls[THREAD_COUNT];
 	struct sc_thread threads[THREAD_COUNT];
 
-#if defined(_WIN32) || defined(_WIN64)
-	struct sc_sock_poll_data *poll_data[THREAD_COUNT];
-#endif
-
 	struct sc_sock srv, clt;
 	sc_sock_init(&srv, 0, false, SC_SOCK_INET);
 	rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
@@ -1896,16 +1892,8 @@ void test_poll_multithreaded_accept(void)
 
 		srv.fdt.op = SC_SOCK_NONE;
 
-#if defined(_WIN32) || defined(_WIN64)
-		srv.fdt.poll_data = NULL;
-#endif
-
 		sc_sock_poll_add(&polls[i], &srv.fdt, SC_SOCK_READ, &srv);
 		assert(rc == 0);
-
-#if defined(_WIN32) || defined(_WIN64)
-		poll_data[i] = srv.fdt.poll_data;
-#endif
 	}
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
@@ -1942,15 +1930,6 @@ void test_poll_multithreaded_accept(void)
 	assert(rc == 0);
 
 	for (int i = 0; i < THREAD_COUNT; i++) {
-		srv.fdt.op = SC_SOCK_READ;
-
-#if defined(_WIN32) || defined(_WIN64)
-		srv.fdt.poll_data = poll_data[i];
-#endif
-
-		rc = sc_sock_poll_del(&polls[i], &srv.fdt, SC_SOCK_READ, NULL);
-		assert(rc == 0);
-
 		rc = sc_sock_poll_term(&polls[i]);
 		assert(rc == 0);
 	}
