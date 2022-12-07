@@ -1892,7 +1892,7 @@ void test_poll_multithreaded_accept(void)
 
 		srv.fdt.op = SC_SOCK_NONE;
 
-		sc_sock_poll_add(&polls[i], &srv.fdt, SC_SOCK_READ, &srv);
+		rc = sc_sock_poll_add(&polls[i], &srv.fdt, SC_SOCK_READ, &srv);
 		assert(rc == 0);
 	}
 
