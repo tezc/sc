@@ -34,7 +34,7 @@
 #include <stdlib.h>
 
 #ifndef SC_HEAP_MAX
-#define SC_HEAP_MAX SIZE_MAX / sizeof(struct sc_heap_data)
+#define SC_HEAP_MAX (SIZE_MAX / sizeof(struct sc_heap_data))
 #endif
 
 bool sc_heap_init(struct sc_heap *h, size_t cap)
@@ -134,7 +134,7 @@ struct sc_heap_data *sc_heap_pop(struct sc_heap *h)
 		if (child < h->size &&
 		    h->elems[child].key > h->elems[child + 1].key) {
 			child++;
-		};
+		}
 
 		if (last.key <= h->elems[child].key) {
 			break;

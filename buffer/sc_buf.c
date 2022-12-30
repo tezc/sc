@@ -34,7 +34,7 @@
 #include <stdio.h>
 
 #ifndef SC_BUF_MAX
-#define SC_BUF_MAX UINT64_MAX-4096
+#define SC_BUF_MAX (UINT64_MAX - 4096)
 #endif
 
 #define NULL_LEN SC_BUF_MAX

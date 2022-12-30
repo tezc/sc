@@ -38,7 +38,7 @@
 #define WHEEL_COUNT 16u
 
 #ifndef SC_TIMER_MAX
-#define SC_TIMER_MAX (UINT32_MAX / sizeof(struct sc_timer_data)) / WHEEL_COUNT
+#define SC_TIMER_MAX ((UINT32_MAX / sizeof(struct sc_timer_data)) / WHEEL_COUNT)
 #endif
 
 void sc_timer_init(struct sc_timer *t, uint64_t timestamp)

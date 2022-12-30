@@ -381,7 +381,7 @@ uint32_t murmurhash(const char *key)
 		h *= m;
 	default:
 		break;
-	};
+	}
 
 	h ^= h >> 47u;
 	h *= m;
