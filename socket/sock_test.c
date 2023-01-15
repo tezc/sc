@@ -1450,7 +1450,7 @@ void test_poll_mask(void)
 	assert(rc == 0);
 
 	sc_sock_init(&srv, 0, false, SC_SOCK_INET);
-	rc = sc_sock_listen(&srv, "127.0.0.1", "11000");
+	rc = sc_sock_listen(&srv, "127.0.0.1", "12000");
 	assert(rc == 0);
 
 	rc = sc_sock_poll_add(&p, &srv.fdt, SC_SOCK_READ, &srv);
