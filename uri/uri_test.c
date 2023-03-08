@@ -300,23 +300,6 @@ int __wrap_snprintf(char *str, size_t size, const char *format, ...)
 	return fail_snprintf;
 }
 
-int fail_sprintf;
-int __wrap_sprintf(char *str, const char *format, ...)
-{
-	int rc;
-	va_list va;
-
-	if (!fail_sprintf) {
-		va_start(va, format);
-		rc = vsprintf(str, format, va);
-		va_end(va);
-
-		return rc;
-	}
-
-	return fail_sprintf;
-}
-
 void fail_test(void)
 {
 	struct sc_uri *uri;
@@ -342,13 +325,13 @@ void fail_test(void)
 	assert(sc_uri_create("tcp://127.0.0.1") == NULL);
 	fail_snprintf = 0;
 
-	fail_sprintf = -1;
+	fail_snprintf = -1;
 	assert(sc_uri_create("tcp://127.0.0.1") == NULL);
-	fail_sprintf = 0;
+	fail_snprintf = 0;
 
-	fail_sprintf = 1000000;
+	fail_snprintf = 1000000;
 	assert(sc_uri_create("tcp://127.0.0.1") == NULL);
-	fail_sprintf = 0;
+	fail_snprintf = 0;
 
 	fail_strtoul = 1;
 	assert(sc_uri_create("tcp://127.0.0.1:9000") == NULL);

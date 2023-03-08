@@ -158,9 +158,10 @@ struct sc_uri *sc_uri_create(const char *str)
 	fragment_len -= diff; // Skip "#"
 	fragment += diff;     // Skip "#"
 
-	ret = sprintf(dest, s2, scheme_len, scheme, 0, userinfo_len, userinfo,
-		      0, host_len, host, 0, port_len, port, 0, path_len, path,
-		      0, query_len, query, 0, fragment_len, fragment, 0);
+	ret = snprintf(dest, parts_len, s2, scheme_len, scheme, 0,
+		       userinfo_len, userinfo, 0, host_len, host, 0, port_len,
+		       port, 0, path_len, path, 0, query_len, query, 0,
+		       fragment_len, fragment, 0);
 	if (ret < 0 || (size_t) ret != parts_len - 1) {
 		goto error;
 	}
