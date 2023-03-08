@@ -175,7 +175,7 @@ void sc_list_del(struct sc_list *l, struct sc_list *elem);
  * struct sc_list *tmp;         // Variable for loop, user should not use this.
  * struct sc_list *it;          // Iterator
  *
- * sc_list_foreach_safe (list, it) {
+ * sc_list_foreach_safe (list, tmp, it) {
  *       container = sc_list_entry(it, struct container, others);
  *       sc_list_del(list, &container->others);
  * }
