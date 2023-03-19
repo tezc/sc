@@ -3,7 +3,7 @@
 ### Overview
 
 - Queue implementation which grows when you add elements.
-- Add/remove from head/tail is possible so it can be used as list, stack,  
+- Add/remove from head/tail is possible, so it can be used as list, stack,  
   queue, dequeue etc.
 - It comes with predefined types, check out at the end of sc_queue.h, you can
   add there (sc_queue_def) if you need more.

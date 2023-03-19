@@ -4,11 +4,11 @@
 
 - Includes three implementations :
 
-| Implementation    | Description                                              |
-|-------------------|----------------------------------------------------------|
-| sc_sock_xxx       | TCP socket wrapper for blocking and nonblocking sockets  |
-| sc_sock_poll_xxx  | Epoll / Kqueue / WSAPoll wrapper                         |
-| sc_sock_pipe_xxx  | Unix pipe() and an equivalent implementation for Windows.|
+| Implementation   | Description                                               |
+|------------------|-----------------------------------------------------------|
+| sc_sock_xxx      | TCP socket wrapper for blocking and nonblocking sockets   |
+| sc_sock_poll_xxx | Epoll / Kqueue / WSAPoll wrapper                          |
+| sc_sock_pipe_xxx | Unix pipe() and an equivalent implementation for Windows. |
   
 
 - Works for IPv4, IPv6 and Unix domain sockets. (~ Windows 10 2018 added Unix   
