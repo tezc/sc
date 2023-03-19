@@ -5,8 +5,8 @@
 - Signal handling to handle shutdown and fatal signals.
 - Also provides signal safe snprintf/vsnprintf.
 - On shutdown signal, writes 1 byte to a fd which is set by user, so your app   
-  can shutdown properly. 
-- Double shutdown signal handling: e.g user presses CTRL+C twice, exits without  
+  can shut down properly. 
+- Double shutdown signal handling: e.g. user presses CTRL+C twice, exits without  
   waiting graceful shutdown.
 - Fatal signal handling. Prints backtrace with program counter indicator. You   
   should compile with debug symbols or with -rdynamic for GCC.

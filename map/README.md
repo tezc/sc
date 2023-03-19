@@ -3,7 +3,7 @@
 ### Overview
 
 - Open addressing hashmap with linear probing.
-- Requires postfix naming, e.g sc_map_str, sc_map_int. It's ugly but necessary  
+- Requires postfix naming, e.g. sc_map_str, sc_map_int. It's ugly but necessary  
   for better performance. 
 
 - Comes with predefined key value pairs :

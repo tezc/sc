@@ -4,7 +4,7 @@
 
 - Intrusive doubly linked list.
 - Basically, same as adding next and prev pointers to your structs.
-- Add/remove from head/tail is possible so it can be used as list, stack,  
+- Add/remove from head/tail is possible, so it can be used as list, stack,  
   queue, dequeue etc.
 
 ### Usage

@@ -20,7 +20,7 @@ int cb(void *arg, int line, const char *section, const char *key,
 	return 0;
 }
 
-void test1()
+void test1(void)
 {
 	int rc;
 	static const char *ini = "#Sample \n"
