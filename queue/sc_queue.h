@@ -276,6 +276,7 @@ static inline size_t sc_queue_inc_first(size_t *first, size_t cap)
 sc_queue_def(int, int);
 sc_queue_def(unsigned int, uint);
 sc_queue_def(long, long);
+sc_queue_def(long long, ll);
 sc_queue_def(unsigned long, ulong);
 sc_queue_def(unsigned long long, ull);
 sc_queue_def(uint32_t, 32);
