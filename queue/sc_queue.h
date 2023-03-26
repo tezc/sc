@@ -258,11 +258,11 @@ static inline size_t sc_queue_inc_first(size_t *first, size_t cap)
 /**
  *  For each loop,
  *
- *  int *queue;
- *  sc_queue_create(queue, 4);"
+ *  struct sc_queue_int queue;
+ *  sc_queue_init(&queue, 4);"
  *
  *  int elem;
- *  sc_queue_foreach(queue, elem) {
+ *  sc_queue_foreach(&queue, elem) {
  *      printf("Elem : %d \n, elem);
  *  }
  */
