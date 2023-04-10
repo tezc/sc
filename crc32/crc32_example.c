@@ -5,7 +5,7 @@
 int main(void)
 {
 	uint32_t crc;
-	const uint8_t buf[100] = {0};
+	const char buf[100] = {0};
 
 	sc_crc32_init();
 

@@ -3,7 +3,7 @@
 - Same code from : https://stackoverflow.com/a/17646775
 - Fixed some alignment issues, replaced asm code with compiler intrinsics
 - Added aarch64 hardware support
-- Requires architecture and endianness detection, CMAKE example is :
+- Requires architecture and endianness detection, CMAKE example is:
 
 ```cmake
 ## Cmake
@@ -12,16 +12,19 @@ include(CheckCCompilerFlag)
 include (TestBigEndian)
 
 # Detect x86 and sse4.2 support
-check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
-if (${HAVE_CRC32_HARDWARE})
-  message(STATUS "CPU have -msse4.2, defined HAVE_CRC32C")
-  target_compile_options(${PROJECT_NAME}_test PRIVATE -msse4.2)
-  target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
+if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+    message(STATUS "System is x86_64")
+    check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
+    if (${HAVE_CRC32_HARDWARE})
+        message(STATUS "CPU have -msse4.2, defined HAVE_CRC32C")
+        target_compile_options(${PROJECT_NAME}_test PRIVATE -msse4.2)
+        target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
+    endif ()
 endif ()
 
 # Detect aarch64 and set march=armv8.1-a. armv7 doesn't have CRC32c instruction
 # so, armv7 will be unsupported with this flag. 
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
+if (CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64|aarch64")
   message(STATUS "CPU = aarch64, defined HAVE_CRC32C, -march=armv8.1-a")
   target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
   target_compile_options(${PROJECT_NAME}_test PRIVATE -march=armv8.1-a)
@@ -46,7 +49,7 @@ endif ()
 int main(int argc, char *argv[])
 {
     uint32_t crc;
-    const uint8_t buf[100] = {0};
+    const char buf[100] = {0};
 
     sc_crc32_init();
 
