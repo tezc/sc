@@ -41,9 +41,9 @@ if (SC_BUILD_TEST)
     add_executable(${PROJECT_NAME}_test crc32_test.c sc_crc32.c)
 
     # detect x86
-    check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
-    if (${HAVE_CRC32_HARDWARE})
-        if ("${CMAKE_SIZEOF_VOID_P}" EQUAL "8")
+    if (CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+        check_c_compiler_flag(-msse4.2 HAVE_CRC32_HARDWARE)
+        if (${HAVE_CRC32_HARDWARE})
             message(STATUS "CPU have -msse4.2, defined HAVE_CRC32C")
             target_compile_options(${PROJECT_NAME}_test PRIVATE -msse4.2)
             target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
@@ -51,7 +51,7 @@ if (SC_BUILD_TEST)
     endif ()
 
     # detect aarch64
-    if (CMAKE_SYSTEM_PROCESSOR STREQUAL aarch64)
+    if (CMAKE_SYSTEM_PROCESSOR STREQUAL "arm64|aarch64")
         message(STATUS "CPU = aarch64, defined HAVE_CRC32C, -march=armv8.1-a")
         target_compile_definitions(${PROJECT_NAME}_test PRIVATE -DHAVE_CRC32C)
         target_compile_options(${PROJECT_NAME}_test PRIVATE -march=armv8.1-a)
