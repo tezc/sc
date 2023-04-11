@@ -1666,8 +1666,8 @@ void *client_poll_add(void *arg)
 	if (rc == -1) {
 		if (errno != EAGAIN) {
 			printf("ERRORRRR :%d, %s \n", errno, strerror(errno));
+			assert(0);
 		}
-		assert(0);
 	}
 
 	// Sleep to make sure we started waiting on sc_sock_poll_wait() in the
