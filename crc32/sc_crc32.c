@@ -170,7 +170,7 @@ static void crc32_init_hw(void)
 	crc32_zeros(crc32c_short, CRC32_SHORT);
 }
 
-uint32_t crc32_hw(uint32_t crc, const uint8_t *buf, uint32_t len)
+uint32_t crc32_hw(uint32_t crc, const void *buf, size_t len)
 {
 	const unsigned char *next = buf;
 	const unsigned char *end;
@@ -420,7 +420,7 @@ static uint32_t crc32_sw_be(uint32_t crc, const void *buf, size_t len)
 #endif // HAVE_BIG_ENDIAN
 #endif
 
-uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len)
+uint32_t sc_crc32(uint32_t crc, const void *buf, size_t len)
 {
 #ifdef HAVE_CRC32C
 	return crc32_hw(crc, buf, len);

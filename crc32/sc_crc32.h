@@ -32,6 +32,7 @@
 #ifndef SC_CRC32_H
 #define SC_CRC32_H
 
+#include <stddef.h>
 #include <stdint.h>
 
 #define SC_CRC32_VERSION "2.0.0"
@@ -48,6 +49,6 @@ void sc_crc32_init(void);
  * @param len len
  * @return    crc value
  */
-uint32_t sc_crc32(uint32_t crc, const uint8_t *buf, uint32_t len);
+uint32_t sc_crc32(uint32_t crc, const void *buf, size_t len);
 
 #endif
