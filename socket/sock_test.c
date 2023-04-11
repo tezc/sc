@@ -1664,7 +1664,10 @@ void *client_poll_add(void *arg)
 	sc_sock_init(ps->clt, 0, false, SC_SOCK_INET);
 	rc = sc_sock_connect(ps->clt, "127.0.0.1", "11000", NULL, NULL);
 	if (rc == -1) {
-		assert(errno == EAGAIN);
+		if (errno != EAGAIN) {
+			printf("ERRORRRR :%d, %s \n", errno, strerror(errno));
+		}
+		assert(0);
 	}
 
 	// Sleep to make sure we started waiting on sc_sock_poll_wait() in the
