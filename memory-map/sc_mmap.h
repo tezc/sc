@@ -75,9 +75,9 @@ struct sc_mmap {
  *
  * @param m           mmap
  * @param name        file name
- * @param file_flags  flags for open(), e.g : O_RDWR | O_CREAT
- * @param prot        prot flags,       e.g : PROT_READ | PROT_WRITE
- * @param map_flags   mmap flags,       e.g : MAP_SHARED
+ * @param file_flags  flags for open(), e.g., O_RDWR | O_CREAT
+ * @param prot        prot flags,       e.g., PROT_READ | PROT_WRITE
+ * @param map_flags   mmap flags,       e.g., MAP_SHARED
  * @param offset      offset
  * @param len         len
  * @return            '0' on success, negative on failure,

@@ -106,7 +106,7 @@ void sc_log_set_stdout(bool enable);
 
 /**
  * Log files will be rotated. Latest logs will always be in the 'current_file'.
- * e.g sc_log_set_file("/tmp/log.0.txt", "/tmp/log-latest.txt");
+ * e.g., sc_log_set_file("/tmp/log.0.txt", "/tmp/log-latest.txt");
  *     To disable logging into file : sc_log_set_file(NULL, NULL);
  *
  * @param prev     file path for previous log file, 'NULL' to disable
@@ -123,7 +123,7 @@ void sc_log_set_callback(void *arg,
 			 int (*cb)(void *arg, enum sc_log_level level,
 				   const char *fmt, va_list va));
 
-// e.g : sc_log_error("Errno : %d, reason : %s", errno, strerror(errno));
+// e.g., sc_log_error("Errno : %d, reason : %s", errno, strerror(errno));
 #define sc_log_debug(...) (sc_log_log(SC_LOG_DEBUG, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_info(...) (sc_log_log(SC_LOG_INFO, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_warn(...) (sc_log_log(SC_LOG_WARN, sc_log_ap(__VA_ARGS__, "")))

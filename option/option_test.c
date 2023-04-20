@@ -93,8 +93,6 @@ void test3(void)
 void test4(void)
 {
 	char *value;
-
-	int argc = 2;
 	char *argv[] = {"program", "key=value"};
 
 	struct sc_option opt = {.argv = argv,
@@ -102,16 +100,8 @@ void test4(void)
 					 sizeof(struct sc_option_item),
 				.options = options};
 
-	for (int i = 1; i < argc; i++) {
-		char c = sc_option_at(&opt, i, &value);
-		switch (c) {
-		case '?':
-			break;
-		default:
-			assert(false);
-			break;
-		}
-	}
+	char c = sc_option_at(&opt, 1, &value);
+	assert(c == '?');
 }
 
 static struct sc_option_item options2[] = {{.letter = 's', .name = "sadsa"},
@@ -121,8 +111,6 @@ static struct sc_option_item options2[] = {{.letter = 's', .name = "sadsa"},
 void test5(void)
 {
 	char *value;
-
-	int argc = 2;
 	char *argv[] = {"program", "--key=value"};
 
 	struct sc_option opt = {.argv = argv,
@@ -130,22 +118,13 @@ void test5(void)
 					 sizeof(struct sc_option_item),
 				.options = options2};
 
-	for (int i = 1; i < argc; i++) {
-		char c = sc_option_at(&opt, i, &value);
-		switch (c) {
-		case '?':
-			break;
-		default:
-			assert(false);
-			break;
-		}
-	}
+	char c = sc_option_at(&opt, 1, &value);
+	assert(c == '?');
 }
 
 void test6(void)
 {
 	char *value;
-	int argc = 2;
 	char *argv[] = {"program", "-s"};
 
 	struct sc_option opt = {.argv = argv,
@@ -153,22 +132,13 @@ void test6(void)
 					 sizeof(struct sc_option_item),
 				.options = options};
 
-	for (int i = 1; i < argc; i++) {
-		char c = sc_option_at(&opt, i, &value);
-		switch (c) {
-		case 's':
-			break;
-		default:
-			assert(false);
-			break;
-		}
-	}
+	char c = sc_option_at(&opt, 1, &value);
+	assert(c == 's');
 }
 
 void test7(void)
 {
 	char *value;
-	int argc = 2;
 	char *argv[] = {"program", "-j"};
 
 	struct sc_option opt = {.argv = argv,
@@ -176,22 +146,13 @@ void test7(void)
 					 sizeof(struct sc_option_item),
 				.options = options};
 
-	for (int i = 1; i < argc; i++) {
-		char c = sc_option_at(&opt, i, &value);
-		switch (c) {
-		case '?':
-			break;
-		default:
-			assert(false);
-			break;
-		}
-	}
+	char c = sc_option_at(&opt, 1, &value);
+	assert(c == '?');
 }
 
 void test8(void)
 {
 	char *value;
-	int argc = 2;
 	char *argv[] = {"program", "-sx"};
 
 	struct sc_option opt = {.argv = argv,
@@ -199,16 +160,8 @@ void test8(void)
 					 sizeof(struct sc_option_item),
 				.options = options};
 
-	for (int i = 1; i < argc; i++) {
-		char c = sc_option_at(&opt, i, &value);
-		switch (c) {
-		case '?':
-			break;
-		default:
-			assert(false);
-			break;
-		}
-	}
+	char c = sc_option_at(&opt, 1, &value);
+	assert(c == '?');
 }
 
 int main(void)

@@ -85,7 +85,8 @@ void sc_timer_clear(struct sc_timer *t);
  * Add timer
  * 'timeout' is relative to latest 'timestamp' value given to the 'timer'.
  *
- * e.g sc_timer_init(&timer, 1000); // Current timestamp is 1000.
+ * e.g.,
+ *     sc_timer_init(&timer, 1000); // Current timestamp is 1000.
  *     sc_timer_add(&timer, arg, 10); // Timeout will be at 1010.
  *     sc_timer_timeout(&timer, 2000, arg, callback); // Timestamp is now 2000.
  *     sc_timer_add(&timer, arg, 10); // Timeout will be at 2010.
@@ -93,7 +94,7 @@ void sc_timer_clear(struct sc_timer *t);
  *
  * @param t       timer
  * @param timeout timeout value, this is relative to 'sc_timer_init's timer.
- *                e.g sc_timer_init(&timer, 10); // say, start time is 10
+ *                e.g., sc_timer_init(&timer, 10); // say, start time is 10
  * milliseconds
  * @param data    user data to pass into callback on 'sc_timer_timeout' call.
  * @param type    user data to pass into callback on 'sc_timer_timeout' call.
@@ -117,7 +118,8 @@ void sc_timer_cancel(struct sc_timer *t, uint64_t *id);
  *
  * Logical pattern is :
  *
- * e.g:
+ * e.g.,
+ *
  * struct sc_timer timer;
  * sc_timer_init(&timer, time_ms());
  * sc_timer_add(&timer, data, 100);

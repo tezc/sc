@@ -51,8 +51,8 @@ void sleep_ms(uint64_t milliseconds)
 	int rc;
 	struct timespec t;
 
-	t.tv_sec = milliseconds / 1000;
-	t.tv_nsec = (milliseconds % 1000) * 1000000;
+	t.tv_sec = (time_t) milliseconds / 1000;
+	t.tv_nsec = (time_t) (milliseconds % 1000) * 1000000;
 
 	do {
 		rc = nanosleep(&t, NULL);
@@ -96,7 +96,7 @@ void test1(void)
 		if (count == 0) {
 			break;
 		}
-		t -= n;
+		t -= (int) n;
 		sleep_ms(n);
 	}
 
@@ -120,7 +120,7 @@ void test1(void)
 		if (count == 0) {
 			break;
 		}
-		t -= n;
+		t -= (int) n;
 		sleep_ms(n);
 	}
 
@@ -153,7 +153,7 @@ void test2(void)
 			break;
 		}
 
-		t -= n;
+		t -= (int) n;
 		sleep_ms(n);
 	}
 
@@ -175,7 +175,7 @@ void test2(void)
 		if (count == 0) {
 			break;
 		}
-		t -= n;
+		t -= (int) n;
 		sleep_ms(n);
 	}
 
@@ -216,7 +216,7 @@ void test3(void)
 		if (count == 0) {
 			break;
 		}
-		t -= n;
+		t -= (int) n;
 		sleep_ms(n);
 	}
 
@@ -259,7 +259,7 @@ void test4(void)
 		if (count == 0) {
 			break;
 		}
-		t -= n;
+		t -= (int) n;
 		sleep_ms(n);
 	}
 

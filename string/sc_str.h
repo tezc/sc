@@ -48,7 +48,7 @@
 
 /**
  * length prefixed C strings, length is at the start of the allocated memory
- *  e.g :
+ *  e.g.,
  *  -----------------------------------------------
  *  | 0 | 0 | 0 | 4 | 'T' | 'E' | 'S' | 'T' | '\0'|
  *  -----------------------------------------------
@@ -173,7 +173,7 @@ bool sc_str_replace(char **str, const char *rep, const char *with);
  * but it is temporary. On each 'sc_str_token_begin' call, this function will
  * place '\0' character at the end of a token and put delimiter at the end of
  * the 'str'.
- * e.g user1-user2\0 after first iteration will be user1\0user2-
+ * e.g., user1-user2\0 after first iteration will be user1\0user2-
  *
  * sc_str_token_end() will fix original string if necessary.
  *

@@ -2,7 +2,7 @@
 
 Length prefixed C strings, length is at the start of the allocated memory
 
-    e.g :
+    e.g.,
     -----------------------------------------------
     | 0 | 0 | 0 | 4 | 'T' | 'E' | 'S' | 'T' | '\0'|
     -----------------------------------------------
@@ -13,7 +13,7 @@ Length prefixed C strings, length is at the start of the allocated memory
 
 ### Pros
 - User gets a null terminated `char*`, so it still works with c style string  
-  functions, e.g printf, strcmp.
+  functions, e.g., printf, strcmp.
 - This implementation is mostly about avoiding strlen() cost.  
   Provides a few more functions to make easier create/append/trim/substring  
   operations.

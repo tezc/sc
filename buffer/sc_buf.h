@@ -164,14 +164,14 @@ uint64_t sc_buf_size(struct sc_buf *b);
 void sc_buf_clear(struct sc_buf *b);
 
 /**
- * Compact buf, e.g if bytes in buffer at [3, 20], it will be moved to [0, 17].
+ * Compact buf, e.g., if bytes in buffer at [3, 9], it will be moved to [0, 6].
  * @param buf buf
  */
 void sc_buf_compact(struct sc_buf *b);
 
 /**
  * Advance read position, useful when you pass underlying array to another
- * function which operates on void*. e.g socket write() call.
+ * function which operates on void*. e.g., socket write() call.
  *
  * @param buf buf
  * @param len len
@@ -180,7 +180,7 @@ void sc_buf_mark_read(struct sc_buf *b, uint64_t len);
 
 /**
  * Advance read position, useful when you pass underlying array to another
- * function which operates on void*. e.g socket read() call.
+ * function which operates on void*. e.g., socket read() call.
  *
  * @param buf buf
  * @param len len
@@ -212,7 +212,7 @@ uint64_t sc_buf_wpos(struct sc_buf *b);
 void sc_buf_set_wpos(struct sc_buf *b, uint64_t pos);
 
 /**
- * Get address of read position. Useful for e.g : write(fd, sc_buf_rbuf(buf) ..)
+ * Get address of read position. Useful for: write(fd, sc_buf_rbuf(buf) ..)
  *
  * @param b   buffer
  * @return    read address
@@ -220,7 +220,7 @@ void sc_buf_set_wpos(struct sc_buf *b, uint64_t pos);
 void *sc_buf_rbuf(struct sc_buf *b);
 
 /**
- * Get address of write position. Useful for e.g : read(fd, sc_buf_wbuf(buf) ..)
+ * Get address of write position. Useful for: read(fd, sc_buf_wbuf(buf) ..)
  *
  * @param buf buf
  * @return    write address
@@ -350,7 +350,7 @@ void sc_buf_put_fmt(struct sc_buf *b, const char *fmt, ...);
  * Only useful if you want to append strings. It doesn't store string as length
  * prefixed string. So, only valid use case is :
  *
- * e.g
+ * e.g.,
  *
  * char tmp[128];
  * struct sc_buf buf = sc_buf_wrap(tmp, sizeof(tmp), SC_BUF_REF);
