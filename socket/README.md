@@ -1,4 +1,4 @@
-### Socket and networking for Linux, BSDs, MacOS and Windows
+### Socket and networking for Linux, BSDs, macOS and Windows
 
 ### Overview
 

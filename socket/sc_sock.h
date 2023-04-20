@@ -255,7 +255,7 @@ void sc_sock_print(struct sc_sock *s, char *buf, size_t len);
 
 /**
  * Linux only. Helper function make your application a daemon with systemd.
- * e.g
+ * e.g.,
  * sc_sock_notify_systemd("READY=1\n");           // Tell systemd app started
  * sc_sock_notify_systemd("STATUS=doing work\n"); // Tell systemd app doing sth
  * sc_sock_notify_systemd("STOPPING=1\n")       ; // Tell systemd app will stop
@@ -425,7 +425,7 @@ int sc_sock_poll_del(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 		     enum sc_sock_ev events, void *data);
 
 /**
- * e.g
+ * e.g.,
  *  int n = sc_sock_poll_wait(poll, 100);
  *  for (int i = 0; i < n; i++) {
  *      void *user_data = sc_sock_poll_data(poll, i);

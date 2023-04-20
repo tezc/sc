@@ -82,7 +82,7 @@ struct sc_uri {
  * Internally, it does a single allocation but each part is also represented as
  * NULL ended string.
  *
- * E.g :
+ * e.g.,
  *
  * struct sc_uri* uri;
  *

@@ -27,13 +27,13 @@ void test1(void)
 	assert(sc_is_pow2(1) == true);
 	assert(sc_is_pow2(3) == false);
 
-	x = sc_to_pow2(0);
+	x = (int64_t) sc_to_pow2(0);
 	assert(x == 1);
 	assert(sc_is_pow2(x) == true);
-	x = sc_to_pow2(1);
+	x = (int64_t) sc_to_pow2(1);
 	assert(x == 1);
 	assert(sc_is_pow2(x) == true);
-	x = sc_to_pow2(1023);
+	x = (int64_t) sc_to_pow2(1023);
 	assert(x == 1024);
 	assert(sc_is_pow2(x) == true);
 

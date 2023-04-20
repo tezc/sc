@@ -39,12 +39,12 @@
 #define SC_SIGNAL_VERSION "2.0.0"
 
 /**
- * Set shutdown fd here. When shutdown signal is received e.g SIGINT, SIGTERM.
+ * Set shutdown fd here. When shutdown signal is received e.g., SIGINT, SIGTERM.
  * Signal handler will write 1 byte to shutdown fd. So, your app can detect
  * shutdown command received and shutdown properly (Assuming you observe this fd
  * with select() like function). Before app shutdowns, if another shutdown
  * signal is received, _Exit() is called without waiting.
- * e.g CTRL+C to shutdown, twice CTRL+C means 'I don't want to wait anything'.
+ * e.g., CTRL+C to shutdown, twice CTRL+C means 'I don't want to wait anything'.
  */
 #if defined(_WIN32)
 #include <WinSock2.h>

@@ -8,7 +8,7 @@ Portable, stand-alone C libraries and data structures. (C99)
 Each folder is stand-alone with a single header/source pair in it. There is no  
 build for libraries, just copy files you want. 
 
-e.g If you want the logger, copy sc_log.h and sc_log.c to your project.
+e.g., If you want the logger, copy sc_log.h and sc_log.c to your project.
 
 #### Features
 

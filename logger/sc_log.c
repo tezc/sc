@@ -390,7 +390,7 @@ int sc_log_log(enum sc_log_level level, const char *fmt, ...)
 	int rc = 0;
 	va_list va;
 
-	// Use relaxed atomics to avoid locking cost, e.g DEBUG logs when
+	// Use relaxed atomics to avoid locking cost, e.g., DEBUG logs when
 	// level=INFO will get away without any synchronization on most
 	// platforms.
 #ifdef SC_ATOMIC
