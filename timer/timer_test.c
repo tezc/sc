@@ -46,7 +46,7 @@ uint64_t time_ms(void)
 void sleep_ms(uint64_t milliseconds)
 {
 #if defined(_WIN32) || defined(_WIN64)
-	Sleep(milliseconds);
+	Sleep((DWORD) milliseconds);
 #else
 	int rc;
 	struct timespec t;
@@ -89,7 +89,7 @@ void test1(void)
 	}
 
 	int t = 10000;
-	uint32_t n;
+	uint64_t n;
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
@@ -145,7 +145,7 @@ void test2(void)
 	sc_timer_clear(&timer);
 
 	int t = 10000;
-	uint32_t n;
+	uint64_t n;
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
@@ -209,7 +209,7 @@ void test3(void)
 	assert(count == 500);
 
 	int t = 10000;
-	uint32_t n;
+	uint64_t n;
 	while (t > 0) {
 		n = sc_timer_timeout(&timer, time_ms(),
 				     (void *) (uintptr_t) 333, callback);
@@ -250,7 +250,7 @@ void test4(void)
 	assert(count == 500);
 
 	int t = 10000;
-	uint32_t n;
+	uint64_t n;
 	int x = 0;
 	while (t > 0) {
 		x += 500;
