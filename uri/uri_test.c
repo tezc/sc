@@ -283,13 +283,18 @@ unsigned long int __wrap_strtoul(const char *nptr, char **endptr, int base)
 	return __real_strtoul(nptr, endptr, base);
 }
 
+int fail_second_call;
 int fail_snprintf;
 int __wrap_snprintf(char *str, size_t size, const char *format, ...)
 {
 	int rc;
 	va_list va;
 
-	if (!fail_snprintf) {
+	if (fail_second_call > 0) {
+		fail_second_call--;
+	}
+
+	if (fail_second_call > 0 || !fail_snprintf) {
 		va_start(va, format);
 		rc = vsnprintf(str, size, format, va);
 		va_end(va);
@@ -338,6 +343,16 @@ void fail_test(void)
 	fail_strtoul = 2;
 	assert(sc_uri_create("tcp://127.0.0.1:9000") == NULL);
 	fail_strtoul = 0;
+
+	fail_second_call = 2;
+	fail_snprintf = -1;
+	assert(sc_uri_create("tcp://127.0.0.1:9000") == NULL);
+	fail_second_call = 0;
+
+	fail_second_call = 2;
+	fail_snprintf = 1111;
+	assert(sc_uri_create("tcp://127.0.0.1:9000") == NULL);
+	fail_second_call = 0;
 }
 #else
 void fail_test()
