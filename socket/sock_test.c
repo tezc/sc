@@ -1468,6 +1468,8 @@ void test_poll_mask(void)
 	assert(rc == 0);
 	assert(srv.fdt.op == SC_SOCK_NONE);
 
+	sc_sock_poll_wait(&p, 1);
+
 	rc = sc_sock_poll_del(&p, &srv.fdt, SC_SOCK_READ | SC_SOCK_EDGE, &srv);
 	assert(rc == 0);
 
