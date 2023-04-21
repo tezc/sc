@@ -2038,8 +2038,8 @@ int main(void)
 	sock_fail_test3();
 	test_poll();
 	test_err();
-	test_poll_mass();
 	test_poll_mask();
+	test_poll_mass();
 	test_poll_edge();
 	test_poll_threadsafe();
 	test_poll_multithreaded_accept();
