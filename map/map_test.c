@@ -25,7 +25,7 @@ void example(void)
 
 void example_int_to_str(void)
 {
-	uint32_t key;
+	uint64_t key;
 	const char *value;
 	struct sc_map_64s map;
 
