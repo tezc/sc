@@ -98,6 +98,12 @@ void test_32(void)
 	sc_map_del_32(&map, 1);
 	assert(sc_map_found(&map) == false);
 
+	sc_map_get_32(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_32(&map, 0, 200);
+	assert(sc_map_get_32(&map, 0) == 200);
+	assert(sc_map_found(&map));
+
 	for (int i = 0; i < 14; i++) {
 		sc_map_put_32(&map, i, i);
 		assert(!sc_map_oom(&map));
@@ -156,6 +162,16 @@ void test_32(void)
 	assert(sc_map_found(&map));
 
 	sc_map_term_32(&map);
+
+	sc_map_init_32(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_32(&map) < 16) {
+			sc_map_put_32(&map, i, 1);
+		} else {
+			sc_map_del_32(&map, rand() % i);
+		}
+	}
+	sc_map_term_32(&map);
 }
 
 void test_64(void)
@@ -174,6 +190,12 @@ void test_64(void)
 
 	sc_map_del_64(&map, 1);
 	assert(!sc_map_found(&map));
+
+	sc_map_get_64(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_64(&map, 0, 200);
+	assert(sc_map_get_64(&map, 0) == 200);
+	assert(sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
 		sc_map_put_64(&map, i, i);
@@ -232,6 +254,16 @@ void test_64(void)
 	assert(sc_map_found(&map));
 
 	sc_map_term_64(&map);
+
+	sc_map_init_64(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_64(&map) < 16) {
+			sc_map_put_64(&map, i, 1);
+		} else {
+			sc_map_del_64(&map, rand() % i);
+		}
+	}
+	sc_map_term_64(&map);
 }
 
 void test_64v(void)
@@ -240,15 +272,28 @@ void test_64v(void)
 
 	assert(sc_map_init_64v(&map, 0, 0));
 	sc_map_term_64v(&map);
+
+	assert(sc_map_init_64v(&map, 0, 0));
+	sc_map_put_64v(&map, 1, NULL);
+	assert(sc_map_size_64v(&map) == 1);
+	sc_map_term_64v(&map);
+
 	assert(sc_map_init_64v(&map, 0, 1) == false);
 	assert(sc_map_init_64v(&map, 0, 99) == false);
 
 	assert(sc_map_init_64v(&map, 16, 94));
+
 	sc_map_del_64v(&map, 0);
-	assert(sc_map_found(&map) == false);
+	assert(!sc_map_found(&map));
 
 	sc_map_del_64v(&map, 1);
-	assert(sc_map_found(&map) == false);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_64v(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_64v(&map, 0, NULL);
+	assert(sc_map_get_64v(&map, 0) == NULL);
+	assert(sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
 		sc_map_put_64v(&map, i, NULL);
@@ -256,7 +301,7 @@ void test_64v(void)
 
 	for (int i = 100; i < 200; i++) {
 		sc_map_del_64v(&map, i);
-		assert(sc_map_found(&map) == false);
+		assert(!sc_map_found(&map));
 	}
 
 	sc_map_clear_64v(&map);
@@ -264,14 +309,13 @@ void test_64v(void)
 
 	for (int i = 0; i < 5; i++) {
 		sc_map_put_64v(&map, i, NULL);
-		assert(!sc_map_found(&map));
 	}
 	sc_map_put_64v(&map, 31, NULL);
 	sc_map_put_64v(&map, 15, NULL);
 	sc_map_put_64v(&map, 46, NULL);
 
 	sc_map_get_64v(&map, 19);
-	assert(sc_map_found(&map) == false);
+	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 5; i++) {
 		sc_map_put_64v(&map, (5 * i) + i, NULL);
@@ -308,6 +352,16 @@ void test_64v(void)
 	assert(sc_map_found(&map));
 
 	sc_map_term_64v(&map);
+
+	sc_map_init_64v(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_64v(&map) < 8) {
+			sc_map_put_64v(&map, i, NULL);
+		} else {
+			sc_map_del_64v(&map, rand() % i);
+		}
+	}
+	sc_map_term_64v(&map);
 }
 
 void test_64s(void)
@@ -321,10 +375,16 @@ void test_64s(void)
 
 	assert(sc_map_init_64s(&map, 16, 94));
 	sc_map_del_64s(&map, 0);
-	assert(!sc_map_found(&map));
+	assert(sc_map_found(&map) == false);
 
 	sc_map_del_64s(&map, 1);
+	assert(sc_map_found(&map) == false);
+
+	sc_map_get_64s(&map, 0);
 	assert(!sc_map_found(&map));
+	sc_map_put_64s(&map, 0, NULL);
+	assert(sc_map_get_64s(&map, 0) == NULL);
+	assert(sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
 		sc_map_put_64s(&map, i, NULL);
@@ -332,7 +392,7 @@ void test_64s(void)
 
 	for (int i = 100; i < 200; i++) {
 		sc_map_del_64s(&map, i);
-		assert(!sc_map_found(&map));
+		assert(sc_map_found(&map) == false);
 	}
 
 	sc_map_clear_64s(&map);
@@ -340,6 +400,7 @@ void test_64s(void)
 
 	for (int i = 0; i < 5; i++) {
 		sc_map_put_64s(&map, i, NULL);
+		assert(!sc_map_found(&map));
 	}
 	sc_map_put_64s(&map, 31, NULL);
 	sc_map_put_64s(&map, 15, NULL);
@@ -382,6 +443,16 @@ void test_64s(void)
 	sc_map_del_64s(&map, 48);
 	assert(sc_map_found(&map));
 
+	sc_map_term_64s(&map);
+
+	sc_map_init_64s(&map, 2, 0);
+	for (int i = 0; i < 10000000; i++) {
+		if (sc_map_size_64s(&map) < 8) {
+			sc_map_put_64s(&map, i, NULL);
+		} else {
+			sc_map_del_64s(&map, rand() % i);
+		}
+	}
 	sc_map_term_64s(&map);
 }
 
