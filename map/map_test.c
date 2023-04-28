@@ -2451,7 +2451,7 @@ void fail_test_intv(void)
 	sc_map_put_intv(&map, 44444, NULL);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
-		sc_map_put_intv(&map, (long long) i, NULL);
+		sc_map_put_intv(&map, (int) i, NULL);
 	}
 	assert(sc_map_oom(&map));
 	fail_calloc = false;
@@ -2559,7 +2559,7 @@ void fail_test_ints(void)
 	sc_map_put_ints(&map, 44444, NULL);
 
 	for (size_t i = 0; i < SC_MAP_MAX; i++) {
-		sc_map_put_ints(&map, (long long) i, NULL);
+		sc_map_put_ints(&map, i, NULL);
 	}
 	assert(sc_map_oom(&map));
 	fail_calloc = false;
@@ -2833,6 +2833,15 @@ void fail_test_sll(void)
 }
 
 #else
+void fail_test_int(void)
+{
+}
+void fail_test_intv(void)
+{
+}
+void fail_test_ints(void)
+{
+}
 void fail_test_ll(void)
 {
 }
