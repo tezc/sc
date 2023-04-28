@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
+#define ITEM_COUNT 10000
+
 void example(void)
 {
 	const char *key, *value;
@@ -27,20 +29,20 @@ void example_int_to_str(void)
 {
 	uint32_t key;
 	const char *value;
-	struct sc_map_64s map;
+	struct sc_map_ints map;
 
-	sc_map_init_64s(&map, 0, 0);
+	sc_map_init_ints(&map, 0, 0);
 
-	sc_map_put_64s(&map, 100, "chicago");
-	sc_map_put_64s(&map, 200, "new york");
-	sc_map_put_64s(&map, 300, "atlanta");
+	sc_map_put_ints(&map, 100, "chicago");
+	sc_map_put_ints(&map, 200, "new york");
+	sc_map_put_ints(&map, 300, "atlanta");
 
-	value = sc_map_get_64s(&map, 200);
+	value = sc_map_get_ints(&map, 200);
 	if (sc_map_found(&map)) {
 		printf("Found Value:[%s] \n", value);
 	}
 
-	value = sc_map_del_64s(&map, 100);
+	value = sc_map_del_ints(&map, 100);
 	if (sc_map_found(&map)) {
 		printf("Deleted : %s \n", value);
 	}
@@ -49,17 +51,17 @@ void example_int_to_str(void)
 		printf("Key:[%d], Value:[%s] \n", key, value);
 	}
 
-	value = sc_map_del_64s(&map, 200);
+	value = sc_map_del_ints(&map, 200);
 	if (sc_map_found(&map)) {
 		printf("Found : %s \n", value);
 	}
 
-	value = sc_map_put_64s(&map, 300, "los angeles");
+	value = sc_map_put_ints(&map, 300, "los angeles");
 	if (sc_map_found(&map)) {
 		printf("overridden : %s \n", value);
 	}
 
-	sc_map_term_64s(&map);
+	sc_map_term_ints(&map);
 }
 
 static char *str_random(size_t size)
@@ -81,8 +83,676 @@ static char *str_random(size_t size)
 	return dest;
 }
 
+void test_ll(void)
+{
+	srand(2132132131);
+
+	struct sc_map_ll map;
+
+	assert(sc_map_init_ll(&map, 0, 0));
+	sc_map_term_ll(&map);
+	assert(sc_map_init_ll(&map, 0, 1) == false);
+	assert(sc_map_init_ll(&map, 0, 99) == false);
+
+	assert(sc_map_init_ll(&map, 16, 94));
+
+	sc_map_del_ll(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_ll(&map, 1);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_ll(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_ll(&map, 0, 500);
+	assert(sc_map_get_ll(&map, 0) == 500);
+	assert(sc_map_found(&map));
+
+	for (int i = 0; i < 14; i++) {
+		sc_map_put_ll(&map, i,  i);
+	}
+
+	for (int i = 100; i < 200; i++) {
+		sc_map_del_ll(&map, i);
+		assert(!sc_map_found(&map));
+	}
+
+	sc_map_clear_ll(&map);
+	sc_map_clear_ll(&map);
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_ll(&map, i, i);
+	}
+	sc_map_put_ll(&map, 31, 15);
+	sc_map_put_ll(&map, 15, 15);
+	sc_map_put_ll(&map, 46, 15);
+
+	sc_map_get_ll(&map, 19);
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_ll(&map, (5 * i) + i, i);
+	}
+
+	sc_map_del_ll(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ll(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ll(&map, 15);
+	assert(sc_map_found(&map));
+
+	sc_map_clear_ll(&map);
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_ll(&map, 16 * i, i);
+	}
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_ll(&map, 1024 * i, i);
+	}
+
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_ll(&map, 512 * i, i);
+	}
+
+	sc_map_del_ll(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ll(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ll(&map, 48);
+	assert(sc_map_found(&map));
+
+	sc_map_term_ll(&map);
+
+	sc_map_init_ll(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_ll(&map) < 16) {
+			sc_map_put_ll(&map, i, 1);
+		} else {
+			sc_map_del_ll(&map, rand() % i);
+		}
+	}
+	sc_map_term_ll(&map);
+
+	long long items[ITEM_COUNT] = {0};
+	uint32_t item_count = 0;
+	long long ret;
+
+	sc_map_init_ll(&map, 2, 0);
+	for (int i = 0; i < 10000000; i++) {
+		assert(sc_map_size_ll(&map) == item_count);
+
+		int pos = i % ITEM_COUNT;
+
+		if (rand() % 6719 == 0) {
+			for (int j = 0; j < ITEM_COUNT; j++) {
+				if (items[j] != 0) {
+					assert(sc_map_get_ll(&map, j) == items[j]);
+				}
+			}
+			sc_map_term_ll(&map);
+			assert(sc_map_init_ll(&map, pos, 25 + (i % 70)));
+			item_count = 0;
+			memset(items, 0, sizeof(items));
+		}
+
+		int x = rand() % 3;
+
+		switch (x) {
+		case 0:
+			ret = sc_map_put_ll(&map, pos, i * 33);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+			} else {
+				item_count++;
+			}
+			items[pos] = i * 33;
+			break;
+		case 1:
+			ret = sc_map_del_ll(&map, pos);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+				item_count--;
+			}
+			items[pos] = 0;
+			break;
+		case 2:
+			ret = sc_map_get_ll(&map, pos);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+			}
+		}
+	}
+	sc_map_term_ll(&map);
+}
+
+void test_int(void)
+{
+	srand(2132132131);
+
+	struct sc_map_int map;
+
+	assert(sc_map_init_int(&map, 0, 0));
+	sc_map_term_int(&map);
+	assert(sc_map_init_int(&map, 0, 1) == false);
+	assert(sc_map_init_int(&map, 0, 99) == false);
+
+	assert(sc_map_init_int(&map, 16, 94));
+
+	sc_map_del_int(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_int(&map, 1);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_int(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_int(&map, 0, 500);
+	assert(sc_map_get_int(&map, 0) == 500);
+	assert(sc_map_found(&map));
+
+	for (int i = 0; i < 14; i++) {
+		sc_map_put_int(&map, i,  i);
+	}
+
+	for (int i = 100; i < 200; i++) {
+		sc_map_del_int(&map, i);
+		assert(!sc_map_found(&map));
+	}
+
+	sc_map_clear_int(&map);
+	sc_map_clear_int(&map);
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_int(&map, i, i);
+	}
+	sc_map_put_int(&map, 31, 15);
+	sc_map_put_int(&map, 15, 15);
+	sc_map_put_int(&map, 46, 15);
+
+	sc_map_get_int(&map, 19);
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_int(&map, (5 * i) + i, i);
+	}
+
+	sc_map_del_int(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_int(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_int(&map, 15);
+	assert(sc_map_found(&map));
+
+	sc_map_clear_int(&map);
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_int(&map, 16 * i, i);
+	}
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_int(&map, 1024 * i, i);
+	}
+
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_int(&map, 512 * i, i);
+	}
+
+	sc_map_del_int(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_int(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_int(&map, 48);
+	assert(sc_map_found(&map));
+
+	sc_map_term_int(&map);
+
+	sc_map_init_int(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_int(&map) < 16) {
+			sc_map_put_int(&map, i, 1);
+		} else {
+			sc_map_del_int(&map, rand() % i);
+		}
+	}
+	sc_map_term_int(&map);
+
+	long long items[ITEM_COUNT] = {0};
+	uint32_t item_count = 0;
+	long long ret;
+
+	sc_map_init_int(&map, 2, 0);
+	for (int i = 0; i < 10000000; i++) {
+		assert(sc_map_size_int(&map) == item_count);
+
+		int pos = i % ITEM_COUNT;
+
+		if (rand() % 6719 == 0) {
+			for (int j = 0; j < ITEM_COUNT; j++) {
+				if (items[j] != 0) {
+					assert(sc_map_get_int(&map, j) == items[j]);
+				}
+			}
+			sc_map_term_int(&map);
+			assert(sc_map_init_int(&map, pos, 25 + (i % 70)));
+			item_count = 0;
+			memset(items, 0, sizeof(items));
+		}
+
+		int x = rand() % 3;
+
+		switch (x) {
+		case 0:
+			ret = sc_map_put_int(&map, pos, i * 33);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+			} else {
+				item_count++;
+			}
+			items[pos] = i * 33;
+			break;
+		case 1:
+			ret = sc_map_del_int(&map, pos);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+				item_count--;
+			}
+			items[pos] = 0;
+			break;
+		case 2:
+			ret = sc_map_get_int(&map, pos);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+			}
+		}
+	}
+	sc_map_term_int(&map);
+}
+
+void test_intv(void)
+{
+	struct sc_map_intv map;
+
+	srand(2132132131);
+
+	assert(sc_map_init_intv(&map, 0, 0));
+	sc_map_term_intv(&map);
+	assert(sc_map_init_intv(&map, 0, 1) == false);
+	assert(sc_map_init_intv(&map, 0, 99) == false);
+
+	assert(sc_map_init_intv(&map, 16, 94));
+
+	sc_map_del_intv(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_intv(&map, 1);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_intv(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_intv(&map, 0, (void*) (uintptr_t) (500));
+	assert(sc_map_get_intv(&map, 0) == (void*) (uintptr_t) (500));
+	assert(sc_map_found(&map));
+
+	for (int i = 0; i < 14; i++) {
+		sc_map_put_intv(&map, i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 100; i < 200; i++) {
+		sc_map_del_intv(&map, i);
+		assert(!sc_map_found(&map));
+	}
+
+	sc_map_clear_intv(&map);
+	sc_map_clear_intv(&map);
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_intv(&map, i, (void*) (uintptr_t) i);
+	}
+	sc_map_put_intv(&map, 31, (void*) (uintptr_t) 15);
+	sc_map_put_intv(&map, 15, (void*) (uintptr_t) 15);
+	sc_map_put_intv(&map, 46, (void*) (uintptr_t) 15);
+
+	sc_map_get_intv(&map, 19);
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_intv(&map, (5 * i) + i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_intv(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_intv(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_intv(&map, 15);
+	assert(sc_map_found(&map));
+
+	sc_map_clear_intv(&map);
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_intv(&map, 16 * i, (void*) (uintptr_t) i);
+	}
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_intv(&map, 1024 * i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_intv(&map, 512 * i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_intv(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_intv(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_intv(&map, 48);
+	assert(sc_map_found(&map));
+
+	sc_map_term_intv(&map);
+
+	sc_map_init_intv(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_intv(&map) < 16) {
+			sc_map_put_intv(&map, i, (void*) (uintptr_t) 1);
+		} else {
+			sc_map_del_intv(&map, rand() % i);
+		}
+	}
+	sc_map_term_intv(&map);
+}
+
+void test_ints(void)
+{
+	srand(2132132131);
+
+	struct sc_map_ints map;
+
+	assert(sc_map_init_ints(&map, 0, 0));
+	sc_map_term_ints(&map);
+	assert(sc_map_init_ints(&map, 0, 1) == false);
+	assert(sc_map_init_ints(&map, 0, 99) == false);
+
+	assert(sc_map_init_ints(&map, 16, 94));
+
+	sc_map_del_ints(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_ints(&map, 1);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_ints(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_ints(&map, 0, (void*) (uintptr_t) (500));
+	assert(sc_map_get_ints(&map, 0) == (void*) (uintptr_t) (500));
+	assert(sc_map_found(&map));
+
+	for (int i = 0; i < 14; i++) {
+		sc_map_put_ints(&map, i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 100; i < 200; i++) {
+		sc_map_del_ints(&map, i);
+		assert(!sc_map_found(&map));
+	}
+
+	sc_map_clear_ints(&map);
+	sc_map_clear_ints(&map);
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_ints(&map, i, (void*) (uintptr_t) i);
+	}
+	sc_map_put_ints(&map, 31, (void*) (uintptr_t) 15);
+	sc_map_put_ints(&map, 15, (void*) (uintptr_t) 15);
+	sc_map_put_ints(&map, 46, (void*) (uintptr_t) 15);
+
+	sc_map_get_ints(&map, 19);
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_ints(&map, (5 * i) + i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_ints(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ints(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ints(&map, 15);
+	assert(sc_map_found(&map));
+
+	sc_map_clear_ints(&map);
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_ints(&map, 16 * i, (void*) (uintptr_t) i);
+	}
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_ints(&map, 1024 * i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_ints(&map, 512 * i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_ints(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ints(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_ints(&map, 48);
+	assert(sc_map_found(&map));
+
+	sc_map_term_ints(&map);
+
+	sc_map_init_ints(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_ints(&map) < 16) {
+			sc_map_put_ints(&map, i, (void*) (uintptr_t) 1);
+		} else {
+			sc_map_del_ints(&map, rand() % i);
+		}
+	}
+	sc_map_term_ints(&map);
+}
+
+void test_llv(void)
+{
+	struct sc_map_llv map;
+
+	srand(2132132131);
+
+	assert(sc_map_init_llv(&map, 0, 0));
+	sc_map_term_llv(&map);
+	assert(sc_map_init_llv(&map, 0, 1) == false);
+	assert(sc_map_init_llv(&map, 0, 99) == false);
+
+	assert(sc_map_init_llv(&map, 16, 94));
+
+	sc_map_del_llv(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_llv(&map, 1);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_llv(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_llv(&map, 0, (void*) (uintptr_t) (500));
+	assert(sc_map_get_llv(&map, 0) == (void*) (uintptr_t) (500));
+	assert(sc_map_found(&map));
+
+	for (int i = 0; i < 14; i++) {
+		sc_map_put_llv(&map, i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 100; i < 200; i++) {
+		sc_map_del_llv(&map, i);
+		assert(!sc_map_found(&map));
+	}
+
+	sc_map_clear_llv(&map);
+	sc_map_clear_llv(&map);
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_llv(&map, i, (void*) (uintptr_t) i);
+	}
+	sc_map_put_llv(&map, 31, (void*) (uintptr_t) 15);
+	sc_map_put_llv(&map, 15, (void*) (uintptr_t) 15);
+	sc_map_put_llv(&map, 46, (void*) (uintptr_t) 15);
+
+	sc_map_get_llv(&map, 19);
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_llv(&map, (5 * i) + i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_llv(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_llv(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_llv(&map, 15);
+	assert(sc_map_found(&map));
+
+	sc_map_clear_llv(&map);
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_llv(&map, 16 * i, (void*) (uintptr_t) i);
+	}
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_llv(&map, 1024 * i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_llv(&map, 512 * i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_llv(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_llv(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_llv(&map, 48);
+	assert(sc_map_found(&map));
+
+	sc_map_term_llv(&map);
+
+	sc_map_init_llv(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_llv(&map) < 16) {
+			sc_map_put_llv(&map, i, (void*) (uintptr_t) 1);
+		} else {
+			sc_map_del_llv(&map, rand() % i);
+		}
+	}
+	sc_map_term_llv(&map);
+}
+
+void test_lls(void)
+{
+	srand(2132132131);
+
+	struct sc_map_lls map;
+
+	assert(sc_map_init_lls(&map, 0, 0));
+	sc_map_term_lls(&map);
+	assert(sc_map_init_lls(&map, 0, 1) == false);
+	assert(sc_map_init_lls(&map, 0, 99) == false);
+
+	assert(sc_map_init_lls(&map, 16, 94));
+
+	sc_map_del_lls(&map, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_lls(&map, 1);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_lls(&map, 0);
+	assert(!sc_map_found(&map));
+	sc_map_put_lls(&map, 0, (void*) (uintptr_t) (500));
+	assert(sc_map_get_lls(&map, 0) == (void*) (uintptr_t) (500));
+	assert(sc_map_found(&map));
+
+	for (int i = 0; i < 14; i++) {
+		sc_map_put_lls(&map, i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 100; i < 200; i++) {
+		sc_map_del_lls(&map, i);
+		assert(!sc_map_found(&map));
+	}
+
+	sc_map_clear_lls(&map);
+	sc_map_clear_lls(&map);
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_lls(&map, i, (void*) (uintptr_t) i);
+	}
+	sc_map_put_lls(&map, 31, (void*) (uintptr_t) 15);
+	sc_map_put_lls(&map, 15, (void*) (uintptr_t) 15);
+	sc_map_put_lls(&map, 46, (void*) (uintptr_t) 15);
+
+	sc_map_get_lls(&map, 19);
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_lls(&map, (5 * i) + i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_lls(&map, 4);
+	assert(sc_map_found(&map));
+
+	sc_map_del_lls(&map, 46);
+	assert(sc_map_found(&map));
+
+	sc_map_del_lls(&map, 15);
+	assert(sc_map_found(&map));
+
+	sc_map_clear_lls(&map);
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_lls(&map, 16 * i, (void*) (uintptr_t) i);
+	}
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_lls(&map, 1024 * i, (void*) (uintptr_t) i);
+	}
+
+	for (int i = 1; i < 4; i++) {
+		sc_map_put_lls(&map, 512 * i, (void*) (uintptr_t) i);
+	}
+
+	sc_map_del_lls(&map, 512);
+	assert(sc_map_found(&map));
+
+	sc_map_del_lls(&map, 1024);
+	assert(sc_map_found(&map));
+
+	sc_map_del_lls(&map, 48);
+	assert(sc_map_found(&map));
+
+	sc_map_term_lls(&map);
+
+	sc_map_init_lls(&map, 2, 0);
+	for (int i = 0; i < 1000000; i++) {
+		if (sc_map_size_lls(&map) < 16) {
+			sc_map_put_lls(&map, i, (void*) (uintptr_t) 1);
+		} else {
+			sc_map_del_lls(&map, rand() % i);
+		}
+	}
+	sc_map_term_lls(&map);
+}
+
 void test_32(void)
 {
+	srand(2132132131);
+
 	struct sc_map_32 map;
 
 	assert(sc_map_init_32(&map, 0, 0));
@@ -176,6 +846,8 @@ void test_32(void)
 
 void test_64(void)
 {
+	srand(2132132131);
+
 	struct sc_map_64 map;
 
 	assert(sc_map_init_64(&map, 0, 0));
@@ -268,16 +940,15 @@ void test_64(void)
 
 void test_64v(void)
 {
+	srand(2132132131);
+
 	struct sc_map_64v map;
 
 	assert(sc_map_init_64v(&map, 0, 0));
 	sc_map_term_64v(&map);
-
 	assert(sc_map_init_64v(&map, 0, 0));
 	sc_map_put_64v(&map, 1, NULL);
-	assert(sc_map_size_64v(&map) == 1);
 	sc_map_term_64v(&map);
-
 	assert(sc_map_init_64v(&map, 0, 1) == false);
 	assert(sc_map_init_64v(&map, 0, 99) == false);
 
@@ -291,12 +962,12 @@ void test_64v(void)
 
 	sc_map_get_64v(&map, 0);
 	assert(!sc_map_found(&map));
-	sc_map_put_64v(&map, 0, NULL);
-	assert(sc_map_get_64v(&map, 0) == NULL);
+	sc_map_put_64v(&map, 0, (void*) (uintptr_t) (500));
+	assert(sc_map_get_64v(&map, 0) == (void*) (uintptr_t) (500));
 	assert(sc_map_found(&map));
 
 	for (int i = 0; i < 14; i++) {
-		sc_map_put_64v(&map, i, NULL);
+		sc_map_put_64v(&map, i, (void*) (uintptr_t) i);
 	}
 
 	for (int i = 100; i < 200; i++) {
@@ -308,17 +979,17 @@ void test_64v(void)
 	sc_map_clear_64v(&map);
 
 	for (int i = 0; i < 5; i++) {
-		sc_map_put_64v(&map, i, NULL);
+		sc_map_put_64v(&map, i, (void*) (uintptr_t) i);
 	}
-	sc_map_put_64v(&map, 31, NULL);
-	sc_map_put_64v(&map, 15, NULL);
-	sc_map_put_64v(&map, 46, NULL);
+	sc_map_put_64v(&map, 31, (void*) (uintptr_t) 15);
+	sc_map_put_64v(&map, 15, (void*) (uintptr_t) 15);
+	sc_map_put_64v(&map, 46, (void*) (uintptr_t) 15);
 
 	sc_map_get_64v(&map, 19);
 	assert(!sc_map_found(&map));
 
 	for (int i = 0; i < 5; i++) {
-		sc_map_put_64v(&map, (5 * i) + i, NULL);
+		sc_map_put_64v(&map, (5 * i) + i, (void*) (uintptr_t) i);
 	}
 
 	sc_map_del_64v(&map, 4);
@@ -332,14 +1003,14 @@ void test_64v(void)
 
 	sc_map_clear_64v(&map);
 	for (int i = 1; i < 4; i++) {
-		sc_map_put_64v(&map, 16 * i, NULL);
+		sc_map_put_64v(&map, 16 * i, (void*) (uintptr_t) i);
 	}
 	for (int i = 1; i < 4; i++) {
-		sc_map_put_64v(&map, 1024 * i, NULL);
+		sc_map_put_64v(&map, 1024 * i, (void*) (uintptr_t) i);
 	}
 
 	for (int i = 1; i < 4; i++) {
-		sc_map_put_64v(&map, 512 * i, NULL);
+		sc_map_put_64v(&map, 512 * i, (void*) (uintptr_t) i);
 	}
 
 	sc_map_del_64v(&map, 512);
@@ -355,10 +1026,61 @@ void test_64v(void)
 
 	sc_map_init_64v(&map, 2, 0);
 	for (int i = 0; i < 1000000; i++) {
-		if (sc_map_size_64v(&map) < 8) {
-			sc_map_put_64v(&map, i, NULL);
+		if (sc_map_size_64v(&map) < 16) {
+			sc_map_put_64v(&map, i, (void*) (uintptr_t) 1);
 		} else {
 			sc_map_del_64v(&map, rand() % i);
+		}
+	}
+	sc_map_term_64v(&map);
+
+	void *items[ITEM_COUNT] = {0};
+	uint32_t item_count = 0;
+	void *ret;
+
+	sc_map_init_64v(&map, 2, 0);
+	for (int i = 0; i < 10000000; i++) {
+		assert(sc_map_size_64v(&map) == item_count);
+
+		int pos = i % ITEM_COUNT;
+
+		if (rand() % 6719 == 0) {
+			for (int j = 0; j < ITEM_COUNT; j++) {
+				if (items[j] != 0) {
+					assert(sc_map_get_64v(&map, j) == items[j]);
+				}
+			}
+			sc_map_term_64v(&map);
+			assert(sc_map_init_64v(&map, pos, 25 + (i % 70)));
+			item_count = 0;
+			memset(items, 0, sizeof(items));
+		}
+
+		int x = rand() % 3;
+
+		switch (x) {
+		case 0:
+			ret = sc_map_put_64v(&map, pos, (void*) (uintptr_t) (i * 33));
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+			} else {
+				item_count++;
+			}
+			items[pos] = (void*) (uintptr_t) (i * 33);
+			break;
+		case 1:
+			ret = sc_map_del_64v(&map, pos);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+				item_count--;
+			}
+			items[pos] = 0;
+			break;
+		case 2:
+			ret = sc_map_get_64v(&map, pos);
+			if (items[pos] != 0) {
+				assert(ret = items[pos]);
+			}
 		}
 	}
 	sc_map_term_64v(&map);
@@ -366,6 +1088,8 @@ void test_64v(void)
 
 void test_64s(void)
 {
+	srand(2132132131);
+
 	struct sc_map_64s map;
 
 	assert(sc_map_init_64s(&map, 0, 0));
@@ -458,6 +1182,8 @@ void test_64s(void)
 
 void test_str(void)
 {
+	srand(2132132131);
+
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
 	struct sc_map_str map;
@@ -563,6 +1289,8 @@ void test_str(void)
 
 void test_sv(void)
 {
+	srand(2132132131);
+
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
 	struct sc_map_sv map;
@@ -666,6 +1394,8 @@ void test_sv(void)
 
 void test_s64(void)
 {
+	srand(2132132131);
+
 	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
 			  "ghijklmnoprstuvyz";
 	struct sc_map_s64 map;
@@ -770,6 +1500,116 @@ void test_s64(void)
 	assert(sc_map_found(&map));
 
 	sc_map_term_s64(&map);
+}
+
+void test_sll(void)
+{
+	srand(2132132131);
+
+	const char *arr = "abcdefghijklmnoprstuvyzabcdefghijklmnoprstuvyzabcdef"
+			  "ghijklmnoprstuvyz";
+	struct sc_map_sll map;
+
+	assert(sc_map_init_sll(&map, 0, 0));
+	sc_map_term_sll(&map);
+	assert(sc_map_init_sll(&map, 0, 1) == false);
+	assert(sc_map_init_sll(&map, 0, 99) == false);
+
+	assert(sc_map_init_sll(&map, 16, 94));
+	sc_map_del_sll(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_del_sll(&map, "");
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 14; i++) {
+		sc_map_put_sll(&map, &arr[i], 0);
+	}
+
+	for (int i = 15; i < 30; i++) {
+		sc_map_del_sll(&map, &arr[i]);
+		assert(!sc_map_found(&map));
+	}
+
+	sc_map_clear_sll(&map);
+	sc_map_clear_sll(&map);
+
+	sc_map_put_sll(&map, "h", 0);
+	sc_map_put_sll(&map, "z", 0);
+
+	sc_map_get_sll(&map, "13");
+	assert(!sc_map_found(&map));
+
+	sc_map_get_sll(&map, NULL);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_sll(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_get_sll(&map, "z");
+	assert(sc_map_found(&map));
+
+	sc_map_get_sll(&map, "x");
+	assert(!sc_map_found(&map));
+
+	sc_map_put_sll(&map, NULL, 0);
+	assert(!sc_map_found(&map));
+
+	sc_map_get_sll(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sll(&map, NULL);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sll(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_del_sll(&map, "13");
+	assert(!sc_map_found(&map));
+	sc_map_clear_sll(&map);
+	assert(sc_map_size_sll(&map) == 0);
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_sll(&map, &arr[i], 0);
+	}
+	sc_map_put_sll(&map, &arr[15], 0);
+	sc_map_put_sll(&map, &arr[7], 0);
+	sc_map_put_sll(&map, &arr[9], 0);
+
+	assert(!sc_map_oom(&map));
+
+	sc_map_get_sll(&map, &arr[16]);
+	assert(!sc_map_found(&map));
+
+	for (int i = 0; i < 5; i++) {
+		sc_map_put_sll(&map, &arr[(5 * i) + i], 0);
+		assert(!sc_map_oom(&map));
+	}
+
+	sc_map_del_sll(&map, &arr[4]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sll(&map, &arr[6]);
+	assert(sc_map_found(&map));
+
+	sc_map_del_sll(&map, &arr[15]);
+	assert(sc_map_found(&map));
+
+	sc_map_clear_sll(&map);
+	sc_map_put_sll(&map, "h", 0);
+	sc_map_put_sll(&map, "z", 0);
+	sc_map_del_sll(&map, "h");
+	assert(sc_map_found(&map));
+
+	sc_map_clear_sll(&map);
+
+	sc_map_put_sll(&map, "h", 0);
+	sc_map_put_sll(&map, "z", 0);
+	sc_map_put_sll(&map, "13", 0);
+	sc_map_del_sll(&map, "z");
+	assert(sc_map_found(&map));
+
+	sc_map_term_sll(&map);
 }
 
 void test0(void)
@@ -1565,6 +2405,168 @@ void *__wrap_calloc(size_t n, size_t size)
 	return __real_calloc(n, size);
 }
 
+void fail_test_int(void)
+{
+	struct sc_map_int map;
+
+	fail_calloc = true;
+	assert(!sc_map_init_int(&map, 10, 0));
+	fail_calloc = false;
+	assert(sc_map_init_int(&map, 10, 0));
+
+	fail_calloc = true;
+
+	for (int i = 0; i < 20; i++) {
+		sc_map_put_int(&map, i, i);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+	sc_map_put_int(&map, 44444, 44444);
+
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
+		sc_map_put_int(&map, (long long) i, (long long)i);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+
+	sc_map_term_int(&map);
+}
+
+void fail_test_intv(void)
+{
+	struct sc_map_intv map;
+
+	fail_calloc = true;
+	assert(!sc_map_init_intv(&map, 10, 0));
+	fail_calloc = false;
+	assert(sc_map_init_intv(&map, 10, 0));
+
+	fail_calloc = true;
+
+	for (int i = 0; i < 20; i++) {
+		sc_map_put_intv(&map, i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+	sc_map_put_intv(&map, 44444, NULL);
+
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
+		sc_map_put_intv(&map, (int) i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+
+	sc_map_term_intv(&map);
+}
+
+void fail_test_lls(void)
+{
+	struct sc_map_lls map;
+
+	fail_calloc = true;
+	assert(!sc_map_init_lls(&map, 10, 0));
+	fail_calloc = false;
+	assert(sc_map_init_lls(&map, 10, 0));
+
+	fail_calloc = true;
+
+	for (int i = 0; i < 20; i++) {
+		sc_map_put_lls(&map, i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+	sc_map_put_lls(&map, 44444, NULL);
+
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
+		sc_map_put_lls(&map, (long long) i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+
+	sc_map_term_lls(&map);
+}
+
+void fail_test_ll(void)
+{
+	struct sc_map_ll map;
+
+	fail_calloc = true;
+	assert(!sc_map_init_ll(&map, 10, 0));
+	fail_calloc = false;
+	assert(sc_map_init_ll(&map, 10, 0));
+
+	fail_calloc = true;
+
+	for (int i = 0; i < 20; i++) {
+		sc_map_put_ll(&map, i, i);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+	sc_map_put_ll(&map, 44444, 44444);
+
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
+		sc_map_put_ll(&map, (long long) i, (long long)i);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+
+	sc_map_term_ll(&map);
+}
+
+void fail_test_llv(void)
+{
+	struct sc_map_llv map;
+
+	fail_calloc = true;
+	assert(!sc_map_init_llv(&map, 10, 0));
+	fail_calloc = false;
+	assert(sc_map_init_llv(&map, 10, 0));
+
+	fail_calloc = true;
+
+	for (int i = 0; i < 20; i++) {
+		sc_map_put_llv(&map, i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+	sc_map_put_llv(&map, 44444, NULL);
+
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
+		sc_map_put_llv(&map, (long long) i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+
+	sc_map_term_llv(&map);
+}
+
+void fail_test_ints(void)
+{
+	struct sc_map_ints map;
+
+	fail_calloc = true;
+	assert(!sc_map_init_ints(&map, 10, 0));
+	fail_calloc = false;
+	assert(sc_map_init_ints(&map, 10, 0));
+
+	fail_calloc = true;
+
+	for (int i = 0; i < 20; i++) {
+		sc_map_put_ints(&map, i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+	sc_map_put_ints(&map, 44444, NULL);
+
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
+		sc_map_put_ints(&map, i, NULL);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+
+	sc_map_term_ints(&map);
+}
+
 void fail_test_32(void)
 {
 	struct sc_map_32 map;
@@ -1791,7 +2793,64 @@ void fail_test_s64(void)
 	sc_map_term_s64(&map);
 }
 
+void fail_test_sll(void)
+{
+	struct sc_map_sll map;
+	const char *v;
+	const char *s = "abcdefghijklmnoprstuvyz10111213141516";
+
+	fail_calloc = true;
+	assert(!sc_map_init_sll(&map, 10, 0));
+	fail_calloc = false;
+	assert(sc_map_init_sll(&map, 10, 0));
+
+	fail_calloc = true;
+
+	for (int i = 0; i < 20; i++) {
+		sc_map_put_sll(&map, &s[i], 0);
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+	sc_map_put_sll(&map, &s[21], 0);
+	sc_map_clear_sll(&map);
+
+	for (size_t i = 0; i < SC_MAP_MAX; i++) {
+		char *c = str_random(32);
+		sc_map_put_sll(&map, c, 0);
+		if (sc_map_oom(&map)) {
+			free(c);
+			break;
+		}
+	}
+	assert(sc_map_oom(&map));
+	fail_calloc = false;
+
+	sc_map_foreach_key (&map, v) {
+		free((void *) v);
+	}
+
+	sc_map_term_sll(&map);
+}
+
 #else
+void fail_test_int(void)
+{
+}
+void fail_test_intv(void)
+{
+}
+void fail_test_ints(void)
+{
+}
+void fail_test_ll(void)
+{
+}
+void fail_test_llv(void)
+{
+}
+void fail_test_lls(void)
+{
+}
 void fail_test_32(void)
 {
 }
@@ -1813,12 +2872,21 @@ void fail_test_sv(void)
 void fail_test_s64(void)
 {
 }
+void fail_test_sll(void)
+{
+}
 #endif
 
 int main(void)
 {
 	example();
 	example_int_to_str();
+	fail_test_int();
+	fail_test_intv();
+	fail_test_ints();
+	fail_test_ll();
+	fail_test_llv();
+	fail_test_lls();
 	fail_test_32();
 	fail_test_64();
 	fail_test_64v();
@@ -1826,6 +2894,7 @@ int main(void)
 	fail_test_str();
 	fail_test_sv();
 	fail_test_s64();
+	fail_test_sll();
 	test0();
 	test1();
 	test2();
@@ -1833,6 +2902,12 @@ int main(void)
 	test4();
 	test5();
 	test6();
+	test_int();
+	test_intv();
+	test_ints();
+	test_ll();
+	test_llv();
+	test_lls();
 	test_32();
 	test_64();
 	test_64s();
@@ -1840,6 +2915,7 @@ int main(void)
 	test_str();
 	test_sv();
 	test_s64();
+	test_sll();
 	test_loop_foreach();
 	test_loop_foreach_key();
 	test_loop_foreach_value();
