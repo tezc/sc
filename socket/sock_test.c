@@ -1440,6 +1440,43 @@ void check_poll_empty(struct sc_sock_poll *p, int timeout)
 	}
 }
 
+void test_poll_mask(void)
+{
+	int rc;
+	struct sc_sock srv;
+	struct sc_sock_poll p;
+
+	rc = sc_sock_poll_init(&p);
+	assert(rc == 0);
+
+	sc_sock_init(&srv, 0, true, SC_SOCK_INET);
+	rc = sc_sock_listen(&srv, "127.0.0.1", "12000");
+	assert(rc == 0);
+
+	rc = sc_sock_poll_add(&p, &srv.fdt, SC_SOCK_READ, &srv);
+	assert(rc == 0);
+
+	rc = sc_sock_poll_add(&p, &srv.fdt, SC_SOCK_READ, &srv);
+	assert(rc == 0);
+	assert(srv.fdt.op == SC_SOCK_READ);
+
+	rc = sc_sock_poll_del(&p, &srv.fdt, SC_SOCK_READ, &srv);
+	assert(rc == 0);
+	assert(srv.fdt.op == SC_SOCK_NONE);
+
+	rc = sc_sock_poll_add(&p, &srv.fdt, SC_SOCK_EDGE, &srv);
+	assert(rc == 0);
+	assert(srv.fdt.op == SC_SOCK_NONE);
+
+	sc_sock_poll_wait(&p, 1);
+
+	rc = sc_sock_poll_del(&p, &srv.fdt, SC_SOCK_READ | SC_SOCK_EDGE, &srv);
+	assert(rc == 0);
+
+	sc_sock_term(&srv);
+	sc_sock_poll_term(&p);
+}
+
 void test_poll_edge(void)
 {
 	uint32_t ev;
@@ -2003,6 +2040,7 @@ int main(void)
 	sock_fail_test3();
 	test_poll();
 	test_err();
+	test_poll_mask();
 	test_poll_mass();
 	test_poll_edge();
 	test_poll_threadsafe();
