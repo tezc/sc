@@ -1791,6 +1791,10 @@ int sc_sock_poll_add(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 
 	mask = fdt->op | events;
 
+	if (mask == SC_SOCK_EDGE) {
+		mask = SC_SOCK_NONE;
+	}
+
 	if (fdt->op == mask) {
 		goto exit;
 	}

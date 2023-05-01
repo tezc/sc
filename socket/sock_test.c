@@ -1466,7 +1466,7 @@ void test_poll_mask(void)
 
 	rc = sc_sock_poll_add(&p, &srv.fdt, SC_SOCK_EDGE, &srv);
 	assert(rc == 0);
-	assert(srv.fdt.op == SC_SOCK_EDGE);
+	assert(srv.fdt.op == SC_SOCK_NONE);
 
 	sc_sock_poll_wait(&p, 1);
 
