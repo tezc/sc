@@ -1,5 +1,7 @@
 name: macOS
 on:
+  schedule:
+    - cron: '0 0 * * 0'
   push:
     branches:
       - master
