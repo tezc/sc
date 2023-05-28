@@ -8,9 +8,19 @@ on:
   pull_request:
     branches:
       - master
+  workflow_dispatch:
+    inputs:
+      skip:
+        description: 'Delete its name if you want to keep the job'
+        required: false
+        default: 'ubuntu,gcc-thread,clang-tidy,32bit-address,32bit-undefined'
+
 jobs:
   ubuntu:
     runs-on: ubuntu-20.04
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'ubuntu')
     name: Build on Ubuntu
 
     strategy:
@@ -40,6 +50,9 @@ jobs:
 
   ubuntu-gcc-thread:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'gcc-thread')
     name: Thread sanitizer
     steps:
       - uses: actions/checkout@v2.1.0
@@ -55,6 +68,9 @@ jobs:
           make check
   ubuntu-clang-tidy:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'clang-tidy')
     name: Clang Tidy
     steps:
       - uses: actions/checkout@v2.1.0
@@ -70,6 +86,9 @@ jobs:
           make check
   ubuntu-32bit-address:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, '32bit-address')
     name: 32bit-address
     steps:
       - uses: actions/checkout@v2.1.0
@@ -85,6 +104,9 @@ jobs:
           make check
   ubuntu-32bit-undefined:
     runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, '32bit-undefined')
     name: 32bit-undefined
     steps:
       - uses: actions/checkout@v2.1.0
