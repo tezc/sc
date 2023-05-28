@@ -47,6 +47,7 @@ jobs:
         env:
           CC: gcc
         run: |
+          sudo apt update
           sudo apt-get install cmake
           mkdir build-debug && cd build-debug
           cmake .. -DSANITIZER=thread
@@ -61,6 +62,7 @@ jobs:
         env:
           CC: clang
         run: |
+          sudo apt update
           sudo apt-get install cmake clang-tidy
           mkdir build-debug && cd build-debug
           cmake .. -DSC_CLANG_TIDY=1
@@ -75,6 +77,7 @@ jobs:
         env:
           CC: gcc
         run: |
+          sudo apt update
           sudo apt-get install cmake gcc-multilib
           mkdir build-debug && cd build-debug
           cmake .. -DCMAKE_C_FLAGS=-m32 -DSANITIZER=address
@@ -89,6 +92,7 @@ jobs:
         env:
           CC: gcc
         run: |
+          sudo apt update
           sudo apt-get install cmake gcc-multilib
           mkdir build-debug && cd build-debug
           cmake .. -DCMAKE_C_FLAGS=-m32 -DSANITIZER=undefined
