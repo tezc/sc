@@ -19,9 +19,9 @@ jobs:
   ubuntu:
     runs-on: ubuntu-20.04
     if: |
+      (github.event_name == 'pull_request') || 
+      (github.event_name == 'push') || 
       (github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' ||
-      (github.event_name == 'pull_request' ||
       (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'ubuntu')
     name: Build on Ubuntu
 
@@ -53,9 +53,9 @@ jobs:
   ubuntu-gcc-thread:
     runs-on: ubuntu-latest
     if: |
+      (github.event_name == 'pull_request') || 
+      (github.event_name == 'push') || 
       (github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' ||
-      (github.event_name == 'pull_request' ||
       (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'gcc-thread')
     name: Thread sanitizer
     steps:
@@ -73,9 +73,9 @@ jobs:
   ubuntu-clang-tidy:
     runs-on: ubuntu-latest
     if: |
+      (github.event_name == 'pull_request') || 
+      (github.event_name == 'push') || 
       (github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' ||
-      (github.event_name == 'pull_request' ||
       (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'clang-tidy')
     name: Clang Tidy
     steps:
@@ -93,9 +93,9 @@ jobs:
   ubuntu-32bit-address:
     runs-on: ubuntu-latest
     if: |
+      (github.event_name == 'pull_request') || 
+      (github.event_name == 'push') || 
       (github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' ||
-      (github.event_name == 'pull_request' ||
       (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, '32bit-address')
     name: 32bit-address
     steps:
@@ -113,9 +113,9 @@ jobs:
   ubuntu-32bit-undefined:
     runs-on: ubuntu-latest
     if: |
+      (github.event_name == 'pull_request') || 
+      (github.event_name == 'push') || 
       (github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'push' ||
-      (github.event_name == 'pull_request' ||
       (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, '32bit-undefined')
     name: 32bit-undefined
     steps:
