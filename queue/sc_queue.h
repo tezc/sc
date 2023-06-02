@@ -111,7 +111,7 @@
 	} while (0)
 
 /**
- *   Term queue
+ *   Destroy queue
  *   @param q queue
  */
 #define sc_queue_term(q)                                                       \

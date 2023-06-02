@@ -70,7 +70,7 @@
 	} while (0)
 
 /**
- * Term array
+ * Destroy array
  * @param a array
  */
 #define sc_array_term(a)                                                       \

@@ -28,6 +28,8 @@ sc_map_dec_strkey(s64, const char *, uint64_t)
 sc_map_dec_strkey(sll, const char *, long long)
 ```
 
+If you need more types, you can add at the end of sc_map.h and sc_map.c
+
 - This is a very fast hashmap.
     - Single array allocation for all data.
     - Linear probing over an array.

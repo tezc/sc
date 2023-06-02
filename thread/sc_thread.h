@@ -58,11 +58,15 @@ struct sc_thread {
 #endif
 
 /**
+ * Init thread.
+ *
  * @param t thread
  */
 void sc_thread_init(struct sc_thread *t);
 
 /**
+ * Destroy thread.
+ *
  * @param t thread
  * @return  '0' on success,
  *          '-1' on error, call 'sc_thread_err()' for error string.
@@ -70,19 +74,26 @@ void sc_thread_init(struct sc_thread *t);
 int sc_thread_term(struct sc_thread *t);
 
 /**
+ * Get last error string.
+ *
  * @param t thread
  * @return  last error message
  */
 const char *sc_thread_err(struct sc_thread *t);
 
 /**
+ * Start thread.
+ *
  * @param t thread
+ * @param fn thread function
  * @return  '0' on success,
  *          '-1' on error, call 'sc_thread_err()' for error string.
  */
 int sc_thread_start(struct sc_thread *t, void *(*fn)(void *), void *arg);
 
 /**
+ * Wait until thread joins.
+ *
  * @param t thread
  * @return  '0' on success,
  *          '-1' on error, call 'sc_thread_err()' for error string.
