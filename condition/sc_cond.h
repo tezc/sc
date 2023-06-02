@@ -57,12 +57,16 @@ struct sc_cond {
 };
 
 /**
+ * Init cond object
+ *
  * @param c cond
  * @return     '0' on success, negative on error, errno will be set.
  */
 int sc_cond_init(struct sc_cond *c);
 
 /**
+ * Destroy cond object
+ *
  * @param c cond
  * @return     '0' on success, negative on error, errno will be set.
  */

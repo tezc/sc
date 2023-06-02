@@ -86,12 +86,16 @@ struct sc_mmap {
 int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 		 int map_flags, size_t offset, size_t len);
 /**
+ * Destroy mmap instance.
+ *
  * @param m mmap
  * @return       '0' on success, '-1' on error, call sc_mmap_err() for details.
  */
 int sc_mmap_term(struct sc_mmap *m);
 
 /**
+ * Sync mmap to the disk.
+ *
  * @param m      mmap
  * @param offset offset
  * @param len    len
