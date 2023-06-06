@@ -77,37 +77,36 @@ struct sc_uri {
 };
 
 /**
- * Parse uri.
+ * Parse a URI.
  *
  * Internally, it does a single allocation but each part is also represented as
- * NULL ended string.
+ * NULL terminated string.
  *
  * e.g.,
  *
- * struct sc_uri* uri;
+ * struct sc_uri *u;
  *
- * struct sc_uri* uri;
- * uri =
- * sc_uri_create("http://user:pass@any.com:8042/over/there?name=jane#doe");
+ * u = sc_uri_create("http://user:pass@any.com:8042/over/there?name=jane#doe");
  *
- * printf("%s \n", uri->str);       // prints full string.
- * printf("%s \n", uri->scheme);    // prints "http"
- * printf("%s \n", uri->host);      // prints "any.com"
- * printf("%s \n", uri->userinfo);  // prints "user:pass"
- * printf("%s \n", uri->port);      // prints "8042"
- * printf("%s \n", uri->path);      // prints "/over/there"
- * printf("%s \n", uri->query);     // prints "name=jane"
- * printf("%s \n", uri->fragment);  // prints "doe"
+ * printf("%s \n", u->str);       // prints full string.
+ * printf("%s \n", u->scheme);    // prints "http"
+ * printf("%s \n", u->host);      // prints "any.com"
+ * printf("%s \n", u->userinfo);  // prints "user:pass"
+ * printf("%s \n", u->port);      // prints "8042"
+ * printf("%s \n", u->path);      // prints "/over/there"
+ * printf("%s \n", u->query);     // prints "name=jane"
+ * printf("%s \n", u->fragment);  // prints "doe"
  *
+ * sc_uri_destroy(u);
  *
  * @param str uri string
  * @return    uri, NULL on error
  */
 struct sc_uri *sc_uri_create(const char *str);
 
-/**
+/** Free URI object
  * @param uri uri
  */
-void sc_uri_destroy(struct sc_uri **uri);
+void sc_uri_destroy(struct sc_uri *uri);
 
 #endif
