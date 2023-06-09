@@ -23,6 +23,8 @@ void test1(void)
 {
 	int count = 0;
 
+	sc_log_term();
+
 	sc_log_init();
 	sc_log_set_callback(&count, callback);
 	assert(sc_log_set_level("errrorr") == -1);
@@ -94,6 +96,73 @@ void test1(void)
 
 	sc_log_init();
 	sc_log_term();
+}
+
+void verify_size(const char* filename, size_t expected)
+{
+	FILE *fp = fopen(filename, "rb");
+	assert(fp != NULL);
+	fseek(fp, 0, SEEK_END);
+	assert((size_t) ftell(fp) == expected);
+	fclose(fp);
+}
+
+void test2(void)
+{
+	int rc;
+
+	char buf1[256] = {0};
+	char buf2[257] = {0};
+	char buf3[200] = {0};
+
+	memset(buf1, 'a', sizeof(buf1) - 1);
+	memset(buf2, 'b', sizeof(buf2) - 1);
+	memset(buf3, 'c', sizeof(buf3) - 1);
+
+	sc_log_init();
+
+	sc_log_set_file("prev1.txt", "current1.txt");
+	sc_log_info("h1+");
+
+	rc = sc_log_set_file(buf1, buf3);
+	assert(rc != 0);
+	sc_log_info("nolog1");
+
+	rc = sc_log_set_file("prev1.txt", "current1.txt");
+	assert(rc == 0);
+	sc_log_info("h2+");
+
+	rc = sc_log_set_file(buf3, buf1);
+	assert(rc != 0);
+	sc_log_info("nolog2");
+
+	rc = sc_log_set_file("prev1.txt", "current1.txt");
+	assert(rc == 0);
+	sc_log_info("h3+");
+
+	rc = sc_log_term();
+	assert(rc == 0);
+
+	char tmp[1024];
+	FILE *fp = fopen("current1.txt", "rb");
+	fread(tmp, sizeof(tmp), 1, fp);
+	fclose(fp);
+
+	assert(strstr(tmp, "h1+") != NULL);
+	assert(strstr(tmp, "h2+") != NULL);
+	assert(strstr(tmp, "h3+") != NULL);
+	assert(strstr(tmp, "nolog1") == NULL);
+	assert(strstr(tmp, "nolog2") == NULL);
+
+	sc_log_init();
+	rc = sc_log_set_file(buf2, buf3);
+	assert(rc != 0);
+	rc = sc_log_set_file(buf3, buf2);
+	assert(rc != 0);
+	rc = sc_log_term();
+	assert(rc == 0);
+	rc = sc_log_term();
+	assert(rc != 0);
 }
 
 #ifdef SC_HAVE_WRAP
@@ -370,6 +439,7 @@ int main(void)
 	fail_test();
 	example();
 	test1();
+	test2();
 
 	return 0;
 }

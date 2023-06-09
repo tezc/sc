@@ -111,7 +111,7 @@ int sc_log_set_level(const char *level);
 void sc_log_set_stdout(bool enable);
 
 /**
- * Enable log file logging.
+ * Enable file logging.
  *
  * Log files will be rotated to prevent generating very big files. Once current
  * log file reaches 'SC_LOG_FILE_SIZE' (see definition above), it will be
