@@ -143,7 +143,7 @@ void test2(void)
 	rc = sc_log_term();
 	assert(rc == 0);
 
-	char tmp[1024];
+	char tmp[1024] = {0};
 	FILE *fp = fopen("current1.txt", "rb");
 	fread(tmp, sizeof(tmp), 1, fp);
 	fclose(fp);
