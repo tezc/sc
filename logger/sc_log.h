@@ -88,26 +88,38 @@ int sc_log_init(void);
 int sc_log_term(void);
 
 /**
+ * Set thread name.
+ *
  * Call once from each thread if you want to set thread name.
  * @param name  Thread name
  */
 void sc_log_set_thread_name(const char *name);
 
 /**
+ * Set log level.
+ *
  * @param level  One of "DEBUG", "INFO", "WARN", "ERROR", "OFF"
  * @return       '0' on success, negative value on invalid level string
  */
 int sc_log_set_level(const char *level);
 
 /**
+ * Enable stdout logging.
+ *
  * @param enable 'true' to enable, 'false' to disable logging to stdout.
  */
 void sc_log_set_stdout(bool enable);
 
 /**
- * Log files will be rotated. Latest logs will always be in the 'current_file'.
+ * Enable file logging.
+ *
+ * Log files will be rotated to prevent generating very big files. Once current
+ * log file reaches 'SC_LOG_FILE_SIZE' (see definition above), it will be
+ * renamed as `prev` and the latest logs will always be in the 'current' file.
+ *
  * e.g., sc_log_set_file("/tmp/log.0.txt", "/tmp/log-latest.txt");
- *     To disable logging into file : sc_log_set_file(NULL, NULL);
+ *
+ * To disable logging into file: sc_log_set_file(NULL, NULL);
  *
  * @param prev     file path for previous log file, 'NULL' to disable
  * @param current  file path for latest log file, 'NULL' to disable
@@ -116,6 +128,8 @@ void sc_log_set_stdout(bool enable);
 int sc_log_set_file(const char *prev, const char *current);
 
 /**
+ * Enabled logging to callback.
+ *
  * @param arg user arg to callback.
  * @param cb  log callback.
  */
@@ -123,7 +137,7 @@ void sc_log_set_callback(void *arg,
 			 int (*cb)(void *arg, enum sc_log_level level,
 				   const char *fmt, va_list va));
 
-// e.g., sc_log_error("Errno : %d, reason : %s", errno, strerror(errno));
+// e.g., sc_log_error("Errno: %d, reason: %s", errno, strerror(errno));
 #define sc_log_debug(...) (sc_log_log(SC_LOG_DEBUG, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_info(...) (sc_log_log(SC_LOG_INFO, sc_log_ap(__VA_ARGS__, "")))
 #define sc_log_warn(...) (sc_log_log(SC_LOG_WARN, sc_log_ap(__VA_ARGS__, "")))

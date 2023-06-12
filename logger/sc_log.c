@@ -152,13 +152,13 @@ void sc_log_mutex_unlock(struct sc_log_mutex *mtx)
 
 struct sc_log {
 	FILE *fp;
-	const char *current_file;
-	const char *prev_file;
+	char current_file[256];
+	char prev_file[256];
 	size_t file_size;
 
 	struct sc_log_mutex mtx;
 	sc_atomic enum sc_log_level level;
-
+	bool init;
 	bool to_stdout;
 
 	void *arg;
@@ -181,6 +181,8 @@ int sc_log_init(void)
 		errno = rc;
 	}
 
+	sc_log.init = true;
+
 	return rc;
 }
 
@@ -188,17 +190,19 @@ int sc_log_term(void)
 {
 	int rc = 0;
 
+	if (!sc_log.init) {
+		return -1;
+	}
+
 	if (sc_log.fp) {
 		rc = fclose(sc_log.fp);
 		if (rc != 0) {
 			rc = -1;
 		}
-		sc_log_mutex_term(&sc_log.mtx);
 	}
 
-	sc_log = (struct sc_log){
-		.fp = NULL,
-	};
+	sc_log_mutex_term(&sc_log.mtx);
+	sc_log = (struct sc_log){0};
 
 	return rc;
 }
@@ -263,12 +267,20 @@ int sc_log_set_file(const char *prev, const char *current)
 		sc_log.fp = NULL;
 	}
 
-	sc_log.prev_file = prev;
-	sc_log.current_file = current;
+	sc_log.prev_file[0] = '\0';
+	sc_log.current_file[0] = '\0';
 
 	if (prev == NULL || current == NULL) {
 		goto out;
 	}
+
+	if (strlen(prev) >= sizeof(sc_log.prev_file) - 1 ||
+	    strlen(current) >= sizeof(sc_log.current_file) - 1) {
+		goto error;
+	}
+
+	memcpy(sc_log.prev_file, prev, strlen(prev) + 1);
+	memcpy(sc_log.current_file, current, strlen(current) + 1);
 
 	fp = fopen(sc_log.current_file, "a+");
 	if (fp == NULL) {
