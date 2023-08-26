@@ -1,0 +1,37 @@
+name: riscv64
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  archs:
+    # The host should always be linux
+    runs-on: ubuntu-22.04
+    name: Build on riscv64
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: uraimo/run-on-arch-action@v2.5.1
+        name: Build artifact
+        id: build
+        with:
+          arch: riscv64
+          distro: ubuntu20.04
+
+          # Not required, but speeds up builds
+          githubToken: ${{ github.token }}
+
+          # The shell to run commands with in the container
+          shell: /bin/sh
+
+          # Produce a binary artifact and place it in the mounted volume
+          run: |
+            apt-get update -q -y
+            apt-get install -q -y  build-essential git gcc cmake
+            uname -a;id;uname -m;lscpu | grep Endian
+            mkdir build && cd build
+            cmake .. && make -j && make check
