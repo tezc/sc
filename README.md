@@ -23,7 +23,7 @@ There is 100% branch-coverage on Linux and CI runs on
 <pre>
 OS         : Linux, MacOS, FreeBSD and Windows  
 Compilers  : GCC, Clang, MSVC  
-Arch       : x64, aarch64, armv6(32 bit), armv7(32 bit), ppc64le, s390x(big endian)  
+Arch       : x64, aarch64, armv6(32 bit), armv7(32 bit), ppc64le, s390x(big endian), riscv64  
 Sanitizers : valgrind and clang/gcc sanitizers(address, undefined, thread)
 </pre>
 
