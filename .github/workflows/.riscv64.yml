@@ -31,7 +31,7 @@ jobs:
           # Produce a binary artifact and place it in the mounted volume
           run: |
             apt-get update -q -y
-            apt-get install -q -y  build-essential git gcc valgrind cmake
+            apt-get install -q -y  build-essential git gcc cmake
             uname -a;id;uname -m;lscpu | grep Endian
             mkdir build && cd build
             cmake .. && make -j && make check
