@@ -183,7 +183,7 @@ bool sc_str_replace(char **str, const char *rep, const char *with);
  * char *save = NULL; // Must be initialized with NULL.
  * const char *token;
  *
- * while ((token = sc_str_token_begin(str, &save, "-") != NULL) {
+ * while ((token = sc_str_token_begin(str, &save, "-")) != NULL) {
  *      printf("token : %s \n", token);
  * }
  *
