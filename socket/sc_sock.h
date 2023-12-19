@@ -50,7 +50,9 @@
 #include <windows.h>
 #include <winsock2.h>
 
+#ifdef _MSC_VER
 #pragma comment(lib, "ws2_32.lib")
+#endif
 
 typedef SOCKET sc_sock_int;
 
@@ -345,10 +347,8 @@ struct sc_sock_poll_op {
 	bool full_del;
 	enum sc_sock_ev add_events;
 	enum sc_sock_ev del_events;
-	union {
-		struct sc_sock_fd *fdt;
-		struct sc_sock_poll_data *poll_data;
-	};
+    struct sc_sock_fd *fdt;
+    struct sc_sock_poll_data *poll_data;
 	void *data;
 };
 
