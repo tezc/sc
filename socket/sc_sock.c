@@ -55,7 +55,10 @@
 #include <assert.h>
 #include <ws2tcpip.h>
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4996)
+#endif
+
 #define sc_close(n) closesocket(n)
 #define sc_unlink(n) DeleteFileA(n)
 #define SC_ERR SOCKET_ERROR
@@ -66,15 +69,16 @@
 
 typedef int socklen_t;
 
-static int sc_sock_err()
+static int sc_sock_err(void)
 {
 	return WSAGetLastError();
 }
 
 static void sc_sock_errstr(struct sc_sock *s, int gai_err)
 {
-	int rc;
-	DWORD err = WSAGetLastError();
+	(void)gai_err;
+	DWORD rc;
+	DWORD err = (DWORD)WSAGetLastError();
 	LPSTR str = 0;
 
 	rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
@@ -89,12 +93,12 @@ static void sc_sock_errstr(struct sc_sock *s, int gai_err)
 int sc_sock_set_blocking(struct sc_sock *s, bool blocking)
 {
 	u_long mode = blocking ? 0 : 1;
-	int rc = ioctlsocket(s->fdt.fd, FIONBIO, &mode);
+	int rc = ioctlsocket(s->fdt.fd, (long)FIONBIO, &mode);
 
 	return rc == 0 ? 0 : -1;
 }
 
-int sc_sock_startup()
+int sc_sock_startup(void)
 {
 	int rc;
 	WSADATA data;
@@ -108,7 +112,7 @@ int sc_sock_startup()
 	return 0;
 }
 
-int sc_sock_cleanup()
+int sc_sock_cleanup(void)
 {
 	int rc;
 
@@ -118,6 +122,7 @@ int sc_sock_cleanup()
 
 int sc_sock_notify_systemd(const char *msg)
 {
+	(void)msg;
 	return -1;
 }
 
@@ -182,7 +187,7 @@ int sc_sock_notify_systemd(const char *msg)
 		addr.sun_path[0] = '\0';
 	}
 
-	msghdr.msg_namelen = offsetof(struct sockaddr_un, sun_path) + strlen(s);
+	msghdr.msg_namelen = (socklen_t)(offsetof(struct sockaddr_un, sun_path) + strlen(s));
 	if (msghdr.msg_namelen > sizeof(struct sockaddr_un)) {
 		msghdr.msg_namelen = sizeof(struct sockaddr_un);
 	}
@@ -235,7 +240,7 @@ int sc_sock_set_blocking(struct sc_sock *s, bool blocking)
 void sc_sock_init(struct sc_sock *s, int type, bool blocking, int family)
 {
 	*s = (struct sc_sock){
-		.fdt.fd = -1,
+		.fdt.fd = SC_INVALID,
 		.fdt.type = type,
 		.blocking = blocking,
 		.family = family
@@ -250,9 +255,9 @@ static int sc_sock_close(struct sc_sock *s)
 {
 	int rc = 0;
 
-	if (s->fdt.fd != -1) {
+	if (s->fdt.fd != SC_INVALID) {
 		rc = sc_close(s->fdt.fd);
-		s->fdt.fd = -1;
+		s->fdt.fd = SC_INVALID;
 	}
 
 	return (rc == 0) ? 0 : -1;
@@ -603,6 +608,12 @@ end:
 	return rv;
 }
 
+#if defined(_WIN32) || defined(_WIN64)
+#define sc_send_recv_size_t int
+#else
+#define sc_send_recv_size_t size_t
+#endif
+
 int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags)
 {
 	int n, err;
@@ -612,7 +623,7 @@ int sc_sock_send(struct sc_sock *s, char *buf, int len, int flags)
 	}
 
 retry:
-	n = (int) send(s->fdt.fd, buf, (size_t) len, flags);
+	n = (int) send(s->fdt.fd, buf, (sc_send_recv_size_t) len, flags);
 	if (n == SC_ERR) {
 		err = sc_sock_err();
 		if (err == SC_EINTR) {
@@ -647,7 +658,7 @@ int sc_sock_recv(struct sc_sock *s, char *buf, int len, int flags)
 	}
 
 retry:
-	n = (int) recv(s->fdt.fd, buf, (size_t) len, flags);
+	n = (int) recv(s->fdt.fd, buf, (sc_send_recv_size_t) len, flags);
 	if (n == 0) {
 		errno = EOF;
 		return -1;
@@ -745,12 +756,18 @@ const char *sc_sock_error(struct sc_sock *s)
 	return s->err;
 }
 
+#if defined(_WIN32) || defined(_WIN64)
+#define sc_sock_addr_size_t size_t
+#else
+#define sc_sock_addr_size_t socklen_t
+#endif
+
 static const char *sc_sock_addr(struct sc_sock *sock, int af, void *cp,
-				char *buf, socklen_t len)
+				char *buf, size_t len)
 {
 	const char *dest;
 
-	dest = inet_ntop(af, cp, buf, len);
+	dest = inet_ntop(af, cp, buf, (sc_sock_addr_size_t) len);
 	if (dest == NULL) {
 		sc_sock_errstr(sock, 0);
 		*buf = '\0';
@@ -875,7 +892,7 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
 
 	/*  Create listening socket. */
 	listener = socket(AF_INET, SOCK_STREAM, 0);
-	if (listener == SOCKET_ERROR) {
+	if (listener == INVALID_SOCKET) {
 		goto wsafail;
 	}
 
@@ -906,7 +923,7 @@ int sc_sock_pipe_init(struct sc_sock_pipe *p, int type)
 	}
 
 	p->fds[1] = socket(AF_INET, SOCK_STREAM, 0);
-	if (p->fds[1] == SOCKET_ERROR) {
+	if (p->fds[1] == INVALID_SOCKET) {
 		goto wsafail;
 	}
 
@@ -968,7 +985,7 @@ int sc_sock_pipe_write(struct sc_sock_pipe *p, void *data, unsigned int len)
 {
 	int rc;
 
-	rc = send(p->fds[1], data, len, 0);
+	rc = send(p->fds[1], data, (int)len, 0);
 	if (rc == SOCKET_ERROR) {
 		sc_sock_pipe_set_err(p, "pipe send() : err(%d) ",
 				     WSAGetLastError());
@@ -981,7 +998,7 @@ int sc_sock_pipe_read(struct sc_sock_pipe *p, void *data, unsigned int len)
 {
 	int rc;
 
-	rc = recv(p->fds[0], (char *) data, len, 0);
+	rc = recv(p->fds[0], (char *) data, (int)len, 0);
 	if (rc == SOCKET_ERROR) {
 		sc_sock_pipe_set_err(p, "pipe recv() : err(%d) ",
 				     WSAGetLastError());
@@ -1495,12 +1512,12 @@ int sc_sock_poll_wait(struct sc_sock_poll *p, int timeout)
 
 static void sc_sock_poll_set_err_from_code(int err_code)
 {
-	int rc;
+	DWORD rc;
 	LPSTR str = 0;
 
 	rc = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER |
 				    FORMAT_MESSAGE_FROM_SYSTEM,
-			    NULL, err_code, 0, (LPSTR) &str, 0, NULL);
+			    NULL, (DWORD)err_code, 0, (LPSTR) &str, 0, NULL);
 	if (rc != 0) {
 		strncpy(sc_sock_poll_errstr, str, sizeof(sc_sock_poll_errstr) - 1);
 		LocalFree(str);
@@ -1604,7 +1621,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
 		}
 
 		cap = p->cap * 2;
-		ev = sc_sock_realloc(p->events, cap * sizeof(*ev));
+		ev = sc_sock_realloc(p->events, (unsigned)cap * sizeof(*ev));
 		if (ev == NULL) {
 			goto err;
 		}
@@ -1625,7 +1642,7 @@ static int sc_sock_poll_expand(struct sc_sock_poll *p)
 		bool data_expanded = false;
 		for (int i = 1; i < 16; i++) {
 			if (p->data[i] == NULL) {
-				p->data[i] = sc_sock_malloc(sizeof(struct sc_sock_poll_data) * p->cap);
+				p->data[i] = sc_sock_malloc(sizeof(struct sc_sock_poll_data) * (unsigned)p->cap);
 				if (p->data[i] == NULL) {
 					goto err;
 				}
@@ -1671,10 +1688,10 @@ static int sc_sock_poll_submit(struct sc_sock_poll *p, struct sc_sock_fd *fdt,
 				ops = NULL;
 			} else if (ops == NULL) {
 				cap = 16;
-				ops = sc_sock_malloc(cap * sizeof(*ops));
+				ops = sc_sock_malloc((unsigned)cap * sizeof(*ops));
 			} else {
 				cap = cap * 3 / 2;
-				ops = sc_sock_realloc(ops, cap * sizeof(*ops));
+				ops = sc_sock_realloc(ops, (unsigned)cap * sizeof(*ops));
 			}
 			if (ops != NULL) {
 				p->ops_cap = cap;
@@ -1749,9 +1766,9 @@ exit:
 #define __builtin_clz(x) ((int)__lzcnt(x))
 #endif
 
-static inline int sc_sock_number_of_meaningful_bits(unsigned int i)
+static inline int sc_sock_number_of_meaningful_bits(int i)
 {
-	return sizeof(unsigned int) * 8 - __builtin_clz(i);
+	return (int)sizeof(unsigned int) * 8 - __builtin_clz((unsigned int)i);
 }
 
 static struct sc_sock_poll_data *sc_sock_poll_data_inner(struct sc_sock_poll *p, int i)
@@ -1930,7 +1947,7 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 	}
 
 	uint32_t evs = 0;
-	uint32_t poll_evs = p->events[i].revents;
+	uint32_t poll_evs = (uint32_t)p->events[i].revents;
 
 	if (poll_evs == 0) {
 		return SC_SOCK_NONE;
@@ -1958,7 +1975,7 @@ static uint32_t sc_sock_poll_event_inner(struct sc_sock_poll *p, int i)
 		//     which is also fine.
 		// It means the scenario when we miss events and hang should be
 		// impossible.
-		evs &= ~InterlockedOr(&pd->edge_mask, evs);
+		evs &= ~(uint32_t)InterlockedOr(&pd->edge_mask, (LONG)evs);
 	}
 
 	poll_evs &= POLLHUP | POLLERR;
