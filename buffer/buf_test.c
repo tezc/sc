@@ -617,7 +617,7 @@ void fail_test(void)
 	sc_buf_term(&buf);
 }
 #else
-void fail_test()
+void fail_test(void)
 {
 }
 #endif

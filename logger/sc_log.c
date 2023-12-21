@@ -73,7 +73,10 @@ thread_local char sc_name[32] = "Thread";
 
 #if defined(_WIN32) || defined(_WIN64)
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4996)
+#endif
+
 #define strcasecmp _stricmp
 #define localtime_r(a, b) (localtime_s(b, a) == 0 ? b : NULL)
 #include <windows.h>

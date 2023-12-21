@@ -355,7 +355,7 @@ void fail_test(void)
 	fail_second_call = 0;
 }
 #else
-void fail_test()
+void fail_test(void)
 {
 }
 #endif

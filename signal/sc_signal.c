@@ -52,7 +52,7 @@
 #endif
 
 #if defined(_WIN32)
-#include <WinSock2.h>
+#include <winsock2.h>
 volatile SOCKET sc_signal_shutdown_fd;
 #else
 volatile sig_atomic_t sc_signal_shutdown_fd;
@@ -202,13 +202,15 @@ int sc_signal_snprintf(char *buf, size_t sz, const char *fmt, ...)
 
 #define WIN32_LEAN_AND_MEAN
 
-#include <Ws2tcpip.h>
+#include <ws2tcpip.h>
 #include <io.h>
 #include <signal.h>
 #include <windows.h>
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4996)
 #pragma comment(lib, "Ws2_32.lib")
+#endif
 
 BOOL WINAPI sc_console_handler(DWORD type)
 {
@@ -297,9 +299,10 @@ void sc_signal_std_on_fatal(int sig)
 
 void sc_signal_std_on_shutdown(int type)
 {
+	(void)type;
 	sc_console_handler(CTRL_C_EVENT);
 }
-int sc_signal_init()
+int sc_signal_init(void)
 {
 	BOOL b;
 	sc_signal_log_fd = -1;

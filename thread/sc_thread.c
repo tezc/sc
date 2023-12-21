@@ -39,7 +39,10 @@ void sc_thread_init(struct sc_thread *t)
 }
 
 #if defined(_WIN32) || defined(_WIN64)
+
+#ifdef _MSC_VER
 #pragma warning(disable : 4996)
+#endif
 
 #include <process.h>
 
@@ -85,7 +88,6 @@ int sc_thread_start(struct sc_thread *t, void *(*fn)(void *), void *arg)
 int sc_thread_join(struct sc_thread *t, void **ret)
 {
 	int rc = 0;
-	void *val = NULL;
 	DWORD rv;
 	BOOL brc;
 
@@ -105,7 +107,6 @@ int sc_thread_join(struct sc_thread *t, void **ret)
 		rc = -1;
 	}
 
-	val = t->ret;
 	t->id = 0;
 
 out:

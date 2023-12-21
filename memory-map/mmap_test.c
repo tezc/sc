@@ -297,7 +297,7 @@ void fail_test(void)
 	fail_posix_fallocate = UINT32_MAX;
 }
 #else
-void fail_test()
+void fail_test(void)
 {
 }
 #endif

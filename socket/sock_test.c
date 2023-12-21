@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include <stdio.h>
+#include <errno.h>
 
 #if defined(_WIN32) || defined(_WIN64)
 #include <synchapi.h>
@@ -25,7 +26,6 @@ struct sc_thread {
 
 #else
 
-#include <errno.h>
 #include <fcntl.h>
 #include <pthread.h>
 #include <stdarg.h>

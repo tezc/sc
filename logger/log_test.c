@@ -5,7 +5,7 @@
 #include <stdarg.h>
 #include <time.h>
 
-#if defined(_WIN32) || defined(_WIN64)
+#ifdef _MSC_VER
 #pragma warning(disable : 4996)
 #endif
 

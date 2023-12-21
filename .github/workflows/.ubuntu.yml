@@ -130,3 +130,24 @@ jobs:
           cmake .. -DCMAKE_C_FLAGS=-m32 -DSANITIZER=undefined
           make -j
           make check
+  ubuntu-zig-windows:
+    runs-on: ubuntu-latest
+    if: |
+      (github.event_name == 'pull_request') ||
+      (github.event_name == 'push') ||
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'zig-windows')
+    name: Zig Windows
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        run: |
+          sudo apt update
+          sudo apt-get install cmake curl tar
+          mkdir build-debug && cd build-debug
+          export ZIG=zig-linux-x86_64-0.12.0-dev.1834+f36ac227b
+          curl -o zig.tar.xz "https://ziglang.org/builds/$ZIG.tar.xz"
+          tar -xf zig.tar.xz
+          export CC="$(pwd)/$ZIG/zig cc -target x86_64-windows"
+          cmake .. -DCMAKE_SYSTEM_NAME=Windows
+          make -j
