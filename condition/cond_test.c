@@ -280,7 +280,7 @@ void fail_test(void)
 }
 
 #else
-void fail_test()
+void fail_test(void)
 {
 }
 #endif

@@ -12,6 +12,10 @@ add_library(
 
 target_include_directories(sc_signal PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
+if (CMAKE_SYSTEM_NAME MATCHES Windows)
+    target_link_libraries(sc_signal -lws2_32)
+endif()
+
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -pedantic -Werror")
 endif ()
@@ -40,6 +44,10 @@ if (SC_BUILD_TEST)
     add_executable(${PROJECT_NAME}_test signal_test.c sc_signal.c)
 
     target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=1400000ul)
+
+    if (CMAKE_SYSTEM_NAME MATCHES Windows)
+        target_link_libraries(${PROJECT_NAME}_test -lws2_32)
+    endif()
 
     check_c_source_compiles("
       #include <execinfo.h>

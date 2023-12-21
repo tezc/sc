@@ -12,6 +12,10 @@ add_library(
 
 target_include_directories(sc_socket PUBLIC ${CMAKE_CURRENT_LIST_DIR})
 
+if (CMAKE_SYSTEM_NAME MATCHES Windows)
+    target_link_libraries(sc_socket -lws2_32)
+endif()
+
 if (NOT CMAKE_C_COMPILER_ID MATCHES "MSVC")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -g -Wall -Wextra -pedantic -pthread -Werror")
 endif ()
@@ -40,6 +44,10 @@ if (SC_BUILD_TEST)
     add_executable(${PROJECT_NAME}_test sock_test.c sc_sock.c)
 
     target_compile_options(${PROJECT_NAME}_test PRIVATE -DSC_SIZE_MAX=300 -Dsc_fcntl=test_fcntl)
+
+    if (CMAKE_SYSTEM_NAME MATCHES Windows)
+        target_link_libraries(${PROJECT_NAME}_test -lws2_32)
+    endif()
 
     if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND SC_USE_WRAP)
         if ("${CMAKE_C_COMPILER_ID}" STREQUAL "Clang" OR

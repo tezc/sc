@@ -43,7 +43,9 @@
 #include <io.h>
 #include <stdint.h>
 
+#ifdef _MSC_VER
 #pragma warning(disable : 4996)
+#endif
 
 static void sc_mmap_errstr(struct sc_mmap *m)
 {

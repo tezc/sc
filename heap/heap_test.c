@@ -239,7 +239,7 @@ void fail_test(void)
 	sc_heap_term(&heap);
 }
 #else
-void fail_test()
+void fail_test(void)
 {
 }
 #endif
