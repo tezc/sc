@@ -142,8 +142,9 @@ jobs:
       - uses: actions/checkout@v2.1.0
       - name: build
         run: |
+          sudo dpkg --add-architecture i386
           sudo apt update
-          sudo apt-get install cmake curl tar wine
+          sudo apt-get install cmake curl tar wine wine32
           mkdir build-debug && cd build-debug
           export ZIG=zig-linux-x86_64-0.12.0-dev.1834+f36ac227b
           curl -o zig.tar.xz "https://ziglang.org/builds/$ZIG.tar.xz"
@@ -151,24 +152,24 @@ jobs:
           export CC="$(pwd)/$ZIG/zig cc -target x86_64-windows"
           cmake .. -DCMAKE_SYSTEM_NAME=Windows
           make -j
-          DISPLAY= wine ./array/sc_array_test.exe
-          DISPLAY= wine ./buffer/sc_buf_test.exe
-          DISPLAY= wine ./condition/sc_cond_test.exe
-          DISPLAY= wine ./crc32/sc_crc32_test.exe
-          DISPLAY= wine ./heap/sc_heap_test.exe
-          DISPLAY= wine ./ini/sc_ini_test.exe
-          DISPLAY= wine ./linked-list/sc_list_test.exe
-          DISPLAY= wine ./logger/sc_log_test.exe
-          DISPLAY= wine ./map/sc_map_test.exe
-          # DISPLAY= wine ./memory-map/sc_mmap_test.exe     <-- hangs
-          DISPLAY= wine ./mutex/sc_mutex_test.exe
-          DISPLAY= wine ./option/sc_option_test.exe
-          DISPLAY= wine ./queue/sc_queue_test.exe
-          DISPLAY= wine ./sc/sc_test.exe
-          DISPLAY= wine ./signal/sc_signal_test.exe
-          # DISPLAY= wine ./socket/sc_socket_test.exe       <-- Assertion failed
-          DISPLAY= wine ./string/sc_str_test.exe
-          DISPLAY= wine ./thread/sc_thread_test.exe
-          # DISPLAY= wine ./time/sc_time_test.exe           <-- wine: Unhandled illegal instruction
-          DISPLAY= wine ./timer/sc_timer_test.exe
-          DISPLAY= wine ./uri/sc_uri_test.exe
+          echo sc_array_test && DISPLAY= wine ./array/sc_array_test.exe
+          echo sc_buf_test && DISPLAY= wine ./buffer/sc_buf_test.exe
+          echo sc_cond_test && DISPLAY= wine ./condition/sc_cond_test.exe
+          echo sc_crc32_test && DISPLAY= wine ./crc32/sc_crc32_test.exe
+          echo sc_heap_test && DISPLAY= wine ./heap/sc_heap_test.exe
+          echo sc_ini_test && DISPLAY= wine ./ini/sc_ini_test.exe
+          echo sc_list_test && DISPLAY= wine ./linked-list/sc_list_test.exe
+          echo sc_log_test && DISPLAY= wine ./logger/sc_log_test.exe
+          echo sc_map_test && DISPLAY= wine ./map/sc_map_test.exe
+          # echo sc_mmap_test && DISPLAY= wine ./memory-map/sc_mmap_test.exe     <-- hangs
+          echo sc_mutex_test && DISPLAY= wine ./mutex/sc_mutex_test.exe
+          echo sc_option_test && DISPLAY= wine ./option/sc_option_test.exe
+          echo sc_queue_test && DISPLAY= wine ./queue/sc_queue_test.exe
+          echo sc_test && DISPLAY= wine ./sc/sc_test.exe
+          echo sc_signal_test && DISPLAY= wine ./signal/sc_signal_test.exe
+          # echo sc_socket_test && DISPLAY= wine ./socket/sc_socket_test.exe     <-- Assertion failed
+          echo sc_str_test && DISPLAY= wine ./string/sc_str_test.exe
+          echo sc_thread_test && DISPLAY= wine ./thread/sc_thread_test.exe
+          # echo sc_time_test && DISPLAY= wine ./time/sc_time_test.exe           <-- wine: Unhandled illegal instruction
+          echo sc_timer_test && DISPLAY= wine ./timer/sc_timer_test.exe
+          echo sc_uri_test && DISPLAY= wine ./uri/sc_uri_test.exe
