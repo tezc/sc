@@ -143,7 +143,7 @@ jobs:
       - name: build
         run: |
           sudo apt update
-          sudo apt-get install cmake curl tar
+          sudo apt-get install cmake curl tar wine
           mkdir build-debug && cd build-debug
           export ZIG=zig-linux-x86_64-0.12.0-dev.1834+f36ac227b
           curl -o zig.tar.xz "https://ziglang.org/builds/$ZIG.tar.xz"
@@ -151,3 +151,45 @@ jobs:
           export CC="$(pwd)/$ZIG/zig cc -target x86_64-windows"
           cmake .. -DCMAKE_SYSTEM_NAME=Windows
           make -j
+          echo "==============" && echo sc_array_test && echo "=============="
+          DISPLAY= wine ./array/sc_array_test.exe
+          echo "==============" && echo sc_buf_test && echo "=============="
+          DISPLAY= wine ./buffer/sc_buf_test.exe
+          echo "==============" && echo sc_cond_test && echo "=============="
+          DISPLAY= wine ./condition/sc_cond_test.exe
+          echo "==============" && echo sc_crc32_test && echo "=============="
+          DISPLAY= wine ./crc32/sc_crc32_test.exe
+          echo "==============" && echo sc_heap_test && echo "=============="
+          DISPLAY= wine ./heap/sc_heap_test.exe
+          echo "==============" && echo sc_ini_test && echo "=============="
+          DISPLAY= wine ./ini/sc_ini_test.exe
+          echo "==============" && echo sc_list_test && echo "=============="
+          DISPLAY= wine ./linked-list/sc_list_test.exe
+          echo "==============" && echo sc_log_test && echo "=============="
+          DISPLAY= wine ./logger/sc_log_test.exe
+          echo "==============" && echo sc_map_test && echo "=============="
+          DISPLAY= wine ./map/sc_map_test.exe
+          echo "==============" && echo sc_mmap_test && echo "=============="
+          # DISPLAY= wine ./memory-map/sc_mmap_test.exe                               <-- hangs
+          echo "==============" && echo sc_mutex_test && echo "=============="
+          DISPLAY= wine ./mutex/sc_mutex_test.exe
+          echo "==============" && echo sc_option_test && echo "=============="
+          DISPLAY= wine ./option/sc_option_test.exe
+          echo "==============" && echo sc_queue_test && echo "=============="
+          DISPLAY= wine ./queue/sc_queue_test.exe
+          echo "==============" && echo sc_test && echo "=============="
+          DISPLAY= wine ./sc/sc_test.exe
+          echo "==============" && echo sc_signal_test && echo "=============="
+          DISPLAY= wine ./signal/sc_signal_test.exe
+          echo "==============" && echo sc_socket_test && echo "=============="
+          # DISPLAY= wine ./socket/sc_socket_test.exe                                 <-- Assertion failed
+          echo "==============" && echo sc_str_test && echo "=============="
+          DISPLAY= wine ./string/sc_str_test.exe
+          echo "==============" && echo sc_thread_test && echo "=============="
+          DISPLAY= wine ./thread/sc_thread_test.exe
+          echo "==============" && echo sc_time_test && echo "=============="
+          # DISPLAY= wine ./time/sc_time_test.exe                                     <-- wine: Unhandled illegal instruction
+          echo "==============" && echo sc_timer_test && echo "=============="
+          DISPLAY= wine ./timer/sc_timer_test.exe
+          echo "==============" && echo sc_uri_test && echo "=============="
+          DISPLAY= wine ./uri/sc_uri_test.exe
