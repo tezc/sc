@@ -1,0 +1,28 @@
+name: freeBSD
+on:
+  schedule:
+    - cron: '0 0 * * 0'
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  freebsd:
+    runs-on: ubuntu-latest
+    name: FreeBSD
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test FreeBSD
+        id: test
+        uses: vmactions/freebsd-vm@v1
+        with:
+          usesh: true
+          prepare: |
+            pkg install -y git cmake
+          run: |
+            pwd
+            mkdir build && cd build
+            cmake -DSANITIZER=address .. && make && make check && rm -rf *
+            cmake -DSANITIZER=undefined .. && make && make check
