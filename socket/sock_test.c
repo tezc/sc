@@ -1509,7 +1509,7 @@ void test_poll_edge(void)
 			      &clt);
 	assert(rc == 0);
 
-	sc_time_sleep(50);
+	sc_time_sleep(250);
 	count = sc_sock_poll_wait(&p, timeout);
 	assert(count >= 2);
 	found = 0;
@@ -1553,7 +1553,7 @@ void test_poll_edge(void)
 			      &acc);
 	assert(rc == 0);
 
-	sc_time_sleep(50);
+	sc_time_sleep(250);
 	count = sc_sock_poll_wait(&p, timeout);
 	assert(count >= 1);
 	found = 0;
@@ -1589,7 +1589,7 @@ void test_poll_edge(void)
 	assert(total_w > 0);
 
 	do {
-		sc_time_sleep(50);
+		sc_time_sleep(250);
 		count = sc_sock_poll_wait(&p, timeout);
 		assert(count >= 1);
 		found = 0;
@@ -1628,7 +1628,7 @@ void test_poll_edge(void)
 	} while (total_r < total_w);
 	assert(total_r == total_w);
 
-	sc_time_sleep(50);
+	sc_time_sleep(250);
 	count = sc_sock_poll_wait(&p, timeout);
 	assert(count >= 1);
 	found = 0;
