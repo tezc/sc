@@ -108,7 +108,7 @@
 		v++;                                                           \
                                                                                \
 		*cap = v;                                                      \
-		t = sc_map_calloc(sizeof(*t), v + 1);                          \
+		t = sc_map_calloc(v + 1, sizeof(*t));                          \
 		return t ? &t[1] : NULL;                                       \
 	}                                                                      \
                                                                                \
