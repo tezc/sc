@@ -20,7 +20,7 @@ jobs:
         id: build
         with:
           arch: s390x
-          distro: ubuntu20.04
+          distro: ubuntu24.04
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}

@@ -69,10 +69,10 @@ if (SC_BUILD_TEST)
     add_custom_command(
             TARGET coverage
             COMMAND lcov --capture --directory .
-            --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
+            --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert' --ignore-errors unused
             COMMAND lcov --remove coverage.info '/usr/*' '*example*' '*test*'
-            --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
-            COMMAND lcov --list coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert'
+            --output-file coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert' --ignore-errors unused
+            COMMAND lcov --list coverage.info --rc lcov_branch_coverage=1 --rc lcov_excl_br_line='assert' --ignore-errors unused
     )
 
     # -------------------------- Code Coverage End ------------------------------ #
