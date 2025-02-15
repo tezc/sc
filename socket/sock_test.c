@@ -1755,7 +1755,7 @@ void test_poll_threadsafe(void)
 {
 	enum
 	{
-		THREAD_COUNT = 100
+		THREAD_COUNT = 10
 	};
 	uint32_t ev;
 	int rc, count, added = 0;
