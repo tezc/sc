@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.10)
 project(sc_signal C)
 
 set(CMAKE_C_STANDARD 99)

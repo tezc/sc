@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5.1)
+cmake_minimum_required(VERSION 3.10)
 project(sc_lib C)
 include(CTest)
 include(CheckCCompilerFlag)
