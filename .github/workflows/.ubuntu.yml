@@ -24,16 +24,11 @@ jobs:
       (github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'ubuntu')
     name: Build on Ubuntu
-
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler: gcc
     steps:
       - uses: actions/checkout@v2.1.0
       - name: build
         env:
-          CC: ${{ matrix.compiler }}
+          CC: gcc
         run: |
           sudo apt update
           sudo apt-get install valgrind cmake
@@ -58,16 +53,11 @@ jobs:
       (github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'ubuntu')
     name: Build on Ubuntu
-
-    strategy:
-      fail-fast: false
-      matrix:
-        compiler: clang
     steps:
       - uses: actions/checkout@v2.1.0
       - name: build
         env:
-          CC: ${{ matrix.compiler }}
+          CC: clang
         run: |
           sudo apt update
           sudo apt-get install valgrind cmake
