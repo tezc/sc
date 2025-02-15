@@ -28,7 +28,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        compiler: [ gcc, clang ]
+        compiler: gcc
     steps:
       - uses: actions/checkout@v2.1.0
       - name: build
@@ -49,6 +49,36 @@ jobs:
           cmake ..
           make -j
           make valgrind
+
+  ubuntu-clang:
+    runs-on: ubuntu-22.04
+    if: |
+      (github.event_name == 'pull_request') || 
+      (github.event_name == 'push') || 
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'schedule' && github.repository == 'tezc/sc')) && !contains(github.event.inputs.skip, 'ubuntu')
+    name: Build on Ubuntu
+
+    strategy:
+      fail-fast: false
+      matrix:
+        compiler: clang
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - name: build
+        env:
+          CC: ${{ matrix.compiler }}
+        run: |
+          sudo apt update
+          sudo apt-get install valgrind cmake
+          mkdir build-debug && cd build-debug
+          cmake .. -DSANITIZER=address
+          make -j
+          make check
+          rm -rf *
+          cmake .. -DSANITIZER=undefined
+          make -j
+          make check
 
   ubuntu-gcc-thread:
     runs-on: ubuntu-latest

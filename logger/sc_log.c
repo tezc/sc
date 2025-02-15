@@ -224,7 +224,8 @@ static int sc_strcasecmp(const char *a, const char *b)
 			return 0;
 		}
 
-		if ((n = tolower(*a) - tolower(*b)) != 0) {
+		n = tolower(*a) - tolower(*b);
+		if (n != 0) {
 			return n;
 		}
 	}
