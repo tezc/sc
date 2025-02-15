@@ -191,5 +191,5 @@ int sc_ini_parse_file(void *arg, sc_ini_on_item cb, const char *filename)
 int sc_ini_parse_string(void *arg, sc_ini_on_item cb, const char *str)
 {
 	char *ptr = (char *) str;
-	return sc_ini_parse(arg, cb, &ptr, string_line);
+	return sc_ini_parse(arg, cb, (void*) &ptr, string_line);
 }

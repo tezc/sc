@@ -15,12 +15,12 @@ jobs:
     name: Build on s390x
     steps:
       - uses: actions/checkout@v2.1.0
-      - uses: uraimo/run-on-arch-action@v2.1.1
+      - uses: uraimo/run-on-arch-action@v2.8.1
         name: Build artifact
         id: build
         with:
           arch: s390x
-          distro: ubuntu20.04
+          distro: ubuntu22.04
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
