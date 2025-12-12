@@ -45,6 +45,7 @@ Sanitizers : valgrind and clang/gcc sanitizers(address, undefined, thread)
 | **[option](option)**           | Cmdline argument parser. Very basic one                                                     |
 | **[perf](perf)**               | Benchmark utility to get performance counters info via perf_event_open()                    | 
 | **[queue](queue)**             | Generic queue which can be used as dequeue/stack/list as well                               |
+| **[disjoint](disjoint)**       | Disjoint Set (aka Union-Find) with amortized fast search                                    |
 | **[sc](sc)**                   | Utility functions                                                                           |
 | **[signal](signal)**           | Signal safe snprintf & Signal handler (handling CTRL+C, printing backtrace on crash etc)    |
 | **[socket](socket)**           | Pipe / tcp sockets(also unix domain sockets) /Epoll/Kqueue/WSAPoll for Posix and Windows    |
