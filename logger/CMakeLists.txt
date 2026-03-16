@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.10)
 project(sc_log C)
 
 set(CMAKE_C_STANDARD 99)
@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 add_library(
-        sc_log SHARED
+        sc_log ${SC_LIBRARY_TYPE}
         sc_log.c
         sc_log.h)
 

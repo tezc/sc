@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.10)
 project(sc_perf C)
 
 set(CMAKE_C_STANDARD 99)
@@ -8,7 +8,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 if (${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 
     add_library(
-            sc_perf SHARED
+            sc_perf ${SC_LIBRARY_TYPE}
             sc_perf.c
             sc_perf.h)
 
