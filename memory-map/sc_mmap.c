@@ -201,6 +201,7 @@ int sc_mmap_term(struct sc_mmap *m)
 
 #else
 
+#include <stdio.h>
 #include <unistd.h>
 
 int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
@@ -221,6 +222,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 
 	page_size = sysconf(_SC_PAGESIZE);
 	if (page_size < 0) {
+		printf("sysconf(_SC_PAGESIZE) failed: %s\n", strerror(errno));
 		goto error;
 	}
 
@@ -228,11 +230,13 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 
 	fd = open(name, file_flags, mode);
 	if (fd == -1) {
+		printf("open failed: %s\n", strerror(errno));
 		goto error;
 	}
 
 	rc = stat(name, &st);
 	if (rc != 0) {
+		printf("stat failed: %s\n", strerror(errno));
 		goto cleanup_fd;
 	}
 
@@ -264,6 +268,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 		} while (rc == EINTR);
 
 		if (rc != 0) {
+			printf("posix_fallocate failed: %s\n", strerror(rc));
 			errno = rc;
 			goto cleanup_fd;
 		}
@@ -272,6 +277,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 
 	p = mmap(NULL, len, prot, map_flags, fd, (off_t) offset);
 	if (p == MAP_FAILED) {
+		printf("mmap failed: %s\n", strerror(errno));
 		goto cleanup_fd;
 	}
 
