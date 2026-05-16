@@ -16,9 +16,6 @@ void test1(void)
 
 	rc = sc_mmap_init(&mmap, "x.txt", O_RDWR | O_CREAT | O_TRUNC,
 			  PROT_READ | PROT_WRITE, MAP_SHARED, 0, 4095);
-	if (rc != 0) {
-		printf("%s \n", sc_mmap_err(&mmap));
-	}
 	assert(rc == 0);
 	rc = sc_mmap_msync(&mmap, 0, 4096);
 	assert(rc == 0);
