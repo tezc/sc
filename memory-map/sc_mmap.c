@@ -268,7 +268,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 		} while (rc == EINTR);
 
 		if (rc != 0) {
-			printf("posix_fallocate failed: %s\n", strerror(rc));
+			printf("posix_fallocate failed: %s, offset: %zu, len: %zu\n", strerror(rc), offset, len);
 			errno = rc;
 			goto cleanup_fd;
 		}
