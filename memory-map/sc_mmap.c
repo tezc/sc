@@ -263,7 +263,7 @@ int sc_mmap_init(struct sc_mmap *m, const char *name, int file_flags, int prot,
 			rc = posix_fallocate(fd, (off_t) offset, (off_t) len);
 		} while (rc == EINTR);
 
-		if (rc == EINVAL || rc == ENOTSUP || rc == EOPNOTSUPP) {
+		if (rc == EINVAL || rc == EOPNOTSUPP) {
 			if (ftruncate(fd, (off_t) (offset + len)) != 0) {
 				goto cleanup_fd;
 			}
