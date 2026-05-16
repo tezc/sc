@@ -15,12 +15,12 @@ jobs:
     name: Build on armv7
     steps:
       - uses: actions/checkout@v2.1.0
-      - uses: uraimo/run-on-arch-action@v2.8.1
+      - uses: uraimo/run-on-arch-action@v3
         name: Build artifact
         id: build
         with:
           arch: armv7
-          distro: buster
+          distro: ubuntu22.04
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
