@@ -11,7 +11,7 @@ on:
 jobs:
   archs:
     # The host should always be linux
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu_latest
     name: Build on armv7
     steps:
       - uses: actions/checkout@v2.1.0
@@ -20,7 +20,7 @@ jobs:
         id: build
         with:
           arch: armv7
-          distro: buster
+          distro: ubuntu_latest
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
