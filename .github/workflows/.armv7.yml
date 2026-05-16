@@ -20,7 +20,7 @@ jobs:
         id: build
         with:
           arch: armv7
-          distro: ubuntu-22.04
+          distro: ubuntu22.04
 
           # Not required, but speeds up builds
           githubToken: ${{ github.token }}
