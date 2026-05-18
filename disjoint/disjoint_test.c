@@ -13,18 +13,18 @@ int example(void)
         const char* val;
     };
 
-  struct dummy data[] = {
-         {"zero"},
-         {"one"},
-         {"two"},
-         {"three"},
-         {"four"}};
+    struct dummy data[] = {
+        {"zero"},
+        {"one"},
+        {"two"},
+        {"three"},
+        {"four"}};
 
     struct sc_disjoint_node nodes[5];
 
-  for (int i = 0; i < 5; i++) {
-    sc_disjoint_init( &nodes[i], &data[i] );
-  }
+    for (int i = 0; i < 5; i++) {
+        sc_disjoint_init( &nodes[i], &data[i] );
+    }
 
     // Set0: contains 2 and 3
     // Set1: contains 0 and 1
@@ -68,13 +68,13 @@ int example(void)
     assert( parent1->size == 2 );
     assert( parent2->size == 1 );
 
-  return 0;
+    return 0;
 }
 
 
 int main(void)
 {
-  example();
+    example();
 
-  return 0;
+    return 0;
 }
