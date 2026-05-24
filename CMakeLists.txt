@@ -27,7 +27,7 @@ if (NOT SC_USE_WRAP)
     message(STATUS "Turned off --wrap.")
 endif()
 
-option(SC_BUILD_STATIC "Build static library" ON)
+option(SC_BUILD_STATIC "Build static library" OFF)
 set(SC_LIBRARY_TYPE SHARED)
 if (SC_BUILD_STATIC)
     set(SC_LIBRARY_TYPE STATIC)
