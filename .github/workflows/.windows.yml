@@ -10,14 +10,14 @@ on:
       - master
 jobs:
   windows:
-    runs-on: windows-2019
+    runs-on: windows-2025
     name: Build on Windows
 
     steps:
-      - uses: actions/checkout@v2.1.0
+      - uses: actions/checkout@v4
       - name: build
         run: |
           mkdir build-debug && cd build-debug
-          cmake -G "Visual Studio 16 2019" -A x64 ..
+          cmake -A x64 ..
           cmake --build .
           ctest -C Debug
