@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.10)
 project(sc_signal C)
 
 set(CMAKE_C_STANDARD 99)
@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 add_library(
-        sc_signal SHARED
+        sc_signal ${SC_LIBRARY_TYPE}
         sc_signal.c
         sc_signal.h)
 

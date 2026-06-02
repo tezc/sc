@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 add_library(
-        sc_uri SHARED
+        sc_uri ${SC_LIBRARY_TYPE}
         sc_uri.c
         sc_uri.h)
 

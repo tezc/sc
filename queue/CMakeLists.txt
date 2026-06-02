@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.10)
+﻿cmake_minimum_required(VERSION 3.10)
 project(sc_queue C)
 
 set(CMAKE_C_STANDARD 99)
@@ -6,7 +6,7 @@ set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
 add_library(
-        sc_queue SHARED
+        sc_queue ${SC_LIBRARY_TYPE}
         sc_queue.h)
 
 set_target_properties(sc_queue PROPERTIES LINKER_LANGUAGE C)
