@@ -367,6 +367,10 @@ bool sc_str_replace(char **str, const char *replace, const char *with)
 	rep_len = strlen(replace);
 	with_len = strlen(with);
 
+	if (rep_len == 0) {
+		return true;
+	}
+
 	if (rep_len >= UINT32_MAX || with_len >= UINT32_MAX) {
 		return false;
 	}
