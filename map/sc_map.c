@@ -106,6 +106,9 @@
 			v |= v >> i;                                           \
 		}                                                              \
 		v++;                                                           \
+		if (v == 0) {                                                  \
+			return NULL;                                           \
+		}                                                              \
                                                                                \
 		*cap = v;                                                      \
 		t = sc_map_calloc(v + 1, sizeof(*t));                          \
