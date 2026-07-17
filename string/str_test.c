@@ -459,6 +459,11 @@ void test5(void)
 	assert(strcmp(s1, "longeRlongeR") == 0);
 	assert(sc_str_replace(&s1, "longeR", ""));
 	assert(strcmp(s1, "") == 0);
+	sc_str_set(&s1, "unchanged");
+	assert(sc_str_replace(&s1, "", "x"));
+	assert(strcmp(s1, "unchanged") == 0);
+	assert(sc_str_replace(&s1, "", ""));
+	assert(strcmp(s1, "unchanged") == 0);
 	sc_str_destroy(&s1);
 
 	s1 = sc_str_create("*test * test*");
