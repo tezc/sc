@@ -94,7 +94,7 @@ struct sc_uri *sc_uri_create(const char *str)
 
 			errno = 0;
 			val = strtoul(ptr + 1, &parse_end, 10);
-			if (errno != 0 || val > 65536) {
+			if (errno != 0 || val > 65535) {
 				return NULL;
 			}
 
