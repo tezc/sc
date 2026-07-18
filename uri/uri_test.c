@@ -246,11 +246,21 @@ void test13(void)
 	const char *f = "foo://user:password@example.com:-1/over/there?x#3";
 	const char *f2 = "foo://user:password@example.com:100000/over/"
 			 "there?x#3";
+	const char *f3 = "foo://example.com:65535";
+	const char *f4 = "foo://example.com:65536";
 
 	uri = sc_uri_create(f);
 	assert(uri == NULL);
 
 	uri = sc_uri_create(f2);
+	assert(uri == NULL);
+
+	uri = sc_uri_create(f3);
+	assert(uri != NULL);
+	assert(strcmp(uri->port, "65535") == 0);
+	sc_uri_destroy(uri);
+
+	uri = sc_uri_create(f4);
 	assert(uri == NULL);
 }
 
